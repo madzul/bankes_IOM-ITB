@@ -1,5 +1,5 @@
 'use client'
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
     validateEmail,
     validatePassword,
@@ -47,7 +47,17 @@ export default function RegisterPage() {
         
         return newErrors
       }
-  
+      
+      useEffect(() => {
+        if (Object.keys(errors).length > 0) {
+            const timer = setTimeout(() => {
+                setErrors({})
+            }, 3000)
+            
+            return () => clearTimeout(timer)
+        }
+      }, [errors])
+
       const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()
         
