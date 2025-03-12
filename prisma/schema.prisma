@@ -1,0 +1,45 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Users {
+  id         String  @id @default(uuid())
+  name       String
+  email      String  @unique
+  role       Role
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  file       File?   @relation("UserFile")
+
+  @@map("Users")
+}
+
+model File {
+  userId    String  @id @unique
+  fileURL   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      Users    @relation("UserFile", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("File")
+
+}
+
+enum Role {
+  IOM
+  MAHASISWA
+}
+
+
