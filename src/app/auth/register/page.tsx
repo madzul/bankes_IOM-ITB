@@ -5,6 +5,7 @@ import {
     validatePassword,
     validatePasswordMatch,
 } from "@/utils/_validation"
+import { redirect } from "next/navigation";
 
 
 type Errors = {
@@ -30,7 +31,7 @@ export default function RegisterPage() {
         
         // Name validation
         if (!formData.name.trim()) {
-          newErrors.name = "Nama wajib diisi"
+          newErrors.name = "Name is required"
         }
 
         // Email validation
@@ -53,20 +54,54 @@ export default function RegisterPage() {
             const timer = setTimeout(() => {
                 setErrors({})
             }, 3000)
-            
             return () => clearTimeout(timer)
         }
+
       }, [errors])
 
-      const handleSubmit = (e: React.FormEvent) => {
+      const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         
         const validationErrors = validateForm()
         setErrors(validationErrors)
         
         if (Object.keys(validationErrors).length === 0) {
-          console.log("Form valid, submitting...")
-        }
+          try {
+            // api call
+            const response = await fetch('/api/users/register',{
+              method: 'POST', 
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(formData)
+            })
+
+            /**
+             * need to work on this part 
+             * i don't know why it's not working in client-side
+             * but it's working on the server-side or event network tab in developer mode
+             */
+            if (response.status >= 300 && response.status < 400) {
+              window.location.href = response.url;
+              redirect(response.url); 
+            }
+            
+            const data = await response.json()
+            if(!response.ok){
+              if(data.name) setErrors({name: data.name})
+              if(data.email) setErrors({email: data.email})
+              if(data.password) setErrors({password: data.password})
+              if(data.confirmPassword) setErrors({confirmPassword: data.confirmPassword})
+            }
+            
+
+            } catch (error) {
+                setErrors(prev => ({
+                    ...prev,
+                    general: ["An error occurred. Please try again later."]
+                }))
+            } 
+        } 
       }
   
       const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

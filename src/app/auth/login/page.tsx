@@ -5,7 +5,7 @@ import { validateEmail } from "@/utils/_validation"
 type Errors = {
     email?: string
     password?: string
-    general?: string[]
+    generalError?: string
 }
 
 export default function LoginPage() {
@@ -21,7 +21,7 @@ export default function LoginPage() {
         
         // Email validation
         if (!formData.email.trim()) {
-            newErrors.email = "Email wajib diisi"
+            newErrors.email = "Email is required"
         } else {
             const emailError = validateEmail(formData.email)
             if (emailError) newErrors.email = emailError
@@ -29,7 +29,7 @@ export default function LoginPage() {
 
         // Password validation
         if (!formData.password.trim()) {
-            newErrors.password = "Password wajib diisi"
+            newErrors.password = "Password is required"
         } 
 
         return newErrors
@@ -54,15 +54,26 @@ export default function LoginPage() {
         
         if (Object.keys(validationErrors).length === 0) {
             try {
-                /**
-                 * TODO: Call login API here
-                 */
-                console.log("Form valid, submitting...")
+                // api call
+                const response = await fetch('/api/users/login',{
+                    method: 'POST', 
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(formData),
+                    credentials: 'include'
+
+                })
+
+                if(!response.ok) {
+                    const data = await response.json()
+                    setErrors({generalError: data.generalError})
+                }else{
+                    const data = await response.json()
+                    // const setCookieHeader = response.headers.get('set-cookie');
+                    // console.log('Set-Cookie Header:', setCookieHeader);
+                    console.log('Login successful:', data);
+                }
             } catch (error) {
-                setErrors(prev => ({
-                    ...prev,
-                    general: ["Terjadi kesalahan saat login"]
-                }))
+                setErrors({generalError: 'Something went wrong. Please try again later.'})
             } finally {
                 setIsLoading(false)
             }
@@ -91,16 +102,11 @@ export default function LoginPage() {
                 </h1>
                 
                 {/* Error Summary */}
-                {/* {(errors.general || Object.values(errors).some(e => e)) && (
-                    <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4" role="alert">
-                        {errors.general?.map((msg, i) => (
-                            <p key={i}>{msg}</p>
-                        ))}
-                        {Object.entries(errors).map(([field, msg]) => 
-                            field !== 'general' && msg && <p key={field}>{msg}</p>
-                        )}
-                    </div>
-                )} */}
+                {errors.generalError && (
+                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 text-center" role="alert">
+                    {errors.generalError}
+                </div>
+                )}
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     {/* Email Field */}

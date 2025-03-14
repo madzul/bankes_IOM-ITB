@@ -1,9 +1,9 @@
 export const validateEmail = (email: string) : string | null => {
-    const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/
-    if (!emailRegex.test(email)) {
-        return "Email tidak valid"
-    }
-    return null
+  const emailRegex = /^[a-zA-Z0-9._-]+@mahasiswa\.itb\.ac\.id$/;
+  if (!emailRegex.test(email)) {
+    return "Email tidak valid. Hanya email @mahasiswa.itb.ac.id yang diperbolehkan";
+  }
+  return null;
 }
 
 export const validatePassword = (password: string): string | null => {
