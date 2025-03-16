@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect } from "react"
 import { validateEmail } from "@/utils/_validation"
+import { redirect, useRouter } from "next/navigation";
 
 type Errors = {
     email?: string
@@ -9,6 +10,7 @@ type Errors = {
 }
 
 export default function LoginPage() {
+    const router = useRouter(); 
     const [formData, setFormData] = useState({
         email: "",
         password: "",
@@ -70,7 +72,7 @@ export default function LoginPage() {
                     const data = await response.json()
                     // const setCookieHeader = response.headers.get('set-cookie');
                     // console.log('Set-Cookie Header:', setCookieHeader);
-                    console.log('Login successful:', data);
+                    router.push('/')
                 }
             } catch (error) {
                 setErrors({generalError: 'Something went wrong. Please try again later.'})
@@ -98,7 +100,7 @@ export default function LoginPage() {
         <div className="min-h-screen bg-gray-50 flex items-center justify-center">
             <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
                 <h1 className="text-2xl font-bold mb-6 text-center text-blue-600">
-                    Sign In
+                    Sign In 
                 </h1>
                 
                 {/* Error Summary */}
@@ -161,18 +163,18 @@ export default function LoginPage() {
                         className={`w-full bg-blue-600 text-white py-2 px-4 rounded-lg transition duration-200 
                             ${isLoading ? 'opacity-70 cursor-not-allowed' : 'hover:bg-blue-700'}`}
                     >
-                        {isLoading ? 'Loading...' : 'Login'}
+                        {isLoading ? 'Loading...' : 'Sign In'}
                     </button>
 
                     <div className="text-center">
                         <a href="#" className="text-sm text-blue-500 hover:underline">
-                            Forgot password?
+                            Lupa password?
                         </a>
                     </div>
 
                     <div className="text-center">
                         <span className="text-sm text-gray-600 mr-2">
-                            Don't have account yet? 
+                            Belum punya akun? 
                         </span>
                         <a href="/auth/register" className="text-sm text-blue-500 hover:underline">
                             Sign up

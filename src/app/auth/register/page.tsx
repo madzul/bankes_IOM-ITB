@@ -137,7 +137,7 @@ export default function RegisterPage() {
                     {/* Name Field */}
                     <div>
                         <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                            Full Name
+                            Nama Lengkap
                         </label>
                         <input 
                             type="text" 
@@ -190,7 +190,7 @@ export default function RegisterPage() {
                             onChange={handleInputChange}
                             className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 text-black
                               ${errors.password ? 'border-red-500 focus:ring-red-500' : 'focus:ring-blue-500'}`}
-                            placeholder="Enter Password"
+                            placeholder="Masukkan Password"
                             aria-describedby="password-error"
                         />
                         {errors.password && (
@@ -203,7 +203,7 @@ export default function RegisterPage() {
                     {/* Confirm Password Field */}
                     <div>
                         <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
-                            Confirm Password
+                            Konfirmasi Password
                         </label>
                         <input 
                             type="password" 
@@ -212,7 +212,7 @@ export default function RegisterPage() {
                             onChange={handleInputChange}
                             className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 text-black
                               ${errors.confirmPassword ? 'border-red-500 focus:ring-red-500' : 'focus:ring-blue-500'}`}
-                            placeholder="Confirm Password"
+                            placeholder="Konfirmasi Password"
                             aria-describedby="confirm-error"
                         />
                         {errors.confirmPassword && (
@@ -230,7 +230,7 @@ export default function RegisterPage() {
                     </button>
 
                     <div className="text-center">
-                        <span className="text-gray-600 mr-2">Already have an account?</span>
+                        <span className="text-gray-600 mr-2">Sudah punya akun?</span>
                         <a href="/auth/login" className="text-blue-500 hover:underline">
                             Sign in
                         </a>
