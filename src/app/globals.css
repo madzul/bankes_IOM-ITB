@@ -10,14 +10,19 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --color-main: #013990;
+  --color-var: #003793;
+  --color-lightmain: #F2F7FC;
+  --color-gray: #EEF1F5;
+  --color-footertext: #003A6E;
 }
 
-@media (prefers-color-scheme: dark) {
+/* @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
   }
-}
+} */
 
 body {
   background: var(--background);
