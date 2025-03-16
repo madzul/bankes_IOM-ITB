@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect } from "react"
 import { validateEmail } from "@/utils/_validation"
+import { redirect, useRouter } from "next/navigation";
 
 type Errors = {
     email?: string
@@ -9,6 +10,7 @@ type Errors = {
 }
 
 export default function LoginPage() {
+    const router = useRouter(); 
     const [formData, setFormData] = useState({
         email: "",
         password: "",
@@ -70,7 +72,7 @@ export default function LoginPage() {
                     const data = await response.json()
                     // const setCookieHeader = response.headers.get('set-cookie');
                     // console.log('Set-Cookie Header:', setCookieHeader);
-                    console.log('Login successful:', data);
+                    router.push('/')
                 }
             } catch (error) {
                 setErrors({generalError: 'Something went wrong. Please try again later.'})
@@ -98,7 +100,7 @@ export default function LoginPage() {
         <div className="min-h-screen bg-gray-50 flex items-center justify-center">
             <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
                 <h1 className="text-2xl font-bold mb-6 text-center text-blue-600">
-                    Login
+                    Sign In 
                 </h1>
                 
                 {/* Error Summary */}
@@ -122,7 +124,7 @@ export default function LoginPage() {
                             onChange={handleInputChange}
                             className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 text-black
                                 ${errors.email ? 'border-red-500 focus:ring-red-500' : 'focus:ring-blue-500'}`}
-                            placeholder="Masukkan email"
+                            placeholder="JohnDoe@email.com"
                             aria-describedby="email-error"
                         />
                         {errors.email && (
@@ -145,7 +147,7 @@ export default function LoginPage() {
                             onChange={handleInputChange}
                             className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 text-black
                                 ${errors.password ? 'border-red-500 focus:ring-red-500' : 'focus:ring-blue-500'}`}
-                            placeholder="Masukkan password"
+                            placeholder="Enter Password"
                             aria-describedby="password-error"
                         />
                         {errors.password && (
@@ -161,12 +163,12 @@ export default function LoginPage() {
                         className={`w-full bg-blue-600 text-white py-2 px-4 rounded-lg transition duration-200 
                             ${isLoading ? 'opacity-70 cursor-not-allowed' : 'hover:bg-blue-700'}`}
                     >
-                        {isLoading ? 'Loading...' : 'Login'}
+                        {isLoading ? 'Loading...' : 'Sign In'}
                     </button>
 
                     <div className="text-center">
                         <a href="#" className="text-sm text-blue-500 hover:underline">
-                            Lupa Password?
+                            Lupa password?
                         </a>
                     </div>
 
@@ -175,7 +177,7 @@ export default function LoginPage() {
                             Belum punya akun? 
                         </span>
                         <a href="/auth/register" className="text-sm text-blue-500 hover:underline">
-                            Registrasi
+                            Sign up
                         </a>
                     </div>
                 </form>
