@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from "react"
 import { validateEmail } from "@/utils/_validation"
-import { redirect, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 type Errors = {
     email?: string
@@ -69,13 +69,13 @@ export default function LoginPage() {
                     const data = await response.json()
                     setErrors({generalError: data.generalError})
                 }else{
-                    const data = await response.json()
+                    // const data = await response.json()
                     // const setCookieHeader = response.headers.get('set-cookie');
                     // console.log('Set-Cookie Header:', setCookieHeader);
                     router.push('/')
                 }
             } catch (error) {
-                setErrors({generalError: 'Something went wrong. Please try again later.'})
+                setErrors({generalError: 'Something went wrong. Please try again later.' + {error}})
             } finally {
                 setIsLoading(false)
             }
