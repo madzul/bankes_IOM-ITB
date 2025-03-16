@@ -98,7 +98,7 @@ export default function LoginPage() {
         <div className="min-h-screen bg-gray-50 flex items-center justify-center">
             <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
                 <h1 className="text-2xl font-bold mb-6 text-center text-blue-600">
-                    Login
+                    Sign In
                 </h1>
                 
                 {/* Error Summary */}
@@ -122,7 +122,7 @@ export default function LoginPage() {
                             onChange={handleInputChange}
                             className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 text-black
                                 ${errors.email ? 'border-red-500 focus:ring-red-500' : 'focus:ring-blue-500'}`}
-                            placeholder="Masukkan email"
+                            placeholder="JohnDoe@email.com"
                             aria-describedby="email-error"
                         />
                         {errors.email && (
@@ -145,7 +145,7 @@ export default function LoginPage() {
                             onChange={handleInputChange}
                             className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 text-black
                                 ${errors.password ? 'border-red-500 focus:ring-red-500' : 'focus:ring-blue-500'}`}
-                            placeholder="Masukkan password"
+                            placeholder="Enter Password"
                             aria-describedby="password-error"
                         />
                         {errors.password && (
@@ -166,16 +166,16 @@ export default function LoginPage() {
 
                     <div className="text-center">
                         <a href="#" className="text-sm text-blue-500 hover:underline">
-                            Lupa Password?
+                            Forgot password?
                         </a>
                     </div>
 
                     <div className="text-center">
                         <span className="text-sm text-gray-600 mr-2">
-                            Belum punya akun? 
+                            Don't have account yet? 
                         </span>
                         <a href="/auth/register" className="text-sm text-blue-500 hover:underline">
-                            Registrasi
+                            Sign up
                         </a>
                     </div>
                 </form>

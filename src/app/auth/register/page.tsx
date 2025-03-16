@@ -5,7 +5,7 @@ import {
     validatePassword,
     validatePasswordMatch,
 } from "@/utils/_validation"
-import { redirect } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 
 
 type Errors = {
@@ -18,12 +18,13 @@ type Errors = {
 
 
 export default function RegisterPage() {
+    const router = useRouter();
     const [formData, setFormData] = useState({
-        name: "",
-        email: "",
-        password: "",
-        confirmPassword: ""
-      })
+      name: "",
+      email: "",
+      password: "",
+      confirmPassword: ""
+    })
     const [errors, setErrors] = useState<Errors>({})
 
     const validateForm = (): Errors => {
@@ -81,9 +82,8 @@ export default function RegisterPage() {
              * i don't know why it's not working in client-side
              * but it's working on the server-side or event network tab in developer mode
              */
-            if (response.status >= 300 && response.status < 400) {
-              window.location.href = response.url;
-              redirect(response.url); 
+            if (response.ok) {
+              router.push('/auth/login') 
             }
             
             const data = await response.json()
@@ -109,7 +109,7 @@ export default function RegisterPage() {
           ...formData,
           [e.target.name]: e.target.value
         })
-        
+
         setErrors(prev => ({
           ...prev,
           [e.target.name]: undefined
@@ -119,7 +119,7 @@ export default function RegisterPage() {
         <div className="min-h-screen bg-gray-50 flex items-center justify-center">
             <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
                 <h1 className="text-2xl font-bold mb-6 text-center text-blue-600">
-                    Registrasi
+                    Sign Up
                 </h1>
                 
                 {/* Error Summary
@@ -137,7 +137,7 @@ export default function RegisterPage() {
                     {/* Name Field */}
                     <div>
                         <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                            Nama Lengkap
+                            Full Name
                         </label>
                         <input 
                             type="text" 
@@ -146,7 +146,7 @@ export default function RegisterPage() {
                             onChange={handleInputChange}
                             className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 text-black
                               ${errors.name ? 'border-red-500 focus:ring-red-500' : 'focus:ring-blue-500'}`}
-                            placeholder="Masukkan nama lengkap"
+                            placeholder="John Doe"
                             aria-describedby="name-error"
                         />
                         {errors.name && (
@@ -168,7 +168,7 @@ export default function RegisterPage() {
                             onChange={handleInputChange}
                             className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 text-black
                               ${errors.email ? 'border-red-500 focus:ring-red-500' : 'focus:ring-blue-500'}`}
-                            placeholder="Masukkan email"
+                            placeholder="johndoe@gmail.com"
                             aria-describedby="email-error"
                         />
                         {errors.email && (
@@ -190,7 +190,7 @@ export default function RegisterPage() {
                             onChange={handleInputChange}
                             className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 text-black
                               ${errors.password ? 'border-red-500 focus:ring-red-500' : 'focus:ring-blue-500'}`}
-                            placeholder="Masukkan password"
+                            placeholder="Enter Password"
                             aria-describedby="password-error"
                         />
                         {errors.password && (
@@ -203,7 +203,7 @@ export default function RegisterPage() {
                     {/* Confirm Password Field */}
                     <div>
                         <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
-                            Konfirmasi Password
+                            Confirm Password
                         </label>
                         <input 
                             type="password" 
@@ -212,7 +212,7 @@ export default function RegisterPage() {
                             onChange={handleInputChange}
                             className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 text-black
                               ${errors.confirmPassword ? 'border-red-500 focus:ring-red-500' : 'focus:ring-blue-500'}`}
-                            placeholder="Konfirmasi password"
+                            placeholder="Confirm Password"
                             aria-describedby="confirm-error"
                         />
                         {errors.confirmPassword && (
@@ -226,13 +226,13 @@ export default function RegisterPage() {
                         type="submit"
                         className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-200"
                     >
-                        Daftar
+                        Sign up
                     </button>
 
                     <div className="text-center">
-                        <span className="text-gray-600 mr-2">Sudah punya akun?</span>
+                        <span className="text-gray-600 mr-2">Already have an account?</span>
                         <a href="/auth/login" className="text-blue-500 hover:underline">
-                            Login disini
+                            Sign in
                         </a>
                     </div>
                 </form>

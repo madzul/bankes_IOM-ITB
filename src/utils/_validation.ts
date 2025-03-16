@@ -1,19 +1,19 @@
 export const validateEmail = (email: string) : string | null => {
-  const emailRegex = /^[a-zA-Z0-9._-]+@mahasiswa\.itb\.ac\.id$/;
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   if (!emailRegex.test(email)) {
-    return "Email tidak valid. Hanya email @mahasiswa.itb.ac.id yang diperbolehkan";
+    return "Email not valid ";
   }
   return null;
 }
 
 export const validatePassword = (password: string): string | null => {
-    if (password.length < 8) return "Minimal 8 karakter";
-    if (!/[A-Z]/.test(password)) return "Harus mengandung huruf kapital";
-    if (!/[a-z]/.test(password)) return "Harus mengandung huruf kecil";
-    if (!/[0-9]/.test(password)) return "Harus mengandung angka";
+    if (password.length < 8) return "Must be at least 8 characters";
+    if (!/[A-Z]/.test(password)) return "Must be an uppercase letter";
+    if (!/[a-z]/.test(password)) return "Must be a lowercase letter";
+    if (!/[0-9]/.test(password)) return "Must be a number";
     return null;
   };
   
 export const validatePasswordMatch = (password: string, confirmPassword: string): string | null => {
-    return password === confirmPassword ? null : "Password tidak cocok";
+    return password === confirmPassword ? null : "Passwords do not match";
   };
