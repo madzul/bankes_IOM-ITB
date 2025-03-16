@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { validateEmail, validatePassword } from "@/utils/_validation";
+// import { validateEmail, validatePassword } from "@/utils/_validation";
 
 const prisma = new PrismaClient();
 
@@ -17,7 +17,7 @@ type Errors = {
 export async function POST(req: Request){
     try{
         const { email, password } = await req.json(); 
-        let errors: Errors = {}; 
+        const errors: Errors = {}; 
 
         if(!email){
             errors.email = "Email is required"
@@ -56,6 +56,7 @@ export async function POST(req: Request){
                     {"expiresIn": "2h"}
                 )
 
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 const { password: _, ...userWithoutPassword } = user;
 
                 const response = NextResponse.json(
@@ -82,7 +83,7 @@ export async function POST(req: Request){
 
 
     } catch(error) {
-        return NextResponse.json({error: "Internal server error" }, { status: 500});
+        return NextResponse.json({error: `Internal server error ${error}` }, { status: 500});
     }
 }
 

@@ -4,17 +4,18 @@ import { useState, ChangeEvent } from 'react';
 import axios from 'axios'; // You'll need to install axios for HTTP requests
 
 // Define types for our component and MinIO response
-interface DocumentUploadProps {
+// interface DocumentUploadProps {
   // You can add props here if needed in the future
-}
+// }
 
 interface UploadResponse {
   success: boolean;
   fileUrl?: string;
+  fileName?: string;
   error?: string;
 }
 
-export default function DocumentUpload({}: DocumentUploadProps) {
+export default function DocumentUpload() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedDocType, setSelectedDocType] = useState<string>('');
   const [isUploading, setIsUploading] = useState<boolean>(false);
@@ -51,15 +52,15 @@ export default function DocumentUpload({}: DocumentUploadProps) {
       // Step 2: Configure MinIO upload endpoint
       // CHANGE HERE: Update with your MinIO server details
       const minioConfig = {
-        endPoint: 'your-minio-server.example.com', // Replace with your MinIO server endpoint
-        port: 9000,                                // Default MinIO port
-        bucketName: 'documents-bucket',            // Replace with your bucket name
-        useSSL: true                               // Set to false if not using HTTPS
+        endPoint: "localhost",
+        port: 9000,                                             // Default MinIO port
+        bucketName: "iom-itb",                                  // Replace with your bucket name
+        useSSL: false                                           // Set to false if not using HTTPS
       };
       
       // Step 3: Send the upload request to your API that handles MinIO upload
       // CHANGE HERE: Update with your actual API endpoint that handles MinIO upload
-      const response = await axios.post<UploadResponse>('/api/upload-to-minio', formData, {
+      const response = await axios.post<UploadResponse>('/api/files/upload', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           // You might need additional headers for authentication
@@ -71,13 +72,13 @@ export default function DocumentUpload({}: DocumentUploadProps) {
       });
       
       // Step 4: Handle the response
-      if (response.data.success && response.data.fileUrl) {
-        console.log('File uploaded successfully:', response.data.fileUrl);
+      if (response.data.success && response.data.fileName) {
+        console.log('File uploaded successfully:', response.data.fileName);
         
         // Update the uploaded documents map
         setUploadedDocs(prev => {
           const newMap = new Map(prev);
-          newMap.set(selectedDocType, response.data.fileUrl || '');
+          newMap.set(selectedDocType, response.data.fileName || '');
           return newMap;
         });
         
@@ -114,10 +115,12 @@ export default function DocumentUpload({}: DocumentUploadProps) {
     try {
       // CHANGE HERE: Add your API call to delete the file from MinIO
       const fileUrl = uploadedDocs.get(docType);
-      await axios.delete('/api/delete-from-minio', {
+      console.log(fileUrl);
+      await axios.delete('/api/files/delete', {
         params: {
           fileUrl,
           documentType: docType,
+          bucket: process.env.MINIO_BUCKET_NAME,
           // You might need to include bucket information here
         }
       });

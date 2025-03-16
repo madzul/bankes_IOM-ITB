@@ -5,7 +5,7 @@ import {
     validatePassword,
     validatePasswordMatch,
 } from "@/utils/_validation"
-import { redirect, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 
 type Errors = {
@@ -98,7 +98,7 @@ export default function RegisterPage() {
             } catch (error) {
                 setErrors(prev => ({
                     ...prev,
-                    general: ["An error occurred. Please try again later."]
+                    general: [`An error occurred. Please try again later.\n ${error}`]
                 }))
             } 
         } 

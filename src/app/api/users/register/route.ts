@@ -21,7 +21,7 @@ type Errors = {
 export async function POST(req: Request) {
   try {
     const { name, email, password, confirmPassword } = await req.json();
-    let errors: Errors = {};
+    const errors: Errors = {};
 
     if(!name) {
       errors.name = "Name is required"
