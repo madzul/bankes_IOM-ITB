@@ -1,15 +1,24 @@
 'use client'
 
 import { useState, ChangeEvent } from 'react';
+import axios from 'axios'; // You'll need to install axios for HTTP requests
 
-// Define types for our component
+// Define types for our component and MinIO response
 interface DocumentUploadProps {
   // You can add props here if needed in the future
+}
+
+interface UploadResponse {
+  success: boolean;
+  fileUrl?: string;
+  error?: string;
 }
 
 export default function DocumentUpload({}: DocumentUploadProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedDocType, setSelectedDocType] = useState<string>('');
+  const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [uploadedDocs, setUploadedDocs] = useState<Map<string, string>>(new Map());
   
   // Typed event handlers
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -24,13 +33,106 @@ export default function DocumentUpload({}: DocumentUploadProps) {
     setSelectedDocType(event.target.value);
   };
   
-  const handleUpload = (): void => {
-    // Handle file upload logic here
-    if (selectedFile && selectedDocType) {
-      console.log('Uploading file:', selectedFile.name, 'as document type:', selectedDocType);
-      // Implement actual upload functionality
-    } else {
+  // This is the function you need to modify for MinIO upload
+  const handleUpload = async (): Promise<void> => {
+    if (!selectedFile || !selectedDocType) {
       alert('Please select both a document type and a file');
+      return;
+    }
+
+    setIsUploading(true);
+    
+    try {
+      // Step 1: Create a FormData object to send the file
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+      formData.append('documentType', selectedDocType);
+      
+      // Step 2: Configure MinIO upload endpoint
+      // CHANGE HERE: Update with your MinIO server details
+      const minioConfig = {
+        endPoint: 'your-minio-server.example.com', // Replace with your MinIO server endpoint
+        port: 9000,                                // Default MinIO port
+        bucketName: 'documents-bucket',            // Replace with your bucket name
+        useSSL: true                               // Set to false if not using HTTPS
+      };
+      
+      // Step 3: Send the upload request to your API that handles MinIO upload
+      // CHANGE HERE: Update with your actual API endpoint that handles MinIO upload
+      const response = await axios.post<UploadResponse>('/api/upload-to-minio', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          // You might need additional headers for authentication
+        },
+        params: {
+          bucket: minioConfig.bucketName,
+          documentType: selectedDocType,
+        }
+      });
+      
+      // Step 4: Handle the response
+      if (response.data.success && response.data.fileUrl) {
+        console.log('File uploaded successfully:', response.data.fileUrl);
+        
+        // Update the uploaded documents map
+        setUploadedDocs(prev => {
+          const newMap = new Map(prev);
+          newMap.set(selectedDocType, response.data.fileUrl || '');
+          return newMap;
+        });
+        
+        // Reset form fields after successful upload
+        setSelectedFile(null);
+        setSelectedDocType('');
+        
+        // If you have a file input ref, you might want to reset it
+        const fileInput = document.getElementById('fileUpload') as HTMLInputElement;
+        if (fileInput) fileInput.value = '';
+      } else {
+        throw new Error(response.data.error || 'Upload failed');
+      }
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      alert(`Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+  
+  // Check if a document has been uploaded
+  const isDocumentUploaded = (docType: string): boolean => {
+    return uploadedDocs.has(docType);
+  };
+  
+  // Handle document removal
+  const handleRemoveDocument = async (docType: string): Promise<void> => {
+    if (!isDocumentUploaded(docType)) return;
+    
+    const confirmDelete = window.confirm(`Are you sure you want to remove ${docType}?`);
+    if (!confirmDelete) return;
+    
+    try {
+      // CHANGE HERE: Add your API call to delete the file from MinIO
+      const fileUrl = uploadedDocs.get(docType);
+      await axios.delete('/api/delete-from-minio', {
+        params: {
+          fileUrl,
+          documentType: docType,
+          // You might need to include bucket information here
+        }
+      });
+      
+      // Update state to remove the document
+      setUploadedDocs(prev => {
+        const newMap = new Map(prev);
+        newMap.delete(docType);
+        return newMap;
+      });
+      
+      console.log(`${docType} removed successfully`);
+    } catch (error) {
+      console.error('Error removing document:', error);
+      alert(`Failed to remove document: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
   
@@ -95,9 +197,14 @@ export default function DocumentUpload({}: DocumentUploadProps) {
           
           <button 
             onClick={handleUpload}
-            className="bg-[#2074b9] text-white border-none py-2 px-4 rounded-md cursor-pointer font-bold float-right"
+            disabled={isUploading || !selectedFile || !selectedDocType}
+            className={`${
+              isUploading || !selectedFile || !selectedDocType
+                ? 'bg-gray-400'
+                : 'bg-[#2074b9] hover:bg-[#1a5d94]'
+            } text-white border-none py-2 px-4 rounded-md cursor-pointer font-bold float-right`}
           >
-            Upload
+            {isUploading ? 'Uploading...' : 'Upload'}
           </button>
         </div>
       </div>
@@ -105,16 +212,23 @@ export default function DocumentUpload({}: DocumentUploadProps) {
       {/* Document List Section */}
       <div className="flex border-b border-gray-300 pb-2 mb-2 font-bold">
         <div className="flex-3 p-1">Dokumen</div>
-        <div className="flex-1 p-1 text-center">Upload</div>
+        <div className="flex-1 p-1 text-center">Status</div>
       </div>
       
       {documents.map((doc, index) => (
         <div key={index} className="flex border-b border-gray-300 py-2">
           <div className="flex-grow p-1">{doc}</div>
           <div className="w-24 p-1 text-center">
-            <button className="bg-red-600 text-white border-none py-1 px-2 rounded-md cursor-pointer">
-              ✕
-            </button>
+            {isDocumentUploaded(doc) ? (
+              <button 
+                onClick={() => handleRemoveDocument(doc)}
+                className="bg-red-600 hover:bg-red-700 text-white border-none py-1 px-2 rounded-md cursor-pointer"
+              >
+                ✕
+              </button>
+            ) : (
+              <span className="text-gray-500">-</span>
+            )}
           </div>
         </div>
       ))}
