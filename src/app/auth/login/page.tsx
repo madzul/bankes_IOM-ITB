@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react"
 import { validateEmail } from "@/utils/_validation"
 import { redirect, useRouter } from "next/navigation";
+import Link from 'next/link';
 
 type Errors = {
     email?: string
@@ -97,11 +98,20 @@ export default function LoginPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-            <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-                <h1 className="text-2xl font-bold mb-6 text-center text-blue-600">
-                    Sign In 
+        <div className="flex items-center justify-center">
+            <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-md my-[5%]">
+                <h1 className="text-2xl font-bold mb-2 text-center text-var">
+                    Masuk ke Akun Anda
                 </h1>
+
+                <div className="text-center font-normal mb-4">
+                    <span className="text-sm mr-1">
+                        Belum punya akun? 
+                    </span>
+                    <Link href="/auth/register" className="text-sm text-var font-bold hover:underline">
+                        Daftar
+                    </Link>
+                </div>
                 
                 {/* Error Summary */}
                 {errors.generalError && (
@@ -113,7 +123,7 @@ export default function LoginPage() {
                 <form onSubmit={handleSubmit} className="space-y-4">
                     {/* Email Field */}
                     <div>
-                        <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                        <label htmlFor="email" className="block text-sm font-medium mb-2">
                             Email
                         </label>
                         <input 
@@ -124,7 +134,7 @@ export default function LoginPage() {
                             onChange={handleInputChange}
                             className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 text-black
                                 ${errors.email ? 'border-red-500 focus:ring-red-500' : 'focus:ring-blue-500'}`}
-                            placeholder="JohnDoe@email.com"
+                            placeholder="example@email.com"
                             aria-describedby="email-error"
                         />
                         {errors.email && (
@@ -136,7 +146,7 @@ export default function LoginPage() {
 
                     {/* Password Field */}
                     <div>
-                        <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                        <label htmlFor="password" className="block text-sm font-medium mb-2">
                             Password
                         </label>
                         <input 
@@ -156,30 +166,32 @@ export default function LoginPage() {
                             </p>
                         )}
                     </div>
-
-                    <button 
-                        type="submit"
-                        disabled={isLoading}
-                        className={`w-full bg-blue-600 text-white py-2 px-4 rounded-lg transition duration-200 
-                            ${isLoading ? 'opacity-70 cursor-not-allowed' : 'hover:bg-blue-700'}`}
-                    >
-                        {isLoading ? 'Loading...' : 'Sign In'}
-                    </button>
-
-                    <div className="text-center">
-                        <a href="#" className="text-sm text-blue-500 hover:underline">
+                    
+                    <div className="">
+                        <Link href="#" className="text-sm text-var font-bold hover:underline">
                             Lupa password?
-                        </a>
+                        </Link>
+                    </div>
+                    
+                    <div className="flex">
+                        <button 
+                            type="submit"
+                            disabled={isLoading}
+                            className={`mx-auto bg-var text-white py-2 px-4 rounded-lg transition duration-200 
+                                ${isLoading ? 'opacity-90 cursor-not-allowed' : 'hover:bg-var/90 cursor-pointer'}`}
+                        >
+                            {isLoading ? 'Loading...' : 'Masuk'}
+                        </button>
                     </div>
 
-                    <div className="text-center">
-                        <span className="text-sm text-gray-600 mr-2">
-                            Belum punya akun? 
-                        </span>
-                        <a href="/auth/register" className="text-sm text-blue-500 hover:underline">
-                            Sign up
-                        </a>
-                    </div>
+                    <div className="text-center font-normal mb-4">
+                    <span className="text-sm mr-1">
+                        Butuh bantuan?
+                    </span>
+                    <Link href="/auth/register" className="text-sm text-var font-bold hover:underline">
+                        Hubungi kami
+                    </Link>
+                </div>
                 </form>
             </div>
         </div>

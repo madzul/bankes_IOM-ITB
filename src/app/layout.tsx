@@ -5,7 +5,7 @@ import Footer from "./components/layout/footer";
 import { DM_Sans } from 'next/font/google';
 
 const dmSans = DM_Sans({
-  weight: ['600', '700'],
+  weight: ['400', '600', '700'],
   subsets: ['latin'],
 });
 
