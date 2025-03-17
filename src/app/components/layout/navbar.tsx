@@ -15,7 +15,7 @@ const Navbar: React.FC = () => {
 						<h2 className='text-main'>Institut Teknologi Bandung</h2>
 					</div>
 			</Link>
-			<Link href="/auth/login" className="py-2 px-5 rounded-full bg-main text-white">Masuk</Link>
+			<Link href="/auth/login" className="py-2 px-5 rounded-full bg-var hover:bg-var/90 text-white">Masuk</Link>
 		</nav>
 	);
 };
