@@ -157,7 +157,7 @@ export default function LoginPage() {
                             onChange={handleInputChange}
                             className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 text-black
                                 ${errors.password ? 'border-red-500 focus:ring-red-500' : 'focus:ring-blue-500'}`}
-                            placeholder="Enter Password"
+                            placeholder="Masukkan Password"
                             aria-describedby="password-error"
                         />
                         {errors.password && (
@@ -185,13 +185,13 @@ export default function LoginPage() {
                     </div>
 
                     <div className="text-center font-normal mb-4">
-                    <span className="text-sm mr-1">
-                        Butuh bantuan?
-                    </span>
-                    <Link href="/auth/register" className="text-sm text-var font-bold hover:underline">
-                        Hubungi kami
-                    </Link>
-                </div>
+                        <span className="text-sm mr-1">
+                            Butuh bantuan?
+                        </span>
+                        <Link href="/auth/register" className="text-sm text-var font-bold hover:underline">
+                            Hubungi kami
+                        </Link>
+                    </div>
                 </form>
             </div>
         </div>
