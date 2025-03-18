@@ -5,7 +5,7 @@ import React from 'react';
 
 const Navbar: React.FC = () => {
 	return (
-		<nav className="flex justify-between items-center py-5 px-27 bg-white shadow-md sticky top-0">
+		<nav className="flex justify-between items-center py-5 px-27 bg-white shadow-md sticky top-0 z-50">
 			<Link href="/" className="flex items-center space-x-4">
 					<div>
 						<Image src="/logoIOM.png" alt="IOM logo"  width={46} height={0}/>
