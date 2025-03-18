@@ -1,48 +1,61 @@
 "use client"
 
 import type React from "react"
-
-import { useState } from "react"
 import Image from "next/image"
 import { User, FileUp, GraduationCap, Lock, LogOut } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useRouter } from "next/navigation"
 
 type NavItem = {
   id: string
   label: string
+  link: string
   icon: React.ReactNode
 }
 
-export default function SidebarMahasiswa() {
-  const [activeTab, setActiveTab] = useState("profile")
+type SidebarMahasiswaProps = {
+  activeTab: string
+}
+
+export default function SidebarMahasiswa({ activeTab }: SidebarMahasiswaProps) {
+  const router = useRouter()
 
   const navItems: NavItem[] = [
     {
       id: "profile",
       label: "Profil",
+      link: "/student/profile",
       icon: <User className="h-5 w-5" />,
     },
     {
       id: "upload",
       label: "Unggah Dokumen",
+      link: "/student/upload",
       icon: <FileUp className="h-5 w-5" />,
     },
     {
       id: "scholarship",
       label: "Beasiswa Saya",
+      link: "/student/scholarship",
       icon: <GraduationCap className="h-5 w-5" />,
     },
     {
       id: "password",
       label: "Ubah Password",
+      link: "/student/change-password",
       icon: <Lock className="h-5 w-5" />,
     },
     {
       id: "logout",
       label: "Keluar",
+      link: "/",
       icon: <LogOut className="h-5 w-5" />,
     },
   ]
+
+  const handleNavigation = (link: string) => {
+    router.push(link)
+  }
 
   return (
     <div className="w-full max-w-xs mx-auto">
@@ -66,7 +79,7 @@ export default function SidebarMahasiswa() {
           {navItems.map((item) => (
             <button
               key={item.id}
-              onClick={() => setActiveTab(item.id)}
+              onClick={() => handleNavigation(item.link)}
               className={cn(
                 "flex items-center w-full px-6 py-3 text-left transition-colors cursor-pointer",
                 activeTab === item.id ? "bg-blue-200 text-blue-800" : "hover:bg-gray-50",

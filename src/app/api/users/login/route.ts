@@ -30,7 +30,7 @@ export async function POST(req: Request){
         }
 
         // find if user with email exists 
-        const user = await prisma.users.findUnique({
+        const user = await prisma.user.findUnique({
             where: {
                 email
             }

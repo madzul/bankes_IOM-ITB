@@ -1,0 +1,22 @@
+import { Card } from "@/components/ui/card"
+import SidebarMahasiswa from "@/app/components/layout/sidebarmahasiswa"
+
+export default function Upload() {
+  return (
+    <div className="flex min-h-screen bg-gray-100">
+      <div className="w-1/4 m-8">
+        <SidebarMahasiswa activeTab="upload"/>
+      </div>
+
+      {/* Main Content */}
+      <div className="my-8 mr-8 w-full">
+        <h1 className="text-2xl font-bold mb-6">Upload</h1>
+
+        <Card className="p-8 w-full">
+          <p>Coming Soon!</p>
+        </Card>
+      </div>
+    </div>
+  )
+}
+

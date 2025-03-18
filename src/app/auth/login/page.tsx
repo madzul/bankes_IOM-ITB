@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from "react"
 import { validateEmail } from "@/utils/_validation"
-import { redirect, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Link from 'next/link';
 
 type Errors = {

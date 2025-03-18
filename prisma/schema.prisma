@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,34 +7,65 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Users {
-  id         String  @id @default(uuid())
-  name       String
-  email      String  @unique
-  password   String 
-  role       Role
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  file       File?   @relation("UserFile")
+model User {
+  id          Int       @id @default(autoincrement())
+  name        String
+  email       String    @unique
+  password    String
+  role        Role      
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
 
-  @@map("Users")
+  Student   Student? @relation(fields: [StudentId], references: [id])
+  StudentId Int?
+  
+  InterviewsAsStudent Interview[] @relation("StudentInterviews")
+  InterviewsAsIOM Interview[] @relation("IOMInterviews")
+}
+
+model Student {
+  id          Int       @unique
+  nim         String    @unique
+  fakultas    String
+  prodi       String
+  files       File[]
+
+  User User[] @relation()
 }
 
 model File {
-  userId    String  @id @unique
-  fileURL   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          Int       @id @default(autoincrement())
+  file_url    String
+  type        FileType  
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
 
-  user      Users    @relation("UserFile", fields: [userId], references: [id], onDelete: Cascade)
+  Student   Student @relation(fields: [StudentId], references: [id])
+  StudentId Int
+}
 
-  @@map("File")
+model Interview {
+  id              Int      @id @default(autoincrement())
+  student_id      Int
+  iom_id          Int
+  date_time_start DateTime
+  date_time_end   DateTime
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
 
+  Student User @relation("StudentInterviews", fields: [student_id], references: [id])
+  IOM     User @relation("IOMInterviews", fields: [iom_id], references: [id])
 }
 
 enum Role {
+  Mahasiswa
   IOM
-  MAHASISWA
 }
 
-
+enum FileType {
+  PDF
+  DOCX
+  JPG
+  PNG
+  OTHER
+}

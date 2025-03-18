@@ -1,11 +1,11 @@
 import { Card } from "@/components/ui/card"
-import SidebarMahasiswa from "@/app/components/layout/sidebarnahasiswa"
+import SidebarMahasiswa from "@/app/components/layout/sidebarmahasiswa"
 
 export default function Account() {
   return (
     <div className="flex min-h-screen bg-gray-100">
       <div className="w-1/4 m-8">
-        <SidebarMahasiswa />
+        <SidebarMahasiswa activeTab="profile"/>
       </div>
 
       {/* Main Content */}
