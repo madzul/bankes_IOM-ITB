@@ -1,5 +1,6 @@
 "use client"
 
+import { signOut, useSession } from "next-auth/react";
 import type React from "react"
 import Image from "next/image"
 import { User, FileUp, GraduationCap, Lock, LogOut } from "lucide-react"
@@ -18,6 +19,7 @@ type SidebarMahasiswaProps = {
 }
 
 export default function SidebarMahasiswa({ activeTab }: SidebarMahasiswaProps) {
+  const { data: session } = useSession();
   const router = useRouter()
 
   const navItems: NavItem[] = [
@@ -45,12 +47,6 @@ export default function SidebarMahasiswa({ activeTab }: SidebarMahasiswaProps) {
       link: "/student/change-password",
       icon: <Lock className="h-5 w-5" />,
     },
-    {
-      id: "logout",
-      label: "Keluar",
-      link: "/",
-      icon: <LogOut className="h-5 w-5" />,
-    },
   ]
 
   const handleNavigation = (link: string) => {
@@ -70,7 +66,7 @@ export default function SidebarMahasiswa({ activeTab }: SidebarMahasiswaProps) {
               className="object-cover"
             />
           </div>
-          <h2 className="text-xl font-semibold">Kamisato Ayaka</h2>
+          <h2 className="text-xl font-semibold">{session?.user?.name}</h2>
           <p className="text-sm">Kandidat</p>
         </div>
 
@@ -89,6 +85,19 @@ export default function SidebarMahasiswa({ activeTab }: SidebarMahasiswaProps) {
               <span>{item.label}</span>
             </button>
           ))}
+          <button
+            onClick={() => signOut({ callbackUrl: "/login" })}
+            className={cn(
+              "flex items-center w-full px-6 py-3 text-left transition-colors cursor-pointer hover:bg-gray-50"
+            )}
+          >
+            <span className="mr-3">
+              <LogOut className="h-5 w-5" />
+            </span>
+            <span>
+              Keluar
+            </span>
+          </button>
         </div>
       </div>
     </div>
