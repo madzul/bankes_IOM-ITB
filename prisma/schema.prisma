@@ -36,6 +36,7 @@ model Student {
 model File {
   id          Int       @id @default(autoincrement())
   file_url    String
+  file_name   String
   type        FileType  
   created_at  DateTime  @default(now())
   updated_at  DateTime  @updatedAt
