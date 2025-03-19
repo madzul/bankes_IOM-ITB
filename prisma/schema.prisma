@@ -63,9 +63,7 @@ enum Role {
 }
 
 enum FileType {
-  PDF
-  DOCX
-  JPG
-  PNG
-  OTHER
+  KTP
+  CV
+  Transkrip_Nilai
 }
