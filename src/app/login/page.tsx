@@ -18,7 +18,7 @@ export default function LoginPage() {
           </h2>
           <p className="text-sm">
             Silahkan masuk dengan akun <span className="font-bold">microsoft untuk mahasiswa</span> dan akun{" "}
-            <span className="font-bold">google untuk lembaga</span>.
+            <span className="font-bold">google untuk IOM</span>.
           </p>
         </div>
 

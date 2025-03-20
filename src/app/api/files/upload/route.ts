@@ -1,18 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Client } from 'minio';
 import { PrismaClient } from "@prisma/client";
+import { authOptions } from '../../auth/[...nextauth]/route';
 // import { v4 as uuidv4 } from 'uuid';
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
+import { FileType } from "@prisma/client";
+import { getServerSession } from 'next-auth';
 // import { tmpdir } from 'os';
 
 const prisma = new PrismaClient();
 
-const endPoint: string = process.env.MINIO_ENDPOINT;
-const port: number = parseInt(process.env.MINIO_PORT, 10);
+const endPoint: string = process.env.MINIO_ENDPOINT || "localhost"; // Default fallback
+const port: number = parseInt(process.env.MINIO_PORT || "9000", 10); // Default MinIO port
 const useSSL: boolean = process.env.MINIO_USE_SSL === "true";
-const accessKey: string = process.env.MINIO_ACCESS_KEY;
-const secretKey: string= process.env.MINIO_SECRET_KEY;
+const accessKey: string = process.env.MINIO_ACCESS_KEY || "";
+const secretKey: string = process.env.MINIO_SECRET_KEY || "";
+
+if (!accessKey || !secretKey) {
+    throw new Error("Environment variables tidak ditemukan.");
+}
 
 const minioClient = new Client({
   endPoint: endPoint,
@@ -24,6 +31,24 @@ const minioClient = new Client({
 
 export async function POST(request: NextRequest) {
   try {
+
+    const session = await getServerSession(authOptions);
+
+    if (!session || !session.user || !session.user.email) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+    }
+
+    console.log(session.user.email);
+
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      select: { student_id: true },
+    });
+  
+    if (!user || !user.student_id) {
+      return new Response(JSON.stringify({ error: "Student ID not found" }), { status: 404 });
+    }
+
     const searchParams = request.nextUrl.searchParams;
     const bucketName = searchParams.get('bucket') || 'documents-bucket';
     const documentType = searchParams.get('documentType') || '';
@@ -56,12 +81,13 @@ export async function POST(request: NextRequest) {
     
     const fileUrl = `https://${endPoint}:${port}/${bucketName}/${fileName}`;
     
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const newFile = await prisma.file.create({
       data: {
         file_url: fileUrl,
         file_name: fileName,
-        type: documentType,
-        StudentId: 1, // TODO
+        type: documentType as FileType,
+        student_id: user.student_id,
       },
     });
 

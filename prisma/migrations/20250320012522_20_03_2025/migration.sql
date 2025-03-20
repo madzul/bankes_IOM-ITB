@@ -13,7 +13,7 @@ CREATE TABLE "User" (
     "role" "Role" NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
-    "StudentId" INTEGER,
+    "student_id" INTEGER,
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
 );
@@ -34,7 +34,7 @@ CREATE TABLE "File" (
     "type" "FileType" NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
-    "StudentId" INTEGER NOT NULL,
+    "student_id" INTEGER NOT NULL,
 
     CONSTRAINT "File_pkey" PRIMARY KEY ("id")
 );
@@ -62,10 +62,10 @@ CREATE UNIQUE INDEX "Student_id_key" ON "Student"("id");
 CREATE UNIQUE INDEX "Student_nim_key" ON "Student"("nim");
 
 -- AddForeignKey
-ALTER TABLE "User" ADD CONSTRAINT "User_StudentId_fkey" FOREIGN KEY ("StudentId") REFERENCES "Student"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "User" ADD CONSTRAINT "User_student_id_fkey" FOREIGN KEY ("student_id") REFERENCES "Student"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "File" ADD CONSTRAINT "File_StudentId_fkey" FOREIGN KEY ("StudentId") REFERENCES "Student"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "File" ADD CONSTRAINT "File_student_id_fkey" FOREIGN KEY ("student_id") REFERENCES "Student"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Interview" ADD CONSTRAINT "Interview_student_id_fkey" FOREIGN KEY ("student_id") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

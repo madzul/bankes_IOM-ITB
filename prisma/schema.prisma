@@ -16,11 +16,11 @@ model User {
   created_at  DateTime  @default(now())
   updated_at  DateTime  @updatedAt
 
-  Student   Student? @relation(fields: [StudentId], references: [id])
-  StudentId Int?
+  student   Student? @relation(fields: [student_id], references: [id])
+  student_id Int?
   
-  InterviewsAsStudent Interview[] @relation("StudentInterviews")
-  InterviewsAsIOM Interview[] @relation("IOMInterviews")
+  interviews_as_student Interview[] @relation("StudentInterviews")
+  interviews_as_iom Interview[] @relation("IOMInterviews")
 }
 
 model Student {
@@ -30,7 +30,7 @@ model Student {
   prodi       String
   files       File[]
 
-  User User[] @relation()
+  user User[] @relation()
 }
 
 model File {
@@ -41,8 +41,8 @@ model File {
   created_at  DateTime  @default(now())
   updated_at  DateTime  @updatedAt
 
-  Student   Student @relation(fields: [StudentId], references: [id])
-  StudentId Int
+  student   Student @relation(fields: [student_id], references: [id])
+  student_id Int
 }
 
 model Interview {
@@ -54,8 +54,8 @@ model Interview {
   created_at      DateTime @default(now())
   updated_at      DateTime @updatedAt
 
-  Student User @relation("StudentInterviews", fields: [student_id], references: [id])
-  IOM     User @relation("IOMInterviews", fields: [iom_id], references: [id])
+  student User @relation("StudentInterviews", fields: [student_id], references: [id])
+  iom     User @relation("IOMInterviews", fields: [iom_id], references: [id])
 }
 
 enum Role {
