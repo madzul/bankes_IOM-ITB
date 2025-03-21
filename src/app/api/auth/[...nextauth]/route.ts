@@ -1,6 +1,8 @@
 import NextAuth, { NextAuthOptions } from "next-auth";
 import AzureADProvider from "next-auth/providers/azure-ad";
+import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcrypt";
 
 const prisma = new PrismaClient();
 
@@ -16,7 +18,48 @@ export const authOptions: NextAuthOptions = {
         },
       },
     }),
+
+    CredentialsProvider({
+      name: "Credentials",
+      credentials: {
+        email: { label: "Email", type: "text", placeholder: "Enter your email" },
+        password: { label: "Password", type: "password", placeholder: "Enter your password" },
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) {
+          throw new Error("Invalid credentials");
+        }
+
+        // Find the user by email
+        const user = await prisma.user.findUnique({
+          where: { email: credentials.email },
+        });
+
+        if (!user) {
+          throw new Error("User not found");
+        }
+
+        if (!user.password){
+          throw new Error("No password found");
+        }
+
+        // Verify the password
+        const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
+        if (!isPasswordValid) {
+          throw new Error("Incorrect password");
+        }
+
+        console.log("Authentication successful for user:", user.email);
+
+        // Return the user object (this will be stored in the session)
+        return {
+          id: user.id.toString(),
+          role: user.role,
+        };
+      },
+    })
   ],
+
   callbacks: {
     async signIn({ account, profile }: { account: any; profile?: any }) {
       if (profile?.email?.endsWith("@mahasiswa.itb.ac.id")) {
@@ -33,11 +76,21 @@ export const authOptions: NextAuthOptions = {
               name: profile.name, 
               email: profile.email, 
               password: null,
-              role: "Mahasiswa"
+              role: "Mahasiswa",
+              student: {
+                create: {
+                  nim: profile.email.substring(0,9),  // You need a function to extract/generate NIM
+                  fakultas: "Some Faculty",         // Get fakultas data dynamically
+                  prodi: "Some Program"             // Get prodi data dynamically
+                }
+              }
             }
           });
         }
 
+        return true;
+      }
+      if (account?.provider === "credentials") {
         return true;
       }
       return false;
@@ -48,11 +101,12 @@ export const authOptions: NextAuthOptions = {
         // Fetch the user from the database using their email
         const user = await prisma.user.findFirst({
           where: { email: profile.email },
-          select: { id: true }, // Only select the `id` field
+          select: { id: true, role: true },
         });
     
         if (user) {
-          token.id = user.id; // Store the `id` in the token
+          token.id = user.id;
+          token.role = user.role;
         }
       }
       return token;
@@ -60,13 +114,15 @@ export const authOptions: NextAuthOptions = {
 
     async session({ session, token }: { session: any; token: any }) {
       if (session.user) {
-        session.user.id = token.id as string; // Pass the `id` from the token to the session
+        session.user.id = token.id as string;
+        session.user.role = token.role as string;
       }
       return session;
     }
   },
   pages: {
     signIn: "/login",
+    error: "/login",
   },
 };
 

@@ -19,7 +19,7 @@ const Navbar: React.FC = () => {
 					</div>
 			</Link>
 			{session? 
-				<h1 className="">{session.user?.name}</h1> :
+				<h1 className="">{session.user?.role == "Mahasiswa"? "Profile" : "Dashboard"}</h1> :
 				<Link href="/login" className="py-2 px-5 rounded-full bg-var hover:bg-var/90 text-white">Masuk</Link>
 			}
 		</nav>

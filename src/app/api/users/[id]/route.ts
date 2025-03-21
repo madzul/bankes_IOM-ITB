@@ -4,10 +4,10 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
-  const { id } = params; // Destructure `params` safely
+export async function GET(request: Request, context: { params: { id: string } }) {
+  const params = context.params;
 
-  const userId = parseInt(id, 10); // Convert `id` to an integer
+  const userId = parseInt(params.id, 10);
 
   if (isNaN(userId)) {
     return NextResponse.json({ error: "Invalid user ID" }, { status: 400 });

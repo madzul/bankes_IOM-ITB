@@ -12,7 +12,7 @@ import { getServerSession } from 'next-auth';
 const prisma = new PrismaClient();
 
 const endPoint: string = process.env.MINIO_ENDPOINT || "localhost"; // Default fallback
-const port: number = parseInt(process.env.MINIO_PORT || "9000", 10); // Default MinIO port
+const port: number = 9000; // Default MinIO port
 const useSSL: boolean = process.env.MINIO_USE_SSL === "true";
 const accessKey: string = process.env.MINIO_ACCESS_KEY || "";
 const secretKey: string = process.env.MINIO_SECRET_KEY || "";
@@ -34,20 +34,20 @@ export async function POST(request: NextRequest) {
 
     const session = await getServerSession(authOptions);
 
-    if (!session || !session.user || !session.user.email) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
-    }
+    // if (!session || !session.user || !session.user.\) {
+    //   return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+    // }
 
-    console.log(session.user.email);
+    // console.log(session.user.email);
 
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-      select: { student_id: true },
-    });
+    // const user = await prisma.user.findUnique({
+    //   where: { email: session.user.email },
+    //   select: { student_id: true },
+    // });
   
-    if (!user || !user.student_id) {
-      return new Response(JSON.stringify({ error: "Student ID not found" }), { status: 404 });
-    }
+    // if (!user || !user.student_id) {
+    //   return new Response(JSON.stringify({ error: "Student ID not found" }), { status: 404 });
+    // }
 
     const searchParams = request.nextUrl.searchParams;
     const bucketName = searchParams.get('bucket') || 'documents-bucket';
@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
     const fileArrayBuffer = await file.arrayBuffer();
     const fileBuffer = Buffer.from(fileArrayBuffer);
     
-    const tempFilePath = join("/", fileName);
+    const tempFilePath = join("/Users/Kiza/", fileName);
     await writeFile(tempFilePath, fileBuffer);
     
     await minioClient.fPutObject(bucketName, fileName, tempFilePath, {
@@ -86,8 +86,8 @@ export async function POST(request: NextRequest) {
       data: {
         file_url: fileUrl,
         file_name: fileName,
-        type: documentType as FileType,
-        student_id: user.student_id,
+        type: documentType,
+        student_id: session?.user.id,
       },
     });
 

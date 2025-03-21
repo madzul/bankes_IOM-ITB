@@ -3,6 +3,7 @@ import { useState, useEffect } from "react"
 import { validateEmail } from "@/utils/_validation"
 import { useRouter } from "next/navigation";
 import Link from 'next/link';
+import { signIn } from "next-auth/react";
 
 type Errors = {
     email?: string
@@ -57,26 +58,27 @@ export default function LoginPage() {
         
         if (Object.keys(validationErrors).length === 0) {
             try {
-                // api call
-                const response = await fetch('/api/users/login',{
-                    method: 'POST', 
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify(formData),
-                    credentials: 'include'
+                // Extract email and password from formData
+                const { email, password } = formData;
 
-                })
+                // Trigger the credentials provider login
+                const result = await signIn("credentials", {
+                    email,
+                    password,
+                    redirect: true,
+                    callbackUrl: "/iom/document/", // Redirect after successful login
+                });
 
-                if(!response.ok) {
-                    const data = await response.json()
-                    setErrors({generalError: data.generalError})
-                }else{
-                    const data = await response.json()
-                    // const setCookieHeader = response.headers.get('set-cookie');
-                    // console.log('Set-Cookie Header:', setCookieHeader);
-                    router.push('/')
+                console.log("after result");
+                console.log(result,);
+
+                // Handle errors (if any)
+                if (result?.error) {
+                    alert(result.error);
                 }
             } catch (error) {
-                setErrors({generalError: 'Something went wrong. Please try again later.'})
+                console.error("Error during signIn:", error);
+                console.log("Error during signIn:", error);
             } finally {
                 setIsLoading(false)
             }

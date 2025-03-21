@@ -3,9 +3,28 @@
 import { Card } from "@/components/ui/card"
 import SidebarMahasiswa from "@/app/components/layout/sidebarmahasiswa"
 import { useSession } from "next-auth/react";
+import { useEffect, useState } from "react";
 
 export default function Account() {
   const { data: session } = useSession();
+  const [name, setName] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUserName = async () => {
+      if (session?.user?.id) {
+        const response = await fetch(`/api/users/${session.user.id}`);
+        if (response.ok) {
+          const user = await response.json();
+          setName(user.name);
+        }
+      }
+    };
+
+    fetchUserName();
+  }, [session]);
+
+
+
   return (
     <div className="flex min-h-screen bg-gray-100">
       <div className="w-1/4 m-8">
@@ -20,12 +39,12 @@ export default function Account() {
           <div className="space-y-6">
             <div>
               <h3 className="text-sm font-medium text-gray-500">Nama</h3>
-              <p className="font-medium">{session?.user?.name}</p>
+              <p className="font-medium">{name}</p>
             </div>
 
             <div>
               <h3 className="text-sm font-medium text-gray-500">NIM</h3>
-              <p className="font-medium">{session?.user?.email?.slice(0,8)}</p>
+              <p className="font-medium">{}</p>
             </div>
 
             <div>
@@ -35,7 +54,7 @@ export default function Account() {
 
             <div>
               <h3 className="text-sm font-medium text-gray-500">Angkatan</h3>
-              <p className="font-medium">20{session?.user?.email?.slice(3,5)}</p>
+              <p className="font-medium"></p>
             </div>
           </div>
         </Card>

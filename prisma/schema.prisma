@@ -16,7 +16,7 @@ model User {
   created_at  DateTime  @default(now())
   updated_at  DateTime  @updatedAt
 
-  student   Student? @relation(fields: [student_id], references: [id])
+  student   Student? @relation(fields: [student_id], references: [id], onDelete: Cascade)
   student_id Int?
   
   interviews_as_student Interview[] @relation("StudentInterviews")
@@ -24,7 +24,7 @@ model User {
 }
 
 model Student {
-  id          Int       @unique
+  id          Int       @id @default(autoincrement())
   nim         String    @unique
   fakultas    String
   prodi       String

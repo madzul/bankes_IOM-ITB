@@ -6,6 +6,7 @@ import Image from "next/image"
 import { User, FileUp, GraduationCap, Lock, LogOut } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react";
 
 type NavItem = {
   id: string
@@ -19,7 +20,22 @@ type SidebarMahasiswaProps = {
 }
 
 export default function SidebarMahasiswa({ activeTab }: SidebarMahasiswaProps) {
-  const { data: session } = useSession();
+    const { data: session } = useSession();
+    const [name, setName] = useState<string | null>(null);
+  
+    useEffect(() => {
+      const fetchUserName = async () => {
+        if (session?.user?.id) {
+          const response = await fetch(`/api/users/${session.user.id}`);
+          if (response.ok) {
+            const user = await response.json();
+            setName(user.name);
+          }
+        }
+      };
+  
+      fetchUserName();
+    }, [session]);
   const router = useRouter()
 
   const navItems: NavItem[] = [
@@ -60,13 +76,13 @@ export default function SidebarMahasiswa({ activeTab }: SidebarMahasiswaProps) {
         <div className="p-6 text-center">
           <div className="relative w-24 h-24 mx-auto mb-3 rounded-md overflow-hidden bg-yellow-400">
             <Image
-              src="/stolz.png"
+              src="/13522059.png"
               alt="Profile picture"
               fill
               className="object-cover"
             />
           </div>
-          <h2 className="text-xl font-semibold">{session?.user?.name}</h2>
+          <h2 className="text-xl font-semibold">{name}</h2>
           <p className="text-sm">Kandidat</p>
         </div>
 
