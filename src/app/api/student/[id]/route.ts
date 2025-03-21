@@ -13,17 +13,17 @@ export async function GET(req: Request, context: { params: Promise<{ id: string 
   }
 
   try {
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
+    const student = await prisma.student.findUnique({
+      where: { user_id: userId },
     });
 
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    if (!student) {
+      return NextResponse.json({ error: "student not found" }, { status: 404 });
     }
 
-    return NextResponse.json(user);
+    return NextResponse.json(student);
   } catch (error) {
-    console.error("Error fetching user:", error);
+    console.error("Error fetching student:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

@@ -76,7 +76,7 @@ export default function SidebarMahasiswa({ activeTab }: SidebarMahasiswaProps) {
         <div className="p-6 text-center">
           <div className="relative w-24 h-24 mx-auto mb-3 rounded-md overflow-hidden bg-yellow-400">
             <Image
-              src="/13522059.png"
+              src="/stolz.png"
               alt="Profile picture"
               fill
               className="object-cover"

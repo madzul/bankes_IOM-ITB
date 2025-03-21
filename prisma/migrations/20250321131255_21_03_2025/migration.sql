@@ -13,17 +13,19 @@ CREATE TABLE "User" (
     "role" "Role" NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
-    "student_id" INTEGER,
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "Student" (
-    "id" INTEGER NOT NULL,
+    "id" SERIAL NOT NULL,
     "nim" TEXT NOT NULL,
     "fakultas" TEXT NOT NULL,
-    "prodi" TEXT NOT NULL
+    "prodi" TEXT NOT NULL,
+    "user_id" INTEGER NOT NULL,
+
+    CONSTRAINT "Student_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -56,13 +58,13 @@ CREATE TABLE "Interview" (
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Student_id_key" ON "Student"("id");
-
--- CreateIndex
 CREATE UNIQUE INDEX "Student_nim_key" ON "Student"("nim");
 
+-- CreateIndex
+CREATE UNIQUE INDEX "Student_user_id_key" ON "Student"("user_id");
+
 -- AddForeignKey
-ALTER TABLE "User" ADD CONSTRAINT "User_student_id_fkey" FOREIGN KEY ("student_id") REFERENCES "Student"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "Student" ADD CONSTRAINT "Student_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "File" ADD CONSTRAINT "File_student_id_fkey" FOREIGN KEY ("student_id") REFERENCES "Student"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

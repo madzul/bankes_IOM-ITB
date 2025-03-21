@@ -16,11 +16,11 @@ model User {
   created_at  DateTime  @default(now())
   updated_at  DateTime  @updatedAt
 
-  student   Student? @relation(fields: [student_id], references: [id], onDelete: Cascade)
-  student_id Int?
+  // One-to-one relationship with Student
+  student   Student?
   
   interviews_as_student Interview[] @relation("StudentInterviews")
-  interviews_as_iom Interview[] @relation("IOMInterviews")
+  interviews_as_iom     Interview[] @relation("IOMInterviews")
 }
 
 model Student {
@@ -30,7 +30,9 @@ model Student {
   prodi       String
   files       File[]
 
-  user User[] @relation()
+  // One-to-one relationship with User
+  user       User      @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  user_id    Int       @unique
 }
 
 model File {
