@@ -29,7 +29,7 @@ export default function Upload() {
     formData.append("file", file);
     formData.append("documentType", key);
 
-    // TODO, make .env
+    // TODO: make .env
     const minioConfig = {
       endPoint: "localhost",
       port: 9000,

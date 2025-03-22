@@ -30,6 +30,10 @@ const minioClient = new Client({
 });
 
 export async function POST(request: NextRequest) {
+
+  // TODO: Make it so that we upload all file first, 
+  // then save to upload it
+
   try {
 
     const session = await getServerSession(authOptions);
