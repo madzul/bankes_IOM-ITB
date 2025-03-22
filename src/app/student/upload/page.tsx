@@ -2,15 +2,23 @@
 
 import { Card } from "@/components/ui/card";
 import SidebarMahasiswa from "@/app/components/layout/sidebarmahasiswa";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
-import { Toaster, toast } from "sonner"; 
+import { Toaster, toast } from "sonner";
+
+const bucketName: string = process.env.MINIO_BUCKET_NAME || "iom-itb";
 
 interface UploadResponse {
   success: boolean;
   fileName?: string;
   fileUrl?: string;
   error?: string;
+}
+
+interface FileData {
+  file_url: string;
+  file_name: string;
+  type: string;
 }
 
 export default function Upload() {
@@ -20,73 +28,82 @@ export default function Upload() {
     { title: "Transkrip Nilai", key: "Transkrip_Nilai" },
   ];
 
-  const [uploadedFiles, setUploadedFiles] = useState<
-    { key: string; fileName: string; fileUrl: string }[]
-  >([]);
+  const [selectedFiles, setSelectedFiles] = useState<{ key: string; file: File }[]>([]);
+  const [uploadedFiles, setUploadedFiles] = useState<FileData[]>([]);
+  const studentId = 1; // Replace with actual student ID from session or context
 
-  const handleFileUpload = async (key: string, file: File) => {
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("documentType", key);
-
-    // TODO: make .env
-    const minioConfig = {
-      endPoint: "localhost",
-      port: 9000,
-      bucketName: "iom-itb",
-      useSSL: false,
+  useEffect(() => {
+    const fetchFiles = async () => {
+      try {
+        const response = await axios.get<FileData[]>(`/api/files/fetch/${studentId}`);
+        setUploadedFiles(response.data);
+      } catch (error) {
+        console.error("Error fetching files:", error);
+      }
     };
+
+    fetchFiles();
+  }, []);
+
+  const handleFileSelect = (key: string, file: File) => {
+    setSelectedFiles((prev) => [...prev.filter(f => f.key !== key), { key, file }]);
+  };
+
+  const handleUpload = async () => {
+    if (selectedFiles.length === 0) {
+      toast.error("No files selected.");
+      return;
+    }
+
+    const formData = new FormData();
+    selectedFiles.forEach(({ key, file }) => {
+      formData.append("files", file);
+      formData.append("documentTypes", key);
+    });
 
     try {
       const response = await axios.post<UploadResponse>("/api/files/upload", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
-          // TODO: authentication
         },
         params: {
-          bucket: minioConfig.bucketName,
-          documentType: key,
+          bucket: bucketName,
         },
       });
 
-      if (response.data.success && response.data.fileName && response.data.fileUrl) {
-        const { fileName, fileUrl } = response.data;
-
-        setUploadedFiles((prev) => [
-          ...prev,
-          { key, fileName, fileUrl },
-        ]);
-
-        toast.success(`The file "${fileName}" has been uploaded successfully`, {
-          style: {
-            background: "#16a34a",
-            color: "#ffffff",
-          },
-        });
+      if (response.data.success) {
+        toast.success("All files uploaded successfully");
+        setSelectedFiles([]);
+        location.reload(); // Refresh page after successful upload
       }
     } catch (error) {
-      console.error("Error uploading file:", error);
-
-      toast.error("An error occurred while uploading the file.", {
-        style: {
-          background: "#ef4444",
-          color: "#ffffff",
-        },
-      });
+      console.error("Error uploading files:", error);
+      toast.error("An error occurred while uploading the files.");
     }
   };
 
-  const handleRemoveFile = (fileName: string) => {
-    setUploadedFiles((prev) => prev.filter((file) => file.fileName !== fileName));
+  const handleDelete = async (fileType: string) => {
+    try {
+      const response = await axios.delete("/api/files/delete", {
+        data: { fileType }, 
+      });
+  
+      if (response.data.success) {
+        toast.success("File deleted successfully");
+        setUploadedFiles((prev) => prev.filter((file) => file.type !== fileType)); // Update UI
+      } else {
+        toast.error(response.data.error || "Failed to delete file");
+      }
+    } catch (error) {
+      console.error("Error deleting file:", error);
+      toast.error("An error occurred while deleting the file.");
+    }
   };
-
-  // TODO: Fix API to Database
-  // TODO: Fetch Database
+  
 
   return (
     <div className="flex min-h-screen bg-gray-100">
       <Toaster position="bottom-right" richColors />
-
       <div className="w-1/4 m-8">
         <SidebarMahasiswa activeTab="upload" />
       </div>
@@ -95,37 +112,50 @@ export default function Upload() {
         <h1 className="text-2xl font-bold mb-6">Unggah Dokumen</h1>
 
         <Card className="p-8 w-full">
-          {fileTypes.map((type) => (
-            <div key={type.key} className="mb-4">
-              <h2 className="text-lg font-semibold mb-2">{type.title}</h2>
-              <input
-                type="file"
-                accept=".pdf,.jpg,.jpeg,.png"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    handleFileUpload(type.key, file);
-                  }
-                }}
-                className="mb-2 border-2 w-[20dvw] border-gray-400 hover:border-black hover:cursor-pointer rounded-xl h-full py-2 px-2"
-              />
-              {uploadedFiles
-                .filter((file) => file.key === type.key)
-                .map((file) => (
-                  <div key={file.fileName} className="flex items-center gap-2">
-                    <a href={file.fileUrl} target="_blank" rel="noopener noreferrer">
-                      {file.fileName}
+          {fileTypes.map((type) => {
+            const existingFile = uploadedFiles.find((file) => file.type === type.key);
+
+            return (
+              <div key={type.key} className="mb-4">
+                <h2 className="text-lg font-semibold mb-2">{type.title}</h2>
+                <input
+                  type="file"
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      handleFileSelect(type.key, file);
+                    }
+                  }}
+                  className="mb-2 border-2 w-[20dvw] border-gray-400 hover:border-black hover:cursor-pointer rounded-xl h-full py-2 px-2"
+                />
+                {existingFile && (
+                  <div className="flex gap-4 items-center">
+                    <a
+                      href={existingFile.file_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 underline"
+                    >
+                      Your {existingFile.type}
                     </a>
                     <button
-                      onClick={() => handleRemoveFile(file.fileName)}
-                      className="text-red-500 hover:text-red-700"
+                      onClick={() => handleDelete(existingFile.type)}
+                      className="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-700"
                     >
-                      X
+                      Delete
                     </button>
                   </div>
-                ))}
-            </div>
-          ))}
+                )}
+              </div>
+            );
+          })}
+          <button
+            onClick={handleUpload}
+            className="bg-[#003793] text-white px-4 py-2 rounded-md hover:bg-[#b5c3e1] w-[20dvw]"
+          >
+            Simpan
+          </button>
         </Card>
       </div>
     </div>
