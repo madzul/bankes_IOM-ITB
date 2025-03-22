@@ -5,6 +5,7 @@ import SidebarMahasiswa from "@/app/components/layout/sidebarmahasiswa";
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { Toaster, toast } from "sonner";
+import { useSession } from "next-auth/react";
 
 const bucketName: string = process.env.MINIO_BUCKET_NAME || "iom-itb";
 
@@ -21,24 +22,27 @@ interface FileData {
   type: string;
 }
 
-export default function Upload() {
-  const fileTypes = [
-    { title: "KTP", key: "KTP" },
-    { title: "CV", key: "CV" },
-    { title: "Transkrip Nilai", key: "Transkrip_Nilai" },
-  ];
+const fileTypes = [
+  { title: "KTP", key: "KTP" },
+  { title: "CV", key: "CV" },
+  { title: "Transkrip Nilai", key: "Transkrip_Nilai" },
+];
 
+export default function Upload() {
+  const { data: session } = useSession();
+  
   const [selectedFiles, setSelectedFiles] = useState<{ key: string; file: File }[]>([]);
   const [uploadedFiles, setUploadedFiles] = useState<FileData[]>([]);
-  const studentId = 1; // Replace with actual student ID from session or context
 
   useEffect(() => {
     const fetchFiles = async () => {
-      try {
-        const response = await axios.get<FileData[]>(`/api/files/fetch/${studentId}`);
-        setUploadedFiles(response.data);
-      } catch (error) {
-        console.error("Error fetching files:", error);
+      if (session?.user?.id) {
+        try {
+          const response = await axios.get<FileData[]>(`/api/files/fetch/${session.user.id}`);
+          setUploadedFiles(response.data);
+        } catch (error) {
+          console.error("Error fetching files:", error);
+        }
       }
     };
 
@@ -74,7 +78,7 @@ export default function Upload() {
       if (response.data.success) {
         toast.success("All files uploaded successfully");
         setSelectedFiles([]);
-        location.reload(); // Refresh page after successful upload
+        location.reload();
       }
     } catch (error) {
       console.error("Error uploading files:", error);
