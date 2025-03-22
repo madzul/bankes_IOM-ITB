@@ -4,6 +4,8 @@ import type React from "react"
 import { Calendar, ChartColumn, File, Lock, LogOut } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useRouter } from "next/navigation"
+import { signOut, useSession } from "next-auth/react";
+import { useEffect, useState } from "react";
 
 type NavItem = {
   id: string
@@ -18,6 +20,22 @@ type SidebarIOMProps = {
 
 export default function SidebarIOM({ activeTab }: SidebarIOMProps) {
   const router = useRouter()
+  const { data: session } = useSession();
+  const [name, setName] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUserName = async () => {
+      if (session?.user?.id) {
+        const response = await fetch(`/api/users/${session.user.id}`);
+        if (response.ok) {
+          const user = await response.json();
+          setName(user.name);
+        }
+      }
+    };
+
+    fetchUserName();
+  }, [session]);
 
   const navItems: NavItem[] = [
     {
@@ -44,12 +62,6 @@ export default function SidebarIOM({ activeTab }: SidebarIOMProps) {
       link: "/iom/change-password",
       icon: <Lock className="h-5 w-5" />,
     },
-    {
-      id: "logout",
-      label: "Keluar",
-      link: "/",
-      icon: <LogOut className="h-5 w-5" />,
-    },
   ]
 
   const handleNavigation = (link: string) => {
@@ -61,8 +73,8 @@ export default function SidebarIOM({ activeTab }: SidebarIOMProps) {
       <div className="bg-white rounded-xl shadow-md overflow-hidden">
         {/* Header */}
         <div className="p-6 text-center">
-          <h2 className="text-xl font-semibold">Alisa Mikhailovna Kujou</h2>
-          <p className="text-sm">Orang Tua Mahasiswa</p>
+          <h2 className="text-xl font-semibold">{name}</h2>
+          <p className="text-sm">Pengurus IOM</p>
         </div>
 
         {/* Navigation */}
@@ -80,6 +92,19 @@ export default function SidebarIOM({ activeTab }: SidebarIOMProps) {
               <span>{item.label}</span>
             </button>
           ))}
+          <button
+            onClick={() => signOut({ callbackUrl: "/login" })}
+            className={cn(
+              "flex items-center w-full px-6 py-3 text-left transition-colors cursor-pointer hover:bg-gray-50"
+            )}
+          >
+            <span className="mr-3">
+              <LogOut className="h-5 w-5" />
+            </span>
+            <span>
+              Keluar
+            </span>
+          </button>
         </div>
       </div>
     </div>

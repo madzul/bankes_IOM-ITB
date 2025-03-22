@@ -16,6 +16,7 @@ export default function Account() {
   useEffect(() => {
     const fetchUserName = async () => {
       if (session?.user?.id) {
+        console.log(session,);
         try {
           // Fetch user data
           let response = await fetch(`/api/users/${session.user.id}`);
