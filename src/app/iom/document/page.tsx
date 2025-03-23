@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import SidebarIOM from "@/app/components/layout/sidebariom";
 import { useSession } from "next-auth/react";
-import axios from "axios";
 
 interface Student {
   id: number;
@@ -33,17 +32,16 @@ export default function Upload() {
   useEffect(() => {
     const fetchFiles = async () => {
       if (session?.user?.id) {
-        try {
-          const response = await axios.get(`/api/files/fetch`);
-          setStudents(response.data);
-        } catch (error) {
-          console.error("Error fetching files:", error);
-        }
+        const response = await fetch(`/api/files/fetch`);
+        if (response.ok) {
+          const data = await response.json();
+          setStudents(data.data);
+        } 
       }
     };
 
     fetchFiles();
-  }, []);
+  }, [session]);
   
 
   return (
@@ -56,59 +54,49 @@ export default function Upload() {
         <h1 className="text-2xl font-bold mb-6">Berkas Mahasiswa</h1>
 
         <Card className="p-8 w-full">
-          {/* <table className="w-full ">
+          <table className="w-full ">
             <thead>
               <tr className="">
-                <th className="border border-gray-300 px-4 py-2">NIM</th>
-                <th className="border border-gray-300 px-4 py-2">Name</th>
+                <th className="px-4 py-2">NIM</th>
+                <th className="px-4 py-2">Name</th>
                 {fileTypes.map((file) => (
-                  <th key={file.key} className="border border-gray-300 px-4 py-2">
-                    {file.title}
+                  <th key={file.key} className="px-4 py-2">
+                    {file.key.replace(/_/g, " ")}
                   </th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {students.length > 0 ? (
-                students.map((student) => (
-                  <tr key={student.id} className="text-center">
-                    <td className="border border-gray-300 px-4 py-2">{student.nim}</td>
-                    <td className="border border-gray-300 px-4 py-2">{student.user.name}</td>
-                    {fileTypes.map((file) => (
-                      <td key={file.key} className="border border-gray-300 px-4 py-2">
-                        {renderFile(student.files, file.key)}
+              {students.map((student) => (
+                <tr key={student.id}>
+                  <td className="px-4 py-2 text-center">{student.nim}</td>
+                  <td className="px-4 py-2 text-center">{student.user.name}</td>
+                  {fileTypes.map((fileType) => {
+                    const file = student.files.find((f) => f.type === fileType.key);
+                    return (
+                      <td key={fileType.key} className="px-4 py-2 text-center">
+                        {file ? (
+                          <a
+                            href={file.file_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-500 hover:underline"
+                          >
+                            {file.type}
+                          </a>
+                        ) : (
+                          <span className="text-gray-500">Not Uploaded</span>
+                        )}
                       </td>
-                    ))}
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={fileTypes.length + 2} className="text-center py-4">
-                    No students found.
-                  </td>
+                    );
+                  })}
                 </tr>
-              )}
+              ))}
             </tbody>
-          </table> */}
-          Coming Soon!
+          </table>
         </Card>
       </div>
     </div>
   );
 }
 
-const renderFile = (files: Student["files"], type: string) => {
-  const file = files.find((f) => f.type === type);
-  return file ? (
-    <a
-      href={file.file_url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="text-blue-500 hover:underline"
-    >
-      {file.file_name}
-    </a>
-  ) : (
-    <span className="text-gray-500">No File</span>
-  );
-};

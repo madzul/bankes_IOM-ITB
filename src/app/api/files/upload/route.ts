@@ -70,6 +70,16 @@ export async function POST(request: NextRequest) {
       });
 
       if (existingFile) {
+        const existingFileName = existingFile.file_name;
+    
+        try {
+          await minioClient.removeObject(bucketName, existingFileName);
+          console.log(`Removed existing file from MinIO: ${existingFileName}`);
+        } catch (error) {
+          console.error("Error removing file from MinIO:", error);
+          throw new Error("Failed to remove existing file from MinIO");
+        }
+    
         await prisma.file.update({
           where: { id: existingFile.id },
           data: {

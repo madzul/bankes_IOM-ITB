@@ -47,7 +47,7 @@ export default function Upload() {
     };
 
     fetchFiles();
-  }, []);
+  }, [session]);
 
   const handleFileSelect = (key: string, file: File) => {
     setSelectedFiles((prev) => [...prev.filter(f => f.key !== key), { key, file }]);
@@ -141,7 +141,7 @@ export default function Upload() {
                       rel="noopener noreferrer"
                       className="text-blue-600 underline"
                     >
-                      Your {existingFile.type}
+                      File {existingFile.type.replace(/_/g, " ")}
                     </a>
                     <button
                       onClick={() => handleDelete(existingFile.type)}
