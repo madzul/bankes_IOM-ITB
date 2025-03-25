@@ -8,8 +8,8 @@ const prisma = new PrismaClient();
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
-    
-    if (!session?.user?.id || session.user.role !== "IOM") {
+
+    if (!session?.user?.id || session.user.role !== "Pengurus_IOM") {
       return NextResponse.json(
         { success: false, error: "Unauthorized" },
         { status: 403 }
@@ -28,6 +28,7 @@ export async function GET() {
         },
         Files: {
           select: {
+            period_id: true,
             file_id: true,
             file_url: true,
             file_name: true,

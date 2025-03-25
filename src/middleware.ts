@@ -15,7 +15,7 @@ export default withAuth(
       return NextResponse.redirect(new URL("/login", nextUrl));
     }
 
-    if (userRole === "IOM" && !nextUrl.pathname.startsWith("/iom")) {
+    if (userRole === "Pengurus_IOM" && !nextUrl.pathname.startsWith("/iom")) {
       return NextResponse.redirect(new URL("/login", nextUrl));
     }
 
