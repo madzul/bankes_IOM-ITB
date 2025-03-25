@@ -11,15 +11,15 @@ export default withAuth(
     const userRole = token?.role;
 
     // Define role-based route restrictions
-    if (userRole === "Mahasiswa" && !nextUrl.pathname.startsWith("/student")) {
+    if (nextUrl.pathname.startsWith("/student") && userRole !== "Mahasiswa" ) {
       return NextResponse.redirect(new URL("/login", nextUrl));
     }
 
-    if (userRole === "Pengurus_IOM" && !nextUrl.pathname.startsWith("/iom")) {
+    if (nextUrl.pathname.startsWith("/iom") && userRole !== "Pengurus_IOM" ) {
       return NextResponse.redirect(new URL("/login", nextUrl));
     }
 
-    if (userRole === "Admin" && !nextUrl.pathname.startsWith("/admin")) {
+    if (nextUrl.pathname.startsWith("/admin") && userRole !== "Admin") {
       return NextResponse.redirect(new URL("/login", nextUrl));
     }
 
