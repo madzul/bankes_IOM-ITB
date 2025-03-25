@@ -8,9 +8,9 @@ datasource db {
 }
 
 model User {
-  user_id       Int       @id @default(autoincrement())
+  user_id       Int       @id @default(autoincrement()) @unique
   name          String
-  email         String   @unique
+  email         String    @unique
   password      String?
   role          Role
   created_at    DateTime @default(now())
@@ -20,7 +20,7 @@ model User {
 }
 
 model Student {
-  student_id    Int       @id @default(autoincrement())
+  student_id    Int       @id @default(autoincrement()) @unique
   nim           String
   faculty       String
   major         String
@@ -47,8 +47,8 @@ model Status {
   student_id    Int
   period_id     Int
   passDimawa    Boolean
-  passOM        Boolean
-  passView      Boolean
+  passIOM       Boolean
+  passInterview Boolean
   amount        Int?
   Student       Student  @relation(fields: [student_id], references: [student_id])
   Period        Period   @relation(fields: [period_id], references: [period_id])
@@ -61,6 +61,7 @@ model Period {
   period        String
   start_date    DateTime
   end_date      DateTime
+  is_current    Boolean
   Files         File[]
   Statuses      Status[]
   Interviews    Interview[]

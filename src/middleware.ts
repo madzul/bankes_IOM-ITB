@@ -19,6 +19,10 @@ export default withAuth(
       return NextResponse.redirect(new URL("/login", nextUrl));
     }
 
+    if (userRole === "Admin" && !nextUrl.pathname.startsWith("/admin")) {
+      return NextResponse.redirect(new URL("/login", nextUrl));
+    }
+
     // Allow access if the role matches the route
     return NextResponse.next();
   },

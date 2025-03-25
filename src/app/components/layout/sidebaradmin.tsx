@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { Calendar, ChartColumn, File, Lock, LogOut } from "lucide-react"
+import { Calendar, LogOut } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useRouter } from "next/navigation"
 import { signOut, useSession } from "next-auth/react";
@@ -14,11 +14,11 @@ type NavItem = {
   icon: React.ReactNode
 }
 
-type SidebarIOMProps = {
+type SidebarAdminProps = {
   activeTab: string
 }
 
-export default function SidebarIOM({ activeTab }: SidebarIOMProps) {
+export default function SidebarAdmin({ activeTab }: SidebarAdminProps) {
   const router = useRouter()
   const { data: session } = useSession();
   const [name, setName] = useState<string | null>(null);
@@ -39,29 +39,11 @@ export default function SidebarIOM({ activeTab }: SidebarIOMProps) {
 
   const navItems: NavItem[] = [
     {
-      id: "document",
-      label: "Berkas Mahasiswa",
-      link: "/iom/document",
-      icon: <File className="h-5 w-5" />,
-    },
-    {
-      id: "interview",
-      label: "Jadwal Wawancara",
-      link: "/iom/interview",
+      id: "period",
+      label: "Periode Bantuan",
+      link: "/admin/period",
       icon: <Calendar className="h-5 w-5" />,
-    },
-    {
-      id: "statistic",
-      label: "Statistik Mahasiswa",
-      link: "/iom/statistic",
-      icon: <ChartColumn className="h-5 w-5" />,
-    },
-    {
-      id: "password",
-      label: "Ubah Password",
-      link: "/iom/change-password",
-      icon: <Lock className="h-5 w-5" />,
-    },
+    }
   ]
 
   const handleNavigation = (link: string) => {
@@ -74,7 +56,7 @@ export default function SidebarIOM({ activeTab }: SidebarIOMProps) {
         {/* Header */}
         <div className="p-6 text-center">
           <h2 className="text-xl font-semibold">{name}</h2>
-          <p className="text-sm">Pengurus IOM</p>
+          <p className="text-sm">Admin</p>
         </div>
 
         {/* Navigation */}

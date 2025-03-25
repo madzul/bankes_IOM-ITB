@@ -46,8 +46,8 @@ CREATE TABLE "Status" (
     "student_id" INTEGER NOT NULL,
     "period_id" INTEGER NOT NULL,
     "passDimawa" BOOLEAN NOT NULL,
-    "passOM" BOOLEAN NOT NULL,
-    "passView" BOOLEAN NOT NULL,
+    "passIOM" BOOLEAN NOT NULL,
+    "passInterview" BOOLEAN NOT NULL,
     "amount" INTEGER,
 
     CONSTRAINT "Status_pkey" PRIMARY KEY ("student_id","period_id")
@@ -59,6 +59,7 @@ CREATE TABLE "Period" (
     "period" TEXT NOT NULL,
     "start_date" TIMESTAMP(3) NOT NULL,
     "end_date" TIMESTAMP(3) NOT NULL,
+    "is_current" BOOLEAN NOT NULL,
 
     CONSTRAINT "Period_pkey" PRIMARY KEY ("period_id")
 );
@@ -76,7 +77,13 @@ CREATE TABLE "Interview" (
 );
 
 -- CreateIndex
+CREATE UNIQUE INDEX "User_user_id_key" ON "User"("user_id");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Student_student_id_key" ON "Student"("student_id");
 
 -- AddForeignKey
 ALTER TABLE "Student" ADD CONSTRAINT "Student_student_id_fkey" FOREIGN KEY ("student_id") REFERENCES "User"("user_id") ON DELETE RESTRICT ON UPDATE CASCADE;

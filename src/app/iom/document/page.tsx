@@ -8,10 +8,10 @@ import { useSession } from "next-auth/react";
 interface Student {
   id: number;
   nim: string;
-  user: {
+  User: {
     name: string;
   };
-  files: {
+  Files: {
     id: number;
     file_name: string;
     file_url: string;
@@ -70,9 +70,9 @@ export default function Upload() {
               {students.map((student) => (
                 <tr key={student.id}>
                   <td className="px-4 py-2 text-center">{student.nim}</td>
-                  <td className="px-4 py-2 text-center">{student.user.name}</td>
+                  <td className="px-4 py-2 text-center">{student.User.name}</td>
                   {fileTypes.map((fileType) => {
-                    const file = student.files.find((f) => f.type === fileType.key);
+                    const file = student.Files.find((f) => f.type === fileType.key);
                     return (
                       <td key={fileType.key} className="px-4 py-2 text-center">
                         {file ? (
