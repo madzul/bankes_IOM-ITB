@@ -18,17 +18,17 @@ export async function GET() {
 
     const student_files = await prisma.student.findMany({
       select: {
-        id: true,
+        student_id: true,
         nim: true,
-        user: {
+        User: {
           select: {
-            id: true,
+            user_id: true,
             name: true,
           },
         },
-        files: {
+        Files: {
           select: {
-            id: true,
+            file_id: true,
             file_url: true,
             file_name: true,
             type: true,

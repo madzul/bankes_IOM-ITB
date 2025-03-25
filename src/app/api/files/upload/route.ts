@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       const documentType = documentTypes[i] || "unknown";
-      const fileExtension = file.name.split('.').pop(); // Extract file extension
+      const fileExtension = file.name.split('.').pop();
       const newFileName = `${uuidv4()}-${studentId}-${documentType}.${fileExtension}`;
 
       const fileArrayBuffer = await file.arrayBuffer();
@@ -66,6 +66,7 @@ export async function POST(request: NextRequest) {
         where: {
           student_id: studentId,
           type: documentType as FileType,
+          period_id: 1,
         },
       });
 
@@ -81,10 +82,11 @@ export async function POST(request: NextRequest) {
         }
     
         await prisma.file.update({
-          where: { id: existingFile.id },
+          where: { file_id: existingFile.file_id },
           data: {
             file_url: fileUrl,
             file_name: newFileName,
+            period_id: 1,
           },
         });
       } else {
@@ -94,6 +96,7 @@ export async function POST(request: NextRequest) {
             file_name: newFileName,
             type: documentType as FileType,
             student_id: studentId,
+            period_id: 1,
           },
         });
       }

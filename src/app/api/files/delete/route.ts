@@ -43,7 +43,7 @@ export async function DELETE(request: NextRequest) {
     await minioClient.removeObject(bucketName, fileRecord.file_name);
 
     await prisma.file.delete({
-      where: { id: fileRecord.id }
+      where: { file_id: fileRecord.file_id }
     });
 
     return NextResponse.json({ success: true, message: "File deleted successfully" });

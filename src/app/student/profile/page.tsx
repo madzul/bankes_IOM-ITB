@@ -11,12 +11,11 @@ export default function Account() {
   const [nim, setNim] = useState<string | null>(null);
   const [prodi, setProdi] = useState<string | null>(null);
   const [fakultas, setFakultas] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(true); // Add loading state
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const fetchUserName = async () => {
       if (session?.user?.id) {
-        console.log(session,);
         try {
           // Fetch user data
           let response = await fetch(`/api/users/${session.user.id}`);
@@ -30,8 +29,8 @@ export default function Account() {
           if (response.ok) {
             const student = await response.json();
             setNim(student.nim);
-            setProdi(student.prodi);
-            setFakultas(student.fakultas);
+            setProdi(student.major);
+            setFakultas(student.faculty);
           }
         } catch (error) {
           console.error("Error fetching user data:", error);

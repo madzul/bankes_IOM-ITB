@@ -1,7 +1,6 @@
 'use client'
 import { useState, useEffect } from "react"
 import { validateEmail } from "@/utils/_validation"
-import { useRouter } from "next/navigation";
 import Link from 'next/link';
 import { signIn } from "next-auth/react";
 
@@ -12,7 +11,6 @@ type Errors = {
 }
 
 export default function LoginPage() {
-    const router = useRouter(); 
     const [formData, setFormData] = useState({
         email: "",
         password: "",

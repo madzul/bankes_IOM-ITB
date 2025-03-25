@@ -11,7 +11,7 @@ export async function GET(req: Request, { params }: { params: { studentId: strin
     }
 
     const files = await prisma.file.findMany({
-      where: { student_id: studentId },
+      where: { student_id: studentId, period_id: 1},
       select: {
         file_url: true,
         file_name: true,

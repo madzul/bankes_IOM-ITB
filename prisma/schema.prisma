@@ -8,65 +8,85 @@ datasource db {
 }
 
 model User {
-  id          Int       @id @default(autoincrement())
-  name        String
-  email       String    @unique
-  password    String?
-  role        Role      
-  created_at  DateTime  @default(now())
-  updated_at  DateTime  @updatedAt
-
-  // One-to-one relationship with Student
-  student   Student?
-  
-  interviews_as_student Interview[] @relation("StudentInterviews")
-  interviews_as_iom     Interview[] @relation("IOMInterviews")
+  user_id       Int       @id @default(autoincrement())
+  name          String
+  email         String   @unique
+  password      String?
+  role          Role
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+  Students      Student[] 
+  Interviews    Interview[]
 }
 
 model Student {
-  id          Int       @id @default(autoincrement())
-  nim         String    @unique
-  fakultas    String
-  prodi       String
-  files       File[]
-
-  // One-to-one relationship with User
-  user       User      @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  user_id    Int       @unique
+  student_id    Int       @id @default(autoincrement())
+  nim           String
+  faculty       String
+  major         String
+  Files         File[]
+  Statuses      Status[]
+  Interviews    Interview[]
+  User          User     @relation(fields: [student_id], references: [user_id])
 }
 
 model File {
-  id          Int       @id @default(autoincrement())
-  file_url    String
-  file_name   String
-  type        FileType  
-  created_at  DateTime  @default(now())
-  updated_at  DateTime  @updatedAt
+  file_id       Int       @id @default(autoincrement())
+  student_id    Int
+  period_id     Int
+  file_url      String
+  file_name     String
+  type          FileType
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+  Student       Student  @relation(fields: [student_id], references: [student_id])
+  Period        Period   @relation(fields: [period_id], references: [period_id])
+}
 
-  student   Student @relation(fields: [student_id], references: [id])
-  student_id Int
+model Status {
+  student_id    Int
+  period_id     Int
+  passDimawa    Boolean
+  passOM        Boolean
+  passView      Boolean
+  amount        Int?
+  Student       Student  @relation(fields: [student_id], references: [student_id])
+  Period        Period   @relation(fields: [period_id], references: [period_id])
+
+  @@id([student_id, period_id]) 
+}
+
+model Period {
+  period_id     Int       @id @default(autoincrement())
+  period        String
+  start_date    DateTime
+  end_date      DateTime
+  Files         File[]
+  Statuses      Status[]
+  Interviews    Interview[]
 }
 
 model Interview {
-  id              Int      @id @default(autoincrement())
-  student_id      Int
-  iom_id          Int
-  date_time_start DateTime
-  date_time_end   DateTime
-  created_at      DateTime @default(now())
-  updated_at      DateTime @updatedAt
-
-  student User @relation("StudentInterviews", fields: [student_id], references: [id])
-  iom     User @relation("IOMInterviews", fields: [iom_id], references: [id])
-}
-
-enum Role {
-  Mahasiswa
-  IOM
+  interview_id  Int       @id @default(autoincrement())
+  student_id    Int
+  user_id       Int
+  period_id     Int
+  start_time    DateTime
+  end_time      DateTime
+  Student       Student  @relation(fields: [student_id], references: [student_id])
+  User          User     @relation(fields: [user_id], references: [user_id])
+  Period        Period   @relation(fields: [period_id], references: [period_id])
 }
 
 enum FileType {
+  KTM
   KTP
   CV
   Transkrip_Nilai
+}
+
+enum Role {
+  Admin
+  Mahasiswa
+  Pengurus_IOM
 }
