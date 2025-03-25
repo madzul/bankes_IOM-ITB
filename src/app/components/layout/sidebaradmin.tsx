@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { Calendar, LogOut } from "lucide-react"
+import { Calendar, LogOut, UserRoundPen } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useRouter } from "next/navigation"
 import { signOut, useSession } from "next-auth/react";
@@ -38,6 +38,12 @@ export default function SidebarAdmin({ activeTab }: SidebarAdminProps) {
   }, [session]);
 
   const navItems: NavItem[] = [
+    {
+      id: "account",
+      label: "Manajemen Akun",
+      link: "/admin/account",
+      icon: <UserRoundPen className="h-5 w-5" />,
+    },
     {
       id: "period",
       label: "Periode Bantuan",
