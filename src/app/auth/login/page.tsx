@@ -3,6 +3,8 @@ import { useState, useEffect } from "react"
 import { validateEmail } from "@/utils/_validation"
 import Link from 'next/link';
 import { signIn } from "next-auth/react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation"
 
 type Errors = {
     email?: string
@@ -11,6 +13,8 @@ type Errors = {
 }
 
 export default function LoginPage() {
+    const router = useRouter()
+    const { data: session } = useSession();
     const [formData, setFormData] = useState({
         email: "",
         password: "",
@@ -47,7 +51,30 @@ export default function LoginPage() {
         }
     }, [errors])
 
+    const redirect = async () => {
+        if (session?.user?.id) {
+            const response = await fetch(`/api/users/${session.user.id}`);
+            if (response.ok) {
+                const user = await response.json();
+                const userrole : string = user.role;
+                const roleBasedCallbackUrls : { [key: string] : string }  = {
+                    "Mahasiswa" : "student/profile",
+                    "Admin" : "/admin/account/",
+                    "Pengurus_IOM": "/iom/document/",
+                };
+                const callbackUrl : string = roleBasedCallbackUrls[userrole];
+
+                router.push(callbackUrl);
+            }
+        }
+    }
+
+    useEffect(() => {
+        redirect();
+    })
+
     const handleSubmit = async (e: React.FormEvent) => {
+        var callbackUrl : string = "/auth/login";
         e.preventDefault()
         setIsLoading(true)
         
@@ -63,16 +90,32 @@ export default function LoginPage() {
                 const result = await signIn("credentials", {
                     email,
                     password,
-                    redirect: true,
-                    callbackUrl: "/iom/document/", // Redirect after successful login
+                    redirect: false,
                 });
 
-                console.log("after result");
-                console.log(result,);
-
-                // Handle errors (if any)
                 if (result?.error) {
                     alert(result.error);
+                } else if (result?.ok) {
+    
+                    // Define role-based callback URLs
+                    const roleBasedCallbackUrls : { [key: string] : string }  = {
+                        "Admin": "/admin/account/",
+                        "Pengurus_IOM": "/iom/document/",
+                    };
+    
+                    // Determine the callback URL based on the user's role
+                    if (session?.user?.id) {
+                        const response = await fetch(`/api/users/${session.user.id}`);
+                        if (response.ok) {
+                            const user = await response.json();
+                            const userrole : string = user.role;
+                            callbackUrl = roleBasedCallbackUrls[userrole];
+        
+                            // Redirect the user to the appropriate URL
+                            router.push(callbackUrl);
+                            router.push(callbackUrl);
+                        }
+                    }
                 }
             } catch (error) {
                 console.error("Error during signIn:", error);
