@@ -4,7 +4,6 @@ import SidebarAdmin from "@/app/components/layout/sidebaradmin";
 import { Card } from "@/components/ui/card";
 import { useState, useEffect } from "react";
 
-// Define the Period interface
 interface Period {
   period_id: number;
   period: string;
@@ -79,13 +78,11 @@ export default function PeriodPage() {
         <h1 className="text-2xl font-bold mb-6">Periode Bantuan Kesejahteraan</h1>
 
         <Card className="p-8 w-full">
-          {/* Current Period */}
           <div className="bg-white p-6 rounded shadow mb-6">
             <h2 className="text-xl font-bold mb-4">Periode Sekarang:</h2>
             <p>{currentPeriod?.period || "Tidak ada periode aktif"}</p>
           </div>
 
-          {/* List of Periods */}
           <div className="bg-white p-6 rounded shadow mb-6">
             <h2 className="text-xl font-bold mb-4">Daftar Periode</h2>
             <table className="w-full border-collapse">
@@ -107,7 +104,7 @@ export default function PeriodPage() {
                       {currentPeriod?.period_id !== p.period_id && (
                         <button
                           onClick={() => setCurrent(p.period_id)}
-                          className="px-2 py-1 bg-blue-500 text-white rounded"
+                          className="bg-[#003793] text-white px-2 py-1 rounded-md hover:bg-[#b5c3e1]"
                         >
                           Set Current
                         </button>
@@ -119,7 +116,6 @@ export default function PeriodPage() {
             </table>
           </div>
 
-          {/* Create New Period */}
           <div className="bg-white p-6 rounded shadow">
             <h2 className="text-xl font-bold mb-4">Buat Periode Baru</h2>
             <div className="mb-4">
@@ -157,7 +153,7 @@ export default function PeriodPage() {
             </div>
             <button
               onClick={createPeriod}
-              className="px-4 py-2 bg-green-500 text-white rounded"
+              className="bg-[#003793] text-white px-4 py-2 rounded-md hover:bg-[#b5c3e1]"
             >
               Buat Periode
             </button>
