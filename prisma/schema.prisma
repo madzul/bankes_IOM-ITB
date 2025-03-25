@@ -89,5 +89,6 @@ enum FileType {
 enum Role {
   Admin
   Mahasiswa
+  Await
   Pengurus_IOM
 }

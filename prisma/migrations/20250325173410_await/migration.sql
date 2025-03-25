@@ -2,7 +2,7 @@
 CREATE TYPE "FileType" AS ENUM ('KTM', 'KTP', 'CV', 'Transkrip_Nilai');
 
 -- CreateEnum
-CREATE TYPE "Role" AS ENUM ('Admin', 'Mahasiswa', 'Pengurus_IOM');
+CREATE TYPE "Role" AS ENUM ('Admin', 'Mahasiswa', 'Await', 'Pengurus_IOM');
 
 -- CreateTable
 CREATE TABLE "User" (
