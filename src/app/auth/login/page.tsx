@@ -1,8 +1,10 @@
 'use client'
 import { useState, useEffect } from "react"
 import { validateEmail } from "@/utils/_validation"
-import { redirect, useRouter } from "next/navigation";
 import Link from 'next/link';
+import { signIn } from "next-auth/react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation"
 
 type Errors = {
     email?: string
@@ -11,7 +13,8 @@ type Errors = {
 }
 
 export default function LoginPage() {
-    const router = useRouter(); 
+    const router = useRouter()
+    const { data: session } = useSession();
     const [formData, setFormData] = useState({
         email: "",
         password: "",
@@ -48,6 +51,29 @@ export default function LoginPage() {
         }
     }, [errors])
 
+    const redirect = async () => {
+        if (session?.user?.id) {
+            const response = await fetch(`/api/users/${session.user.id}`);
+            if (response.ok) {
+                const user = await response.json();
+                const userrole : string = user.role;
+                const roleBasedCallbackUrls : { [key: string] : string }  = {
+                    "Mahasiswa" : "student/profile",
+                    "Admin" : "/admin/account/",
+                    "Pengurus_IOM" : "/iom/document/",
+                    "Guest" : "/guest/",
+                };
+                const callbackUrl : string = roleBasedCallbackUrls[userrole];
+
+                router.push(callbackUrl);
+            }
+        }
+    }
+
+    useEffect(() => {
+        redirect();
+    })
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setIsLoading(true)
@@ -57,26 +83,22 @@ export default function LoginPage() {
         
         if (Object.keys(validationErrors).length === 0) {
             try {
-                // api call
-                const response = await fetch('/api/users/login',{
-                    method: 'POST', 
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify(formData),
-                    credentials: 'include'
+                // Extract email and password from formData
+                const { email, password } = formData;
 
-                })
+                // Trigger the credentials provider login
+                const result = await signIn("credentials", {
+                    email,
+                    password,
+                    redirect: false,
+                });
 
-                if(!response.ok) {
-                    const data = await response.json()
-                    setErrors({generalError: data.generalError})
-                }else{
-                    const data = await response.json()
-                    // const setCookieHeader = response.headers.get('set-cookie');
-                    // console.log('Set-Cookie Header:', setCookieHeader);
-                    router.push('/')
+                if (result?.error) {
+                    alert(result.error);
                 }
             } catch (error) {
-                setErrors({generalError: 'Something went wrong. Please try again later.'})
+                console.error("Error during signIn:", error);
+                console.log("Error during signIn:", error);
             } finally {
                 setIsLoading(false)
             }

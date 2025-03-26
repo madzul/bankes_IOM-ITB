@@ -1,87 +1,126 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { Client } from 'minio';
-// import { v4 as uuidv4 } from 'uuid';
-import { writeFile } from 'fs/promises';
-import { join } from 'path';
-// import { tmpdir } from 'os';
+import { NextRequest, NextResponse } from "next/server";
+import { Client } from "minio";
+import { FileType, PrismaClient } from "@prisma/client";
+import { getServerSession } from "next-auth";
+import { authOptions } from "../../auth/[...nextauth]/route";
+import { join } from "path";
+import { writeFile } from "fs/promises";
+import { v4 as uuidv4 } from "uuid";
 
-// Configure MinIO client
-const endPoint = "localhost";
-const port= 9000;
-const useSSL= false;
-const accessKey= "minioadmin";
-const secretKey= "minioadmin";
+const prisma = new PrismaClient();
 
 const minioClient = new Client({
-  endPoint: endPoint,
-  port: port,
-  useSSL: useSSL,
-  accessKey: accessKey,
-  secretKey: secretKey
+  endPoint: process.env.MINIO_ENDPOINT || "localhost",
+  port: 9000,
+  useSSL: process.env.MINIO_USE_SSL === "true",
+  accessKey: process.env.MINIO_ACCESS_KEY || "",
+  secretKey: process.env.MINIO_SECRET_KEY || "",
 });
 
 export async function POST(request: NextRequest) {
   try {
-    // Get the bucket name from the query params
-    const searchParams = request.nextUrl.searchParams;
-    const bucketName = searchParams.get('bucket') || 'documents-bucket'; // Default bucket name
-    const documentType = searchParams.get('documentType') || '';
-    
-    // Ensure the bucket exists
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.id) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    }
+
+    const studentId = Number(session.user.id);
+    const formData = await request.formData();
+    const files = formData.getAll("files") as File[];
+    const documentTypes = formData.getAll("documentTypes") as string[];
+
+    if (!files.length) {
+      return NextResponse.json({ success: false, error: "No files provided" }, { status: 400 });
+    }
+
+    const bucketName = request.nextUrl.searchParams.get("bucket") || "documents-bucket";
     const bucketExists = await minioClient.bucketExists(bucketName);
     if (!bucketExists) {
-      // Optionally create the bucket if it doesn't exist
-      await minioClient.makeBucket(bucketName, 'us-east-1'); // Region can be changed as needed
+      await minioClient.makeBucket(bucketName, "us-east-1");
     }
+
+    const uploadedFiles = [];
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const documentType = documentTypes[i] || "unknown";
+      const fileExtension = file.name.split('.').pop();
+      const newFileName = `${uuidv4()}-${studentId}-${documentType}.${fileExtension}`;
+
+      const fileArrayBuffer = await file.arrayBuffer();
+      const fileBuffer = Buffer.from(fileArrayBuffer);
+
+      const tempFilePath = join("/", newFileName);
+      await writeFile(tempFilePath, fileBuffer);
+
+      await minioClient.fPutObject(bucketName, newFileName, tempFilePath, {
+        'Content-Type': file.type,
+        'X-Document-Type': documentType,
+      });
+
+      // TODO: make it secure
+      const fileUrl = `http://${process.env.MINIO_ENDPOINT}:${9000}/${bucketName}/${newFileName}`;
+
+      const existingFile = await prisma.file.findFirst({
+        where: {
+          student_id: studentId,
+          type: documentType as FileType,
+          period_id: 1,
+        },
+      });
+      
+      const currentPeriod = await prisma.period.findFirst({
+        where: {
+          is_current: true,
+        }
+      })
+
+      if (!currentPeriod) {
+        throw new Error("No current period found in the database.");
+      }      
+
+      if (existingFile) {
+        const existingFileName = existingFile.file_name;
+
+        try {
+          await minioClient.removeObject(bucketName, existingFileName);
+          console.log(`Removed existing file from MinIO: ${existingFileName}`);
+        } catch (error) {
+          console.error("Error removing file from MinIO:", error);
+          throw new Error("Failed to remove existing file from MinIO");
+        }
     
-    // Get form data
-    const formData = await request.formData();
-    const file = formData.get('file') as File;
-    
-    if (!file) {
-      return NextResponse.json({ success: false, error: 'No file provided' }, { status: 400 });
+        await prisma.file.update({
+          where: { file_id: existingFile.file_id },
+          data: {
+            file_url: fileUrl,
+            file_name: newFileName,
+            period_id: currentPeriod?.period_id,
+          },
+        });
+      } else {
+        await prisma.file.create({
+          data: {
+            file_url: fileUrl,
+            file_name: newFileName,
+            type: documentType as FileType,
+            student_id: studentId,
+            period_id: currentPeriod?.period_id,
+          },
+        });
+      }
+
+      uploadedFiles.push({
+        fileName: newFileName,
+        fileUrl,
+        documentType,
+      });
     }
-    
-    // Generate a unique file name to prevent overwriting
-    // const fileExtension = file.name.split('.').pop();
-    // const fileName = `${documentType.replace(/\s+/g, '-').toLowerCase()}-${uuidv4()}.${fileExtension}`;
-    // Testing
-    const fileName = file.name;
-    
-    // Convert the file to Buffer for MinIO upload
-    const fileArrayBuffer = await file.arrayBuffer();
-    const fileBuffer = Buffer.from(fileArrayBuffer);
-    
-    // For MinIO to read the file, we need to save it temporarily
-    const tempFilePath = join("/", fileName);
-    await writeFile(tempFilePath, fileBuffer);
-    
-    // Upload the file to MinIO
-    await minioClient.fPutObject(bucketName, fileName, tempFilePath, {
-      'Content-Type': file.type,
-      'X-Document-Type': documentType,
-    });
-    
-    // Generate URL for the uploaded file
-    const fileUrl = `https://${endPoint}:${port}/${bucketName}/${fileName}`;
-    
-    // You might need to generate a presigned URL for secure access
-    // const presignedUrl = await minioClient.presignedGetObject(bucketName, fileName, 24 * 60 * 60); // 24 hours expiry
-    
-    return NextResponse.json({
-      success: true,
-      fileUrl: fileUrl,
-      // presignedUrl: presignedUrl,
-      fileName: fileName,
-      documentType: documentType
-    });
-    
+
+    return NextResponse.json({ success: true, files: uploadedFiles });
   } catch (error) {
-    console.error('Error uploading to MinIO:', error);
-    return NextResponse.json(
-      { success: false, error: error instanceof Error ? error.message : 'Upload failed' },
-      { status: 500 }
-    );
+    console.error("Upload error:", error);
+    return NextResponse.json({ success: false, error: "Upload failed" }, { status: 500 });
   }
 }
-
