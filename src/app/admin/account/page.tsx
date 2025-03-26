@@ -86,12 +86,12 @@ export default function AccountPage() {
               <tr className="border-b">
                 <th className="py-2">Nama</th>
                 <th className="py-2">Email</th>
-                <th className="py-2">Actions</th>
+                <th className="py-2">Aksi</th>
               </tr>
             </thead>
             <tbody>
-              {users.map((user) => (
-                <tr key={user.id} className="border-b">
+              {users.map((user, id) => (
+                <tr key={id} className="border-b">
                   <td className="py-2">{user.name}</td>
                   <td className="py-2">{user.email}</td>
                   <td className="py-2 space-x-2">
@@ -99,13 +99,13 @@ export default function AccountPage() {
                       className="bg-red-500 text-white px-3 py-1 rounded"
                       onClick={() => handleReject(user.user_id)}
                     >
-                      Reject
+                      Tolak
                     </button>
                     <button
                       className="bg-green-500 text-white px-3 py-1 rounded"
                       onClick={() => handleAccept(user.user_id)}
                     >
-                      Accept
+                      Terima
                     </button>
                   </td>
                 </tr>

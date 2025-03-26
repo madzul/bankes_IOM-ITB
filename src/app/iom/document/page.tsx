@@ -67,8 +67,8 @@ export default function Upload() {
               </tr>
             </thead>
             <tbody>
-              {students.map((student) => (
-                <tr key={student.id}>
+              {students.map((student, id) => (
+                <tr key={id}>
                   <td className="px-4 py-2 text-center">{student.nim}</td>
                   <td className="px-4 py-2 text-center">{student.User.name}</td>
                   {fileTypes.map((fileType) => {

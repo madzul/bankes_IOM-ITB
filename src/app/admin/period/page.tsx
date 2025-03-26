@@ -106,7 +106,7 @@ export default function PeriodPage() {
                           onClick={() => setCurrent(p.period_id)}
                           className="bg-[#003793] text-white px-2 py-1 rounded-md hover:bg-[#b5c3e1]"
                         >
-                          Set Current
+                          Buat Periode Sekarang
                         </button>
                       )}
                     </td>

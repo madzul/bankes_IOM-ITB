@@ -42,8 +42,21 @@ export async function DELETE(request: NextRequest) {
 
     await minioClient.removeObject(bucketName, fileRecord.file_name);
 
+    const currentPeriod = await prisma.period.findFirst({
+      where: {
+        is_current: true,
+      }
+    })
+
+    if (!currentPeriod) {
+      throw new Error("No current period found in the database.");
+    }    
+
     await prisma.file.delete({
-      where: { file_id: fileRecord.file_id }
+      where: { 
+        file_id: fileRecord.file_id,
+        period_id: currentPeriod?.period_id,
+      }
     });
 
     return NextResponse.json({ success: true, message: "File deleted successfully" });
