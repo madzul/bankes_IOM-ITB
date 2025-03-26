@@ -12,15 +12,19 @@ export default withAuth(
 
     // Define role-based route restrictions
     if (nextUrl.pathname.startsWith("/student") && userRole !== "Mahasiswa" ) {
-      return NextResponse.redirect(new URL("/login", nextUrl));
+      return NextResponse.redirect(new URL("/", nextUrl));
     }
 
     if (nextUrl.pathname.startsWith("/iom") && userRole !== "Pengurus_IOM" ) {
-      return NextResponse.redirect(new URL("/login", nextUrl));
+      return NextResponse.redirect(new URL("/", nextUrl));
     }
 
     if (nextUrl.pathname.startsWith("/admin") && userRole !== "Admin") {
-      return NextResponse.redirect(new URL("/login", nextUrl));
+      return NextResponse.redirect(new URL("/", nextUrl));
+    }
+
+    if (nextUrl.pathname.startsWith("/guest") && userRole !== "Guest") {
+      return NextResponse.redirect(new URL("/", nextUrl));
     }
 
     // Allow access if the role matches the route
@@ -31,12 +35,12 @@ export default withAuth(
       authorized: ({ token }) => !!token, // Protects routes if no token is present
     },
     pages: {
-      signIn: "/login", // Redirect unauthenticated users to /login
+      signIn: "/", // Redirect unauthenticated users to homepage
     },
   }
 );
 
 // Protected routes
 export const config = {
-  matcher: ["/student/:path*", "/iom/:path*"],
+  matcher: ["/student/:path*", "/iom/:path*", "/admin/:path*", "/guest/:path*"],
 };

@@ -60,7 +60,8 @@ export default function LoginPage() {
                 const roleBasedCallbackUrls : { [key: string] : string }  = {
                     "Mahasiswa" : "student/profile",
                     "Admin" : "/admin/account/",
-                    "Pengurus_IOM": "/iom/document/",
+                    "Pengurus_IOM" : "/iom/document/",
+                    "Guest" : "/guest/",
                 };
                 const callbackUrl : string = roleBasedCallbackUrls[userrole];
 
@@ -74,7 +75,6 @@ export default function LoginPage() {
     })
 
     const handleSubmit = async (e: React.FormEvent) => {
-        var callbackUrl : string = "/auth/login";
         e.preventDefault()
         setIsLoading(true)
         
@@ -95,27 +95,6 @@ export default function LoginPage() {
 
                 if (result?.error) {
                     alert(result.error);
-                } else if (result?.ok) {
-    
-                    // Define role-based callback URLs
-                    const roleBasedCallbackUrls : { [key: string] : string }  = {
-                        "Admin": "/admin/account/",
-                        "Pengurus_IOM": "/iom/document/",
-                    };
-    
-                    // Determine the callback URL based on the user's role
-                    if (session?.user?.id) {
-                        const response = await fetch(`/api/users/${session.user.id}`);
-                        if (response.ok) {
-                            const user = await response.json();
-                            const userrole : string = user.role;
-                            callbackUrl = roleBasedCallbackUrls[userrole];
-        
-                            // Redirect the user to the appropriate URL
-                            router.push(callbackUrl);
-                            router.push(callbackUrl);
-                        }
-                    }
                 }
             } catch (error) {
                 console.error("Error during signIn:", error);

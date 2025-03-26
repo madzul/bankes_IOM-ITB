@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 export default function AccountPage() {
   const [users, setUsers] = useState<any[]>([]);
 
-  // Fetch users with role "Await"
+  // Fetch users with role "Guest"
   const fetchUsers = async () => {
     try {
       const response = await fetch("/api/awaiting", {

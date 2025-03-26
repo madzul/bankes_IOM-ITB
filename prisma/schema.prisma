@@ -89,6 +89,6 @@ enum FileType {
 enum Role {
   Admin
   Mahasiswa
-  Await
+  Guest
   Pengurus_IOM
 }

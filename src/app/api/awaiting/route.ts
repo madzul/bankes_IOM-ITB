@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 export async function GET() {
   try {
     const users = await prisma.user.findMany({
-      where: { role: "Await" },
+      where: { role: "Guest" },
     });
     return NextResponse.json(users);
   } catch (error) {
