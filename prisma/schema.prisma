@@ -17,6 +17,8 @@ model User {
   updated_at    DateTime @updatedAt
   Students      Student[] 
   Interviews    Interview[]
+  NotificationEndpoints NotificationEndpoint[]
+  Notifications  Notification[]
 }
 
 model Student {

@@ -76,6 +76,27 @@ CREATE TABLE "Interview" (
     CONSTRAINT "Interview_pkey" PRIMARY KEY ("interview_id")
 );
 
+-- CreateTable
+CREATE TABLE "NotificationEndpoint" (
+    "endpoint_id" SERIAL NOT NULL,
+    "user_id" INTEGER NOT NULL,
+    "endpoint" TEXT NOT NULL,
+
+    CONSTRAINT "NotificationEndpoint_pkey" PRIMARY KEY ("endpoint_id")
+);
+
+-- CreateTable
+CREATE TABLE "Notification" (
+    "notification_id" SERIAL NOT NULL,
+    "user_id" INTEGER NOT NULL,
+    "header" TEXT NOT NULL,
+    "body" TEXT NOT NULL,
+    "has_read" BOOLEAN NOT NULL DEFAULT false,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Notification_pkey" PRIMARY KEY ("notification_id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "User_user_id_key" ON "User"("user_id");
 
@@ -108,3 +129,9 @@ ALTER TABLE "Interview" ADD CONSTRAINT "Interview_user_id_fkey" FOREIGN KEY ("us
 
 -- AddForeignKey
 ALTER TABLE "Interview" ADD CONSTRAINT "Interview_period_id_fkey" FOREIGN KEY ("period_id") REFERENCES "Period"("period_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "NotificationEndpoint" ADD CONSTRAINT "NotificationEndpoint_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User"("user_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Notification" ADD CONSTRAINT "Notification_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User"("user_id") ON DELETE RESTRICT ON UPDATE CASCADE;
