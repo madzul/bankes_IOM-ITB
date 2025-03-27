@@ -92,3 +92,22 @@ enum Role {
   Guest
   Pengurus_IOM
 }
+
+model NotificationEndpoint {
+  endpoint_id Int    @id @default(autoincrement()) 
+  user_id     Int
+  endpoint    String
+
+  User        User   @relation(fields: [user_id], references: [user_id])
+}
+
+model Notification {
+  notification_id Int     @id @default(autoincrement()) 
+  user_id         Int
+  header         String
+  body           String
+  has_read       Boolean @default(false)
+  created_at     DateTime @default(now())
+
+  User           User @relation(fields: [user_id], references: [user_id])
+}
