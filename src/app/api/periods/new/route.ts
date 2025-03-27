@@ -19,6 +19,7 @@ export async function POST(request: Request) {
         start_date: new Date(start_date),
         end_date: new Date(end_date),
         is_current: false,
+        is_open: false,
       },
     });
 

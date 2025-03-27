@@ -11,8 +11,6 @@ CREATE TABLE "User" (
     "email" TEXT NOT NULL,
     "password" TEXT,
     "role" "Role" NOT NULL,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("user_id")
 );
@@ -31,12 +29,9 @@ CREATE TABLE "Student" (
 CREATE TABLE "File" (
     "file_id" SERIAL NOT NULL,
     "student_id" INTEGER NOT NULL,
-    "period_id" INTEGER NOT NULL,
     "file_url" TEXT NOT NULL,
     "file_name" TEXT NOT NULL,
     "type" "FileType" NOT NULL,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "File_pkey" PRIMARY KEY ("file_id")
 );
@@ -60,6 +55,7 @@ CREATE TABLE "Period" (
     "start_date" TIMESTAMP(3) NOT NULL,
     "end_date" TIMESTAMP(3) NOT NULL,
     "is_current" BOOLEAN NOT NULL,
+    "is_open" BOOLEAN NOT NULL,
 
     CONSTRAINT "Period_pkey" PRIMARY KEY ("period_id")
 );
@@ -90,9 +86,6 @@ ALTER TABLE "Student" ADD CONSTRAINT "Student_student_id_fkey" FOREIGN KEY ("stu
 
 -- AddForeignKey
 ALTER TABLE "File" ADD CONSTRAINT "File_student_id_fkey" FOREIGN KEY ("student_id") REFERENCES "Student"("student_id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "File" ADD CONSTRAINT "File_period_id_fkey" FOREIGN KEY ("period_id") REFERENCES "Period"("period_id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Status" ADD CONSTRAINT "Status_student_id_fkey" FOREIGN KEY ("student_id") REFERENCES "Student"("student_id") ON DELETE RESTRICT ON UPDATE CASCADE;

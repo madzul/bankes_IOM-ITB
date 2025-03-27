@@ -23,13 +23,12 @@ export async function DELETE(request: NextRequest) {
     }
 
     const studentId = Number(session.user.id);
-    const { fileType } = await request.json(); // Get file type from the request body
+    const { fileType } = await request.json();
 
     if (!fileType) {
       return NextResponse.json({ error: "Missing file type" }, { status: 400 });
     }
 
-    // Retrieve file info from database
     const fileRecord = await prisma.file.findFirst({
       where: { student_id: studentId, type: fileType }
     });
@@ -42,20 +41,9 @@ export async function DELETE(request: NextRequest) {
 
     await minioClient.removeObject(bucketName, fileRecord.file_name);
 
-    const currentPeriod = await prisma.period.findFirst({
-      where: {
-        is_current: true,
-      }
-    })
-
-    if (!currentPeriod) {
-      throw new Error("No current period found in the database.");
-    }    
-
     await prisma.file.delete({
       where: { 
         file_id: fileRecord.file_id,
-        period_id: currentPeriod?.period_id,
       }
     });
 

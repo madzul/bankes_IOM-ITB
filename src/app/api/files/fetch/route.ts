@@ -19,54 +19,46 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { period_id } = body;
 
-    if (!period_id) {
+    if (!period_id || isNaN(Number(period_id))) {
       return NextResponse.json(
-        { success: false, error: "Missing period_id" },
+        { success: false, error: "Invalid or missing period_id" },
         { status: 400 }
       );
     }
 
-    const student_files = await prisma.student.findMany({
+    const studentData = await prisma.status.findMany({
       where: {
-        Files: {
-          some: {
-            period_id: period_id,
-          },
-        },
+        period_id: Number(period_id),
       },
       select: {
         student_id: true,
-        nim: true,
-        User: {
+        period_id: true,
+        passDitmawa: true,
+        passIOM: true,
+        Student: {
           select: {
-            user_id: true,
-            name: true,
-          },
-        },
-        Files: {
-          where: {
-            period_id: period_id,
-          },
-          select: {
-            file_id: true,
-            file_url: true,
-            file_name: true,
-            type: true,
-          },
-        },
-        Statuses: {
-          where: {
-            period_id: period_id,
-          },
-          select: {
-            passDitmawa: true,
-            passIOM: true,
+            nim: true,
+            User: {
+              select: {
+                user_id: true,
+                name: true,
+              },
+            },
+            Files: {
+              select: {
+                file_id: true,
+                student_id: true,
+                file_url: true,
+                file_name: true,
+                type: true,
+              },
+            },
           },
         },
       },
     });
 
-    return NextResponse.json({ success: true, data: student_files });
+    return NextResponse.json({ success: true, data: studentData });
   } catch (error) {
     console.error("Error fetching students and files:", error);
     return NextResponse.json(

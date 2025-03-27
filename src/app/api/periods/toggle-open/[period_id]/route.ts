@@ -8,7 +8,7 @@ export async function PUT(
   context: { params: { period_id: string } }
 ) {
   try {
-    const { period_id } = await context.params;
+    const { period_id } = context.params;
     const periodId = parseInt(period_id, 10);
 
     if (!periodId) {
@@ -16,15 +16,12 @@ export async function PUT(
     }
 
     await prisma.period.updateMany({
-      data: { 
-        is_current: false,
-        is_open: false,
-      },
+      data: { is_open: false },
     });
 
     const updatedPeriod = await prisma.period.update({
       where: { period_id: periodId },
-      data: { is_current: true },
+      data: { is_open: true },
     });
 
     return NextResponse.json(updatedPeriod);
