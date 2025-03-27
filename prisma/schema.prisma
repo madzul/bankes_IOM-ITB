@@ -46,7 +46,7 @@ model File {
 model Status {
   student_id    Int
   period_id     Int
-  passDimawa    Boolean
+  passDitmawa   Boolean
   passIOM       Boolean
   passInterview Boolean
   amount        Int?

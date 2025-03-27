@@ -5,7 +5,7 @@ import { authOptions } from "../../auth/[...nextauth]/route";
 
 const prisma = new PrismaClient();
 
-export async function GET() {
+export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
 
@@ -16,7 +16,24 @@ export async function GET() {
       );
     }
 
+    const body = await request.json();
+    const { period_id } = body;
+
+    if (!period_id) {
+      return NextResponse.json(
+        { success: false, error: "Missing period_id" },
+        { status: 400 }
+      );
+    }
+
     const student_files = await prisma.student.findMany({
+      where: {
+        Files: {
+          some: {
+            period_id: period_id,
+          },
+        },
+      },
       select: {
         student_id: true,
         nim: true,
@@ -27,12 +44,23 @@ export async function GET() {
           },
         },
         Files: {
+          where: {
+            period_id: period_id,
+          },
           select: {
-            period_id: true,
             file_id: true,
             file_url: true,
             file_name: true,
             type: true,
+          },
+        },
+        Statuses: {
+          where: {
+            period_id: period_id,
+          },
+          select: {
+            passDitmawa: true,
+            passIOM: true,
           },
         },
       },

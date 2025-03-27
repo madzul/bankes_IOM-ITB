@@ -45,7 +45,7 @@ CREATE TABLE "File" (
 CREATE TABLE "Status" (
     "student_id" INTEGER NOT NULL,
     "period_id" INTEGER NOT NULL,
-    "passDimawa" BOOLEAN NOT NULL,
+    "passDitmawa" BOOLEAN NOT NULL,
     "passIOM" BOOLEAN NOT NULL,
     "passInterview" BOOLEAN NOT NULL,
     "amount" INTEGER,
