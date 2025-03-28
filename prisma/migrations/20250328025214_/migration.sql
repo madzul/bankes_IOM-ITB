@@ -78,11 +78,12 @@ CREATE TABLE "Interview" (
 
 -- CreateTable
 CREATE TABLE "NotificationEndpoint" (
-    "endpoint_id" SERIAL NOT NULL,
     "user_id" INTEGER NOT NULL,
     "endpoint" TEXT NOT NULL,
+    "keys" JSONB NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "NotificationEndpoint_pkey" PRIMARY KEY ("endpoint_id")
+    CONSTRAINT "NotificationEndpoint_pkey" PRIMARY KEY ("user_id","endpoint")
 );
 
 -- CreateTable
@@ -105,6 +106,9 @@ CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Student_student_id_key" ON "Student"("student_id");
+
+-- CreateIndex
+CREATE INDEX "Notification_user_id_idx" ON "Notification"("user_id");
 
 -- AddForeignKey
 ALTER TABLE "Student" ADD CONSTRAINT "Student_student_id_fkey" FOREIGN KEY ("student_id") REFERENCES "User"("user_id") ON DELETE RESTRICT ON UPDATE CASCADE;
