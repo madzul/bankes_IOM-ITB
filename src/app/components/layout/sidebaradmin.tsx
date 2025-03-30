@@ -1,0 +1,100 @@
+"use client"
+
+import type React from "react"
+import { Calendar, LogOut, UserRoundPen } from "lucide-react"
+import { cn } from "@/lib/utils"
+import { useRouter } from "next/navigation"
+import { signOut, useSession } from "next-auth/react";
+import { useEffect, useState } from "react";
+
+type NavItem = {
+  id: string
+  label: string
+  link: string
+  icon: React.ReactNode
+}
+
+type SidebarAdminProps = {
+  activeTab: string
+}
+
+export default function SidebarAdmin({ activeTab }: SidebarAdminProps) {
+  const router = useRouter()
+  const { data: session } = useSession();
+  const [name, setName] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUserName = async () => {
+      if (session?.user?.id) {
+        const response = await fetch(`/api/users/${session.user.id}`);
+        if (response.ok) {
+          const user = await response.json();
+          setName(user.name);
+        }
+      }
+    };
+
+    fetchUserName();
+  }, [session]);
+
+  const navItems: NavItem[] = [
+    {
+      id: "account",
+      label: "Manajemen Akun",
+      link: "/admin/account",
+      icon: <UserRoundPen className="h-5 w-5" />,
+    },
+    {
+      id: "period",
+      label: "Periode Bantuan",
+      link: "/admin/period",
+      icon: <Calendar className="h-5 w-5" />,
+    }
+  ]
+
+  const handleNavigation = (link: string) => {
+    router.push(link)
+  }
+
+  return (
+    <div className="w-full max-w-xs mx-auto">
+      <div className="bg-white rounded-xl shadow-md overflow-hidden">
+        {/* Header */}
+        <div className="p-6 text-center">
+          <h2 className="text-xl font-semibold">{name}</h2>
+          <p className="text-sm">Admin</p>
+        </div>
+
+        {/* Navigation */}
+        <div className="divide-y divide-gray-100">
+          {navItems.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => handleNavigation(item.link)}
+              className={cn(
+                "flex items-center w-full px-6 py-3 text-left transition-colors cursor-pointer",
+                activeTab === item.id ? "bg-blue-200 text-blue-800" : "hover:bg-gray-50",
+              )}
+            >
+              <span className="mr-3">{item.icon}</span>
+              <span>{item.label}</span>
+            </button>
+          ))}
+          <button
+            onClick={() => signOut({ callbackUrl: "/login" })}
+            className={cn(
+              "flex items-center w-full px-6 py-3 text-left transition-colors cursor-pointer hover:bg-gray-50"
+            )}
+          >
+            <span className="mr-3">
+              <LogOut className="h-5 w-5" />
+            </span>
+            <span>
+              Keluar
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}

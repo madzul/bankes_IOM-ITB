@@ -6,6 +6,7 @@ import {
     validatePasswordMatch,
 } from "@/utils/_validation"
 import { useRouter } from "next/navigation";
+import Link from 'next/link';
 
 
 type Errors = {
@@ -116,11 +117,20 @@ export default function RegisterPage() {
         }))
     }
     return (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-            <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-                <h1 className="text-2xl font-bold mb-6 text-center text-blue-600">
-                    Sign Up
+        <div className="flex items-center justify-center">
+            <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-md my-[5%]">
+                <h1 className="text-2xl font-bold mb-2 text-center text-var">
+                    Daftarkan Akun Anda
                 </h1>
+
+                <div className="text-center font-normal mb-4">
+                    <span className="text-sm mr-1">
+                        Sudah punya akun?
+                    </span>
+                    <Link href="/auth/login" className="text-sm text-var font-bold hover:underline">
+                        Masuk
+                    </Link>
+                </div>
                 
                 {/* Error Summary
                 {Object.values(errors).filter(e => e).length > 0 && (
@@ -136,7 +146,7 @@ export default function RegisterPage() {
                 <form onSubmit={handleSubmit} className="space-y-4">
                     {/* Name Field */}
                     <div>
-                        <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                        <label htmlFor="name" className="block text-sm font-medium mb-2">
                             Nama Lengkap
                         </label>
                         <input 
@@ -158,7 +168,7 @@ export default function RegisterPage() {
 
                     {/* Email Field */}
                     <div>
-                        <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                        <label htmlFor="email" className="block text-sm font-mediummb-2">
                             Email
                         </label>
                         <input 
@@ -180,7 +190,7 @@ export default function RegisterPage() {
 
                     {/* Password Field */}
                     <div>
-                        <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                        <label htmlFor="password" className="block text-sm font-medium mb-2">
                             Password
                         </label>
                         <input 
@@ -202,7 +212,7 @@ export default function RegisterPage() {
 
                     {/* Confirm Password Field */}
                     <div>
-                        <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
+                        <label htmlFor="confirmPassword" className="block text-sm font-medium mb-2">
                             Konfirmasi Password
                         </label>
                         <input 
@@ -222,18 +232,22 @@ export default function RegisterPage() {
                         )}
                     </div>
 
-                    <button 
-                        type="submit"
-                        className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-200"
-                    >
-                        Sign up
-                    </button>
+                    <div className="flex">
+                      <button 
+                          type="submit"
+                          className="mx-auto bg-var hover:bg-var/90 cursor-pointer text-white py-2 px-4 rounded-lg transition duration-200"
+                      >
+                          Sign up
+                      </button>
+                    </div>
 
-                    <div className="text-center">
-                        <span className="text-gray-600 mr-2">Sudah punya akun?</span>
-                        <a href="/auth/login" className="text-blue-500 hover:underline">
-                            Sign in
-                        </a>
+                    <div className="text-center font-normal mb-4">
+                        <span className="text-sm mr-1">
+                            Butuh bantuan?
+                        </span>
+                        <Link href="/auth/register" className="text-sm text-var font-bold hover:underline">
+                            Hubungi kami
+                        </Link>
                     </div>
                 </form>
             </div>

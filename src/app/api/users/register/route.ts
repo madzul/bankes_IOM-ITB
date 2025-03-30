@@ -65,7 +65,7 @@ export async function POST(req: Request) {
     const hashedPassword = await bcrypt.hash(password, saltRounds); 
 
     // check the email is already registered or not 
-    const isUserExists = await prisma.users.findFirst({
+    const isUserExists = await prisma.user.findFirst({
       where: {
         email: email
       }
@@ -76,12 +76,12 @@ export async function POST(req: Request) {
       return NextResponse.json(errors, { status: 400 });
     }
 
-    const newUser = await prisma.users.create({
+    const newUser = await prisma.user.create({
       data:{
         name: name, 
         email: email, 
         password: hashedPassword,
-        role: "MAHASISWA"
+        role: "Guest"
       }
     });
 

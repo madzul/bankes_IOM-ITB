@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,34 +7,149 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Users {
-  id         String  @id @default(uuid())
-  name       String
-  email      String  @unique
-  password   String 
-  role       Role
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  file       File?   @relation("UserFile")
+model User {
+  user_id       Int       @id @default(autoincrement()) @unique
+  name          String
+  email         String    @unique
+  password      String?
+  role          Role
 
-  @@map("Users")
+  Students      Student[] 
+  Interviews    Interview[]
+  NotificationEndpoints NotificationEndpoint[]
+  Notifications  Notification[]
+  ParticipatedInterviews InterviewParticipant[]
+}
+
+model Student {
+  student_id    Int       @id @default(autoincrement()) @unique
+  nim           String
+  faculty       String
+  major         String
+
+  Files         File[]
+  Statuses      Status[]
+  Interviews    Interview[]
+  InterviewSlots InterviewSlot[]
+
+  User          User     @relation(fields: [student_id], references: [user_id])
 }
 
 model File {
-  userId    String  @id @unique
-  fileURL   String
+  file_id       Int       @id @default(autoincrement())
+  student_id    Int
+  file_url      String
+  file_name     String
+  type          FileType
+
+  Student       Student  @relation(fields: [student_id], references: [student_id])
+}
+
+model Status {
+  student_id    Int
+  period_id     Int
+  passDitmawa    Boolean
+  passIOM       Boolean
+  passInterview Boolean
+  amount        Int?
+  Student       Student  @relation(fields: [student_id], references: [student_id])
+  Period        Period   @relation(fields: [period_id], references: [period_id])
+
+  @@id([student_id, period_id]) 
+}
+
+model Period {
+  period_id     Int       @id @default(autoincrement())
+  period        String
+  start_date    DateTime
+  end_date      DateTime
+  is_current    Boolean
+  is_open	Boolean
+
+  Statuses      Status[]
+  Interviews    Interview[]
+}
+
+model Interview {
+  interview_id Int      @id @default(autoincrement())
+  title        String? 
+  description  String? 
+  student_id   Int? 
+  user_id      Int 
+  period_id    Int
+  start_time   DateTime
+  end_time     DateTime
+  max_students Int      @default(1)
+
+  Student      Student? @relation(fields: [student_id], references: [student_id])
+  User         User     @relation(fields: [user_id], references: [user_id])
+  Period       Period   @relation(fields: [period_id], references: [period_id])
+
+  participants InterviewParticipant[]
+  slots        InterviewSlot[]
+}
+
+model InterviewParticipant {
+  id           Int      @id @default(autoincrement())
+  interview_id Int
+  user_id      Int 
+  joined_at    DateTime @default(now())
+
+  Interview Interview @relation(fields: [interview_id], references: [interview_id], onDelete: Cascade)
+  User      User      @relation(fields: [user_id], references: [user_id])
+
+  @@unique([interview_id, user_id])
+}
+
+model InterviewSlot {
+  id           Int       @id @default(autoincrement())
+  interview_id Int
+  student_id   Int? 
+  slot_number  Int 
+  start_time   DateTime
+  end_time     DateTime
+  booked_at    DateTime?
+
+  Interview Interview @relation(fields: [interview_id], references: [interview_id], onDelete: Cascade)
+  Student   Student?  @relation(fields: [student_id], references: [student_id])
+
+  @@unique([interview_id, slot_number])
+}
+
+
+model NotificationEndpoint {
+  user_id  Int
+  endpoint String
+  keys     Json
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 
-  user      Users    @relation("UserFile", fields: [userId], references: [id], onDelete: Cascade)
+  User     User @relation(fields: [user_id], references: [user_id])
 
-  @@map("File")
+  @@id([user_id, endpoint]) 
+}
 
+model Notification {
+  notification_id Int     @id @default(autoincrement()) 
+  user_id         Int     
+  header          String
+  body            String
+  has_read        Boolean @default(false)
+  created_at      DateTime @default(now())
+
+  User           User @relation(fields: [user_id], references: [user_id])
+  @@index([user_id])
+}
+
+enum FileType {
+  KTM
+  KTP
+  CV
+  Transkrip_Nilai
 }
 
 enum Role {
-  IOM
-  MAHASISWA
+  Admin
+  Mahasiswa
+  Guest
+  Pengurus_IOM
 }
-
-

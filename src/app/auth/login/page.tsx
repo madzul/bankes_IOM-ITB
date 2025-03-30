@@ -1,7 +1,10 @@
 'use client'
 import { useState, useEffect } from "react"
 import { validateEmail } from "@/utils/_validation"
-import { useRouter } from "next/navigation";
+import Link from 'next/link';
+import { signIn } from "next-auth/react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation"
 
 type Errors = {
     email?: string
@@ -10,7 +13,8 @@ type Errors = {
 }
 
 export default function LoginPage() {
-    const router = useRouter(); 
+    const router = useRouter()
+    const { data: session } = useSession();
     const [formData, setFormData] = useState({
         email: "",
         password: "",
@@ -47,6 +51,29 @@ export default function LoginPage() {
         }
     }, [errors])
 
+    const redirect = async () => {
+        if (session?.user?.id) {
+            const response = await fetch(`/api/users/${session.user.id}`);
+            if (response.ok) {
+                const user = await response.json();
+                const userrole : string = user.role;
+                const roleBasedCallbackUrls : { [key: string] : string }  = {
+                    "Mahasiswa" : "student/profile",
+                    "Admin" : "/admin/account/",
+                    "Pengurus_IOM" : "/iom/document/",
+                    "Guest" : "/guest/",
+                };
+                const callbackUrl : string = roleBasedCallbackUrls[userrole];
+
+                router.push(callbackUrl);
+            }
+        }
+    }
+
+    useEffect(() => {
+        redirect();
+    })
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setIsLoading(true)
@@ -56,26 +83,22 @@ export default function LoginPage() {
         
         if (Object.keys(validationErrors).length === 0) {
             try {
-                // api call
-                const response = await fetch('/api/users/login',{
-                    method: 'POST', 
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify(formData),
-                    credentials: 'include'
+                // Extract email and password from formData
+                const { email, password } = formData;
 
-                })
+                // Trigger the credentials provider login
+                const result = await signIn("credentials", {
+                    email,
+                    password,
+                    redirect: false,
+                });
 
-                if(!response.ok) {
-                    const data = await response.json()
-                    setErrors({generalError: data.generalError})
-                }else{
-                    // const data = await response.json()
-                    // const setCookieHeader = response.headers.get('set-cookie');
-                    // console.log('Set-Cookie Header:', setCookieHeader);
-                    router.push('/')
+                if (result?.error) {
+                    alert(result.error);
                 }
             } catch (error) {
-                setErrors({generalError: 'Something went wrong. Please try again later.' + {error}})
+                console.error("Error during signIn:", error);
+                console.log("Error during signIn:", error);
             } finally {
                 setIsLoading(false)
             }
@@ -97,11 +120,20 @@ export default function LoginPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-            <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-                <h1 className="text-2xl font-bold mb-6 text-center text-blue-600">
-                    Sign In 
+        <div className="flex items-center justify-center">
+            <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-md my-[5%]">
+                <h1 className="text-2xl font-bold mb-2 text-center text-var">
+                    Masuk ke Akun Anda
                 </h1>
+
+                <div className="text-center font-normal mb-4">
+                    <span className="text-sm mr-1">
+                        Belum punya akun? 
+                    </span>
+                    <Link href="/auth/register" className="text-sm text-var font-bold hover:underline">
+                        Daftar
+                    </Link>
+                </div>
                 
                 {/* Error Summary */}
                 {errors.generalError && (
@@ -113,7 +145,7 @@ export default function LoginPage() {
                 <form onSubmit={handleSubmit} className="space-y-4">
                     {/* Email Field */}
                     <div>
-                        <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                        <label htmlFor="email" className="block text-sm font-medium mb-2">
                             Email
                         </label>
                         <input 
@@ -124,7 +156,7 @@ export default function LoginPage() {
                             onChange={handleInputChange}
                             className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 text-black
                                 ${errors.email ? 'border-red-500 focus:ring-red-500' : 'focus:ring-blue-500'}`}
-                            placeholder="JohnDoe@email.com"
+                            placeholder="example@email.com"
                             aria-describedby="email-error"
                         />
                         {errors.email && (
@@ -136,7 +168,7 @@ export default function LoginPage() {
 
                     {/* Password Field */}
                     <div>
-                        <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                        <label htmlFor="password" className="block text-sm font-medium mb-2">
                             Password
                         </label>
                         <input 
@@ -147,7 +179,7 @@ export default function LoginPage() {
                             onChange={handleInputChange}
                             className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 text-black
                                 ${errors.password ? 'border-red-500 focus:ring-red-500' : 'focus:ring-blue-500'}`}
-                            placeholder="Enter Password"
+                            placeholder="Masukkan Password"
                             aria-describedby="password-error"
                         />
                         {errors.password && (
@@ -156,29 +188,31 @@ export default function LoginPage() {
                             </p>
                         )}
                     </div>
-
-                    <button 
-                        type="submit"
-                        disabled={isLoading}
-                        className={`w-full bg-blue-600 text-white py-2 px-4 rounded-lg transition duration-200 
-                            ${isLoading ? 'opacity-70 cursor-not-allowed' : 'hover:bg-blue-700'}`}
-                    >
-                        {isLoading ? 'Loading...' : 'Sign In'}
-                    </button>
-
-                    <div className="text-center">
-                        <a href="#" className="text-sm text-blue-500 hover:underline">
+                    
+                    <div className="">
+                        <Link href="#" className="text-sm text-var font-bold hover:underline">
                             Lupa password?
-                        </a>
+                        </Link>
+                    </div>
+                    
+                    <div className="flex">
+                        <button 
+                            type="submit"
+                            disabled={isLoading}
+                            className={`mx-auto bg-var text-white py-2 px-4 rounded-lg transition duration-200 
+                                ${isLoading ? 'opacity-90 cursor-not-allowed' : 'hover:bg-var/90 cursor-pointer'}`}
+                        >
+                            {isLoading ? 'Loading...' : 'Masuk'}
+                        </button>
                     </div>
 
-                    <div className="text-center">
-                        <span className="text-sm text-gray-600 mr-2">
-                            Belum punya akun? 
+                    <div className="text-center font-normal mb-4">
+                        <span className="text-sm mr-1">
+                            Butuh bantuan?
                         </span>
-                        <a href="/auth/register" className="text-sm text-blue-500 hover:underline">
-                            Sign up
-                        </a>
+                        <Link href="/auth/register" className="text-sm text-var font-bold hover:underline">
+                            Hubungi kami
+                        </Link>
                     </div>
                 </form>
             </div>
