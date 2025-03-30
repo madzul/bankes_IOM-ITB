@@ -1,11 +1,10 @@
 "use client"
 
-import { signOut, useSession } from "next-auth/react";
 import type React from "react"
-import Image from "next/image"
-import { User, FileUp, GraduationCap, Lock, LogOut } from "lucide-react"
+import { Calendar, ChartColumn, File, Lock, LogOut } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useRouter } from "next/navigation"
+import { signOut, useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 
 type NavItem = {
@@ -15,52 +14,52 @@ type NavItem = {
   icon: React.ReactNode
 }
 
-type SidebarMahasiswaProps = {
+type SidebarIOMProps = {
   activeTab: string
 }
 
-export default function SidebarMahasiswa({ activeTab }: SidebarMahasiswaProps) {
-    const { data: session } = useSession();
-    const [name, setName] = useState<string | null>(null);
-  
-    useEffect(() => {
-      const fetchUserName = async () => {
-        if (session?.user?.id) {
-          const response = await fetch(`/api/users/${session.user.id}`);
-          if (response.ok) {
-            const user = await response.json();
-            setName(user.name);
-          }
-        }
-      };
-  
-      fetchUserName();
-    }, [session]);
+export default function SidebarIOM({ activeTab }: SidebarIOMProps) {
   const router = useRouter()
+  const { data: session } = useSession();
+  const [name, setName] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUserName = async () => {
+      if (session?.user?.id) {
+        const response = await fetch(`/api/users/${session.user.id}`);
+        if (response.ok) {
+          const user = await response.json();
+          setName(user.name);
+        }
+      }
+    };
+
+    fetchUserName();
+  }, [session]);
 
   const navItems: NavItem[] = [
     {
-      id: "profile",
-      label: "Profil",
-      link: "/student/profile",
-      icon: <User className="h-5 w-5" />,
+      id: "document",
+      label: "Berkas Mahasiswa",
+      link: "/iom/document",
+      icon: <File className="h-5 w-5" />,
     },
     {
-      id: "scholarship",
-      label: "Beasiswa Saya",
-      link: "/student/scholarship",
-      icon: <GraduationCap className="h-5 w-5" />,
+      id: "interview",
+      label: "Jadwal Wawancara",
+      link: "/iom/interview",
+      icon: <Calendar className="h-5 w-5" />,
     },
     {
-      id: "upload",
-      label: "Unggah Dokumen",
-      link: "/student/upload",
-      icon: <FileUp className="h-5 w-5" />,
+      id: "statistic",
+      label: "Statistik Mahasiswa",
+      link: "/iom/statistic",
+      icon: <ChartColumn className="h-5 w-5" />,
     },
     {
       id: "password",
       label: "Ubah Password",
-      link: "/student/change-password",
+      link: "/iom/change-password",
       icon: <Lock className="h-5 w-5" />,
     },
   ]
@@ -74,16 +73,8 @@ export default function SidebarMahasiswa({ activeTab }: SidebarMahasiswaProps) {
       <div className="bg-white rounded-xl shadow-md overflow-hidden">
         {/* Header */}
         <div className="p-6 text-center">
-          <div className="relative w-24 h-24 mx-auto mb-3 rounded-md overflow-hidden bg-yellow-400">
-            <Image
-              src="/stolz.png"
-              alt="Profile picture"
-              fill
-              className="object-cover"
-            />
-          </div>
           <h2 className="text-xl font-semibold">{name}</h2>
-          <p className="text-sm">Kandidat</p>
+          <p className="text-sm">Pengurus IOM</p>
         </div>
 
         {/* Navigation */}

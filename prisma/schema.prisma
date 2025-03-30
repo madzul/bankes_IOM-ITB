@@ -13,12 +13,12 @@ model User {
   email         String    @unique
   password      String?
   role          Role
-  created_at    DateTime @default(now())
-  updated_at    DateTime @updatedAt
+
   Students      Student[] 
   Interviews    Interview[]
   NotificationEndpoints NotificationEndpoint[]
   Notifications  Notification[]
+  ParticipatedInterviews InterviewParticipant[]
 }
 
 model Student {
@@ -26,9 +26,12 @@ model Student {
   nim           String
   faculty       String
   major         String
+
   Files         File[]
   Statuses      Status[]
   Interviews    Interview[]
+  InterviewSlots InterviewSlot[]
+
   User          User     @relation(fields: [student_id], references: [user_id])
 }
 
@@ -39,8 +42,7 @@ model File {
   file_url      String
   file_name     String
   type          FileType
-  created_at    DateTime @default(now())
-  updated_at    DateTime @updatedAt
+
   Student       Student  @relation(fields: [student_id], references: [student_id])
   Period        Period   @relation(fields: [period_id], references: [period_id])
 }
@@ -64,35 +66,30 @@ model Period {
   start_date    DateTime
   end_date      DateTime
   is_current    Boolean
+  is_open	Boolean
+
   Files         File[]
   Statuses      Status[]
   Interviews    Interview[]
 }
 
 model Interview {
-  interview_id  Int       @id @default(autoincrement())
-  student_id    Int
-  user_id       Int
-  period_id     Int
-  start_time    DateTime
-  end_time      DateTime
-  Student       Student  @relation(fields: [student_id], references: [student_id])
-  User          User     @relation(fields: [user_id], references: [user_id])
-  Period        Period   @relation(fields: [period_id], references: [period_id])
-}
+  interview_id Int      @id @default(autoincrement())
+  title        String? 
+  description  String? 
+  student_id   Int? 
+  user_id      Int 
+  period_id    Int
+  start_time   DateTime
+  end_time     DateTime
+  max_students Int      @default(1)
 
-enum FileType {
-  KTM
-  KTP
-  CV
-  Transkrip_Nilai
-}
+  Student      Student? @relation(fields: [student_id], references: [student_id])
+  User         User     @relation(fields: [user_id], references: [user_id])
+  Period       Period   @relation(fields: [period_id], references: [period_id])
 
-enum Role {
-  Admin
-  Mahasiswa
-  Guest
-  Pengurus_IOM
+  participants InterviewParticipant[]
+  slots        InterviewSlot[]
 }
 
 model NotificationEndpoint {
@@ -116,4 +113,18 @@ model Notification {
 
   User           User @relation(fields: [user_id], references: [user_id])
   @@index([user_id])
+}
+
+enum FileType {
+  KTM
+  KTP
+  CV
+  Transkrip_Nilai
+}
+
+enum Role {
+  Admin
+  Mahasiswa
+  Guest
+  Pengurus_IOM
 }
