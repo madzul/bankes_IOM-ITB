@@ -66,19 +66,8 @@ export async function POST(request: NextRequest) {
         where: {
           student_id: studentId,
           type: documentType as FileType,
-          period_id: 1,
         },
       });
-      
-      const currentPeriod = await prisma.period.findFirst({
-        where: {
-          is_current: true,
-        }
-      })
-
-      if (!currentPeriod) {
-        throw new Error("No current period found in the database.");
-      }      
 
       if (existingFile) {
         const existingFileName = existingFile.file_name;
@@ -96,7 +85,6 @@ export async function POST(request: NextRequest) {
           data: {
             file_url: fileUrl,
             file_name: newFileName,
-            period_id: currentPeriod?.period_id,
           },
         });
       } else {
@@ -106,7 +94,6 @@ export async function POST(request: NextRequest) {
             file_name: newFileName,
             type: documentType as FileType,
             student_id: studentId,
-            period_id: currentPeriod?.period_id,
           },
         });
       }

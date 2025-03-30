@@ -8,43 +8,43 @@ datasource db {
 }
 
 model User {
-  user_id    Int         @id @unique @default(autoincrement())
-  name       String
-  email      String      @unique
-  password   String?
-  role       Role
-  created_at DateTime    @default(now())
-  updated_at DateTime    @updatedAt
-  Students   Student[]
-  Interviews Interview[]
+  user_id       Int       @id @default(autoincrement()) @unique
+  name          String
+  email         String    @unique
+  password      String?
+  role          Role
 
+  Students      Student[] 
+  Interviews    Interview[]
+  NotificationEndpoints NotificationEndpoint[]
+  Notifications  Notification[]
   ParticipatedInterviews InterviewParticipant[]
 }
 
 model Student {
-  student_id Int         @id @unique @default(autoincrement())
-  nim        String
-  faculty    String
-  major      String
-  Files      File[]
-  Statuses   Status[]
-  Interviews Interview[]
-  User       User        @relation(fields: [student_id], references: [user_id])
+  student_id    Int       @id @default(autoincrement()) @unique
+  nim           String
+  faculty       String
+  major         String
 
+  Files         File[]
+  Statuses      Status[]
+  Interviews    Interview[]
   InterviewSlots InterviewSlot[]
+
+  User          User     @relation(fields: [student_id], references: [user_id])
 }
 
 model File {
-  file_id    Int      @id @default(autoincrement())
-  student_id Int
-  period_id  Int
-  file_url   String
-  file_name  String
-  type       FileType
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-  Student    Student  @relation(fields: [student_id], references: [student_id])
-  Period     Period   @relation(fields: [period_id], references: [period_id])
+  file_id       Int       @id @default(autoincrement())
+  student_id    Int
+  period_id     Int
+  file_url      String
+  file_name     String
+  type          FileType
+
+  Student       Student  @relation(fields: [student_id], references: [student_id])
+  Period        Period   @relation(fields: [period_id], references: [period_id])
 }
 
 model Status {
@@ -54,67 +54,65 @@ model Status {
   passIOM       Boolean
   passInterview Boolean
   amount        Int?
-  Student       Student @relation(fields: [student_id], references: [student_id])
-  Period        Period  @relation(fields: [period_id], references: [period_id])
+  Student       Student  @relation(fields: [student_id], references: [student_id])
+  Period        Period   @relation(fields: [period_id], references: [period_id])
 
-  @@id([student_id, period_id])
+  @@id([student_id, period_id]) 
 }
 
 model Period {
-  period_id  Int         @id @default(autoincrement())
-  period     String
-  start_date DateTime
-  end_date   DateTime
-  is_current Boolean
-  Files      File[]
-  Statuses   Status[]
-  Interviews Interview[]
+  period_id     Int       @id @default(autoincrement())
+  period        String
+  start_date    DateTime
+  end_date      DateTime
+  is_current    Boolean
+  is_open	Boolean
+
+  Files         File[]
+  Statuses      Status[]
+  Interviews    Interview[]
 }
 
 model Interview {
   interview_id Int      @id @default(autoincrement())
-  title        String? // Optional title for the interview session
-  description  String? // Optional description
-  student_id   Int? // Now optional since we're using InterviewSlot
-  user_id      Int // The main IOM staff member who created the session
+  title        String? 
+  description  String? 
+  student_id   Int? 
+  user_id      Int 
   period_id    Int
   start_time   DateTime
   end_time     DateTime
   max_students Int      @default(1)
+
   Student      Student? @relation(fields: [student_id], references: [student_id])
   User         User     @relation(fields: [user_id], references: [user_id])
   Period       Period   @relation(fields: [period_id], references: [period_id])
-
 
   participants InterviewParticipant[]
   slots        InterviewSlot[]
 }
 
-model InterviewParticipant {
-  id           Int      @id @default(autoincrement())
-  interview_id Int
-  user_id      Int // The IOM staff who participates
-  joined_at    DateTime @default(now())
+model NotificationEndpoint {
+  user_id  Int
+  endpoint String
+  keys     Json
+  createdAt DateTime @default(now())
 
-  Interview Interview @relation(fields: [interview_id], references: [interview_id], onDelete: Cascade)
-  User      User      @relation(fields: [user_id], references: [user_id])
+  User     User @relation(fields: [user_id], references: [user_id])
 
-  @@unique([interview_id, user_id])
+  @@id([user_id, endpoint]) 
 }
 
-model InterviewSlot {
-  id           Int       @id @default(autoincrement())
-  interview_id Int
-  student_id   Int? // Optional until a student books the slot
-  slot_number  Int // Position in the sequence (1, 2, 3, etc.)
-  start_time   DateTime
-  end_time     DateTime
-  booked_at    DateTime?
+model Notification {
+  notification_id Int     @id @default(autoincrement()) 
+  user_id         Int     
+  header          String
+  body            String
+  has_read        Boolean @default(false)
+  created_at      DateTime @default(now())
 
-  Interview Interview @relation(fields: [interview_id], references: [interview_id], onDelete: Cascade)
-  Student   Student?  @relation(fields: [student_id], references: [student_id])
-
-  @@unique([interview_id, slot_number])
+  User           User @relation(fields: [user_id], references: [user_id])
+  @@index([user_id])
 }
 
 enum FileType {

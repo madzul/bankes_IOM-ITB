@@ -46,16 +46,16 @@ export default function SidebarMahasiswa({ activeTab }: SidebarMahasiswaProps) {
       icon: <User className="h-5 w-5" />,
     },
     {
-      id: "upload",
-      label: "Unggah Dokumen",
-      link: "/student/upload",
-      icon: <FileUp className="h-5 w-5" />,
-    },
-    {
       id: "scholarship",
       label: "Beasiswa Saya",
       link: "/student/scholarship",
       icon: <GraduationCap className="h-5 w-5" />,
+    },
+    {
+      id: "upload",
+      label: "Unggah Dokumen",
+      link: "/student/upload",
+      icon: <FileUp className="h-5 w-5" />,
     },
     {
       id: "password",

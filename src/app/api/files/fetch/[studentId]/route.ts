@@ -13,7 +13,7 @@ export async function GET(req: Request, { params }: { params: { studentId: strin
     }
 
     const files = await prisma.file.findMany({
-      where: { student_id: id, period_id: 1},
+      where: { student_id: id },
       select: {
         file_url: true,
         file_name: true,
