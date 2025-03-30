@@ -38,19 +38,17 @@ model Student {
 model File {
   file_id       Int       @id @default(autoincrement())
   student_id    Int
-  period_id     Int
   file_url      String
   file_name     String
   type          FileType
 
   Student       Student  @relation(fields: [student_id], references: [student_id])
-  Period        Period   @relation(fields: [period_id], references: [period_id])
 }
 
 model Status {
   student_id    Int
   period_id     Int
-  passDimawa    Boolean
+  passDitmawa    Boolean
   passIOM       Boolean
   passInterview Boolean
   amount        Int?
@@ -68,7 +66,6 @@ model Period {
   is_current    Boolean
   is_open	Boolean
 
-  Files         File[]
   Statuses      Status[]
   Interviews    Interview[]
 }
@@ -91,6 +88,34 @@ model Interview {
   participants InterviewParticipant[]
   slots        InterviewSlot[]
 }
+
+model InterviewParticipant {
+  id           Int      @id @default(autoincrement())
+  interview_id Int
+  user_id      Int 
+  joined_at    DateTime @default(now())
+
+  Interview Interview @relation(fields: [interview_id], references: [interview_id], onDelete: Cascade)
+  User      User      @relation(fields: [user_id], references: [user_id])
+
+  @@unique([interview_id, user_id])
+}
+
+model InterviewSlot {
+  id           Int       @id @default(autoincrement())
+  interview_id Int
+  student_id   Int? 
+  slot_number  Int 
+  start_time   DateTime
+  end_time     DateTime
+  booked_at    DateTime?
+
+  Interview Interview @relation(fields: [interview_id], references: [interview_id], onDelete: Cascade)
+  Student   Student?  @relation(fields: [student_id], references: [student_id])
+
+  @@unique([interview_id, slot_number])
+}
+
 
 model NotificationEndpoint {
   user_id  Int
