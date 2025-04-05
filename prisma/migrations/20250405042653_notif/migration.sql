@@ -114,6 +114,7 @@ CREATE TABLE "Notification" (
     "user_id" INTEGER NOT NULL,
     "header" TEXT NOT NULL,
     "body" TEXT NOT NULL,
+    "url" TEXT,
     "has_read" BOOLEAN NOT NULL DEFAULT false,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 

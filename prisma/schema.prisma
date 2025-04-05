@@ -133,6 +133,7 @@ model Notification {
   user_id         Int     
   header          String
   body            String
+  url             String? 
   has_read        Boolean @default(false)
   created_at      DateTime @default(now())
 
