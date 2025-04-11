@@ -33,6 +33,7 @@ model Student {
   InterviewSlots InterviewSlot[]
 
   User          User     @relation(fields: [student_id], references: [user_id])
+  notes        Notes[]
 }
 
 model File {
@@ -87,6 +88,18 @@ model Interview {
 
   participants InterviewParticipant[]
   slots        InterviewSlot[]
+  notes        Notes[]
+}
+
+model Notes {
+  interview_id Int
+  student_id   Int
+  text         String
+
+  @@id([interview_id, student_id])
+
+  interview    Interview @relation(fields: [interview_id], references: [interview_id])
+  student      Student   @relation(fields: [student_id], references: [student_id])
 }
 
 model InterviewParticipant {

@@ -76,6 +76,15 @@ CREATE TABLE "Interview" (
 );
 
 -- CreateTable
+CREATE TABLE "Notes" (
+    "interview_id" INTEGER NOT NULL,
+    "student_id" INTEGER NOT NULL,
+    "text" TEXT NOT NULL,
+
+    CONSTRAINT "Notes_pkey" PRIMARY KEY ("interview_id","student_id")
+);
+
+-- CreateTable
 CREATE TABLE "InterviewParticipant" (
     "id" SERIAL NOT NULL,
     "interview_id" INTEGER NOT NULL,
@@ -159,6 +168,12 @@ ALTER TABLE "Interview" ADD CONSTRAINT "Interview_user_id_fkey" FOREIGN KEY ("us
 
 -- AddForeignKey
 ALTER TABLE "Interview" ADD CONSTRAINT "Interview_period_id_fkey" FOREIGN KEY ("period_id") REFERENCES "Period"("period_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Notes" ADD CONSTRAINT "Notes_interview_id_fkey" FOREIGN KEY ("interview_id") REFERENCES "Interview"("interview_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Notes" ADD CONSTRAINT "Notes_student_id_fkey" FOREIGN KEY ("student_id") REFERENCES "Student"("student_id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "InterviewParticipant" ADD CONSTRAINT "InterviewParticipant_interview_id_fkey" FOREIGN KEY ("interview_id") REFERENCES "Interview"("interview_id") ON DELETE CASCADE ON UPDATE CASCADE;
