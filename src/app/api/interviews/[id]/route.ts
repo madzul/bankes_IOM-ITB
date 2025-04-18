@@ -67,7 +67,10 @@ export async function PUT(
       }
   
       // If max_students changes, we need to update or recreate slots
-      let slots = [];
+      /**
+       * for now it's not reassigned so just use const
+       */
+      const slots = [];
       if (max_students !== existingInterview.max_students) {
         // Delete existing slots (this will also remove student bookings)
         await prisma.interviewSlot.deleteMany({

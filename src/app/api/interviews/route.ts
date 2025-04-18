@@ -18,7 +18,10 @@ export async function GET() {
     }
 
     const userRole = session.user.role;
-    const userId = Number(session.user.id);
+    /**
+     * It's not used
+     */
+    // const userId = Number(session.user.id);
 
     // Different views based on role
     if (userRole === "Pengurus_IOM") {

@@ -1,4 +1,4 @@
-import NextAuth, { NextAuthOptions } from "next-auth";
+import { NextAuthOptions } from "next-auth";
 import AzureADProvider from "next-auth/providers/azure-ad";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaClient } from "@prisma/client";
@@ -172,7 +172,7 @@ export const authOptions: NextAuthOptions = {
       }
       return false;
     },
-    async jwt({ token, account, profile }: { token: any; account?: any; profile?: any }) {
+    async jwt({ token, profile }: { token: any; account?: any; profile?: any }) {
       if (profile) {
         const user = await prisma.user.findFirst({
           where: { email: profile.email },

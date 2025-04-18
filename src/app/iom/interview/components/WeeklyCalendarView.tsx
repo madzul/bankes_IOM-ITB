@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { Card } from "@/components/ui/card";
-import { PlusCircle, Calendar, Clock, Users, Edit, Trash, User, ChevronLeft, ChevronRight } from "lucide-react";
+import { PlusCircle, Calendar, Edit, Trash, User, ChevronLeft, ChevronRight } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { format, parseISO, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, addWeeks, subWeeks, isWithinInterval } from "date-fns";
+import { format, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, addWeeks, subWeeks, isWithinInterval } from "date-fns";
 import { id } from "date-fns/locale";
 import { toast } from "sonner";
 import { useSession } from "next-auth/react";
@@ -312,7 +312,10 @@ export default function WeeklyCalendarView() {
   const filteredInterviews = useMemo(() => {
     return interviews.filter(interview => {
       const interviewStart = new Date(interview.start_time);
-      const interviewEnd = new Date(interview.end_time);
+      /**
+       * Not used for now 
+       */
+      // const interviewEnd = new Date(interview.end_time);
       
       // Check if interview is within the current week
       const isInCurrentWeek = isWithinInterval(interviewStart, {
@@ -428,13 +431,13 @@ export default function WeeklyCalendarView() {
           
           {/* Time slots */}
           <div className="relative">
-            {timeSlots.map((timeSlot, timeIndex) => (
+            {timeSlots.map((timeSlot) => (
               <div key={timeSlot} className="grid grid-cols-[60px_repeat(7,1fr)] border-b">
                 <div className="p-2 text-center text-sm border-r">
                   {timeSlot}
                 </div>
                 
-                {weekDays.map((day, dayIndex) => {
+                {weekDays.map((day) => {
                   const dayStr = format(day, 'yyyy-MM-dd');
                   const interviews = interviewsByDay.get(dayStr)?.get(timeSlot) || [];
                   
