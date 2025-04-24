@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { Card } from "@/components/ui/card";
-import { PlusCircle, Calendar, Clock, Users, Edit, Trash, User, UserPlus, UserMinus, ChevronLeft, ChevronRight } from "lucide-react";
+import { PlusCircle, Calendar, Clock, Users, Edit, Trash, User, UserPlus, UserMinus, ChevronLeft, ChevronRight, Info } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -77,7 +77,9 @@ export default function WeeklyCalendarView() {
   const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null);
   const [currentWeekStart, setCurrentWeekStart] = useState<Date>(startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [selectedInterview, setSelectedInterview] = useState<Interview | null>(null);
+  const [selectedSlotDetails, setSelectedSlotDetails] = useState<any>(null);
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
+  const [isSlotDetailsDialogOpen, setIsSlotDetailsDialogOpen] = useState(false);
   const [iomStaff, setIomStaff] = useState<IOMStaff[]>([]);
   
   const [formData, setFormData] = useState<InterviewFormData>({
@@ -376,29 +378,37 @@ export default function WeeklyCalendarView() {
     return interview.participants.some(p => p.user_id === Number(session.user.id));
   };
 
-  // Organize interviews by day and time
-  const interviewsByDay = useMemo(() => {
-    const result = new Map<string, Map<string, Interview[]>>();
+  // Organize all interview slots by day and time - modified to handle individual slots
+  const slotsByDayAndTime = useMemo(() => {
+    const result = new Map<string, Map<string, InterviewSlot[]>>();
     
     // Initialize maps for each day and time slot
     weekDays.forEach(day => {
       const dayStr = format(day, 'yyyy-MM-dd');
-      result.set(dayStr, new Map<string, Interview[]>());
+      result.set(dayStr, new Map<string, InterviewSlot[]>());
       
       timeSlots.forEach(timeSlot => {
         result.get(dayStr)?.set(timeSlot, []);
       });
     });
     
-    // Place interviews in appropriate day and time slot
+    // Place individual slots in appropriate day and time slot
     filteredInterviews.forEach(interview => {
-      const startDate = new Date(interview.start_time);
-      const dayStr = format(startDate, 'yyyy-MM-dd');
-      const hourStr = format(startDate, 'HH:00');
-      
-      if (result.has(dayStr) && result.get(dayStr)?.has(hourStr)) {
-        result.get(dayStr)?.get(hourStr)?.push(interview);
-      }
+      // Handle each slot individually
+      interview.slots.forEach(slot => {
+        const slotStartTime = new Date(slot.start_time);
+        const dayStr = format(slotStartTime, 'yyyy-MM-dd');
+        const hourStr = format(slotStartTime, 'HH:00');
+        
+        if (result.has(dayStr) && result.get(dayStr)?.has(hourStr)) {
+          // Add slot with interview reference
+          const enhancedSlot = {
+            ...slot,
+            interview: interview // Add interview reference to slot
+          };
+          result.get(dayStr)?.get(hourStr)?.push(enhancedSlot as any);
+        }
+      });
     });
     
     return result;
@@ -407,6 +417,14 @@ export default function WeeklyCalendarView() {
   const showInterviewDetails = (interview: Interview) => {
     setSelectedInterview(interview);
     setIsDetailsDialogOpen(true);
+  };
+
+  // Helper to show slot details
+  const showSlotDetails = (slot: any) => {
+    if (slot.interview) {
+      setSelectedSlotDetails(slot);
+      setIsSlotDetailsDialogOpen(true);
+    }
   };
 
   return (
@@ -484,32 +502,55 @@ export default function WeeklyCalendarView() {
                 
                 {weekDays.map((day, dayIndex) => {
                   const dayStr = format(day, 'yyyy-MM-dd');
-                  const interviews = interviewsByDay.get(dayStr)?.get(timeSlot) || [];
+                  const slots = slotsByDayAndTime.get(dayStr)?.get(timeSlot) || [];
                   
                   return (
                     <div 
                       key={`${dayStr}-${timeSlot}`} 
-                      className={`p-1 border-r min-h-[60px] relative ${
+                      className={`p-1 border-r min-h-[80px] relative ${
                         isSameDay(day, new Date()) ? 'bg-blue-50/30' : ''
                       }`}
                     >
-                      {interviews.map((interview) => {
+                      {slots.map((slot: any) => {
+                        const slotStartTime = new Date(slot.start_time);
+                        const slotEndTime = new Date(slot.end_time);
+                        const interview = slot.interview;
                         const isOwner = interview.user_id === Number(session?.user?.id);
                         const isParticipant = interview.participants.some(p => p.user_id === Number(session?.user?.id));
+                        const hasStudent = !!slot.student_id;
                         
                         return (
                           <div 
-                            key={interview.interview_id}
-                            onClick={() => showInterviewDetails(interview)}
-                            className={`mb-1 p-1 rounded text-xs cursor-pointer hover:opacity-90 truncate flex items-center justify-between
-                              ${isOwner ? 'bg-blue-600 text-white' : isParticipant ? 'bg-green-600 text-white' : 'bg-var text-white'}`}
+                            key={slot.id}
+                            onClick={() => showSlotDetails(slot)}
+                            className={`mb-1 p-1 rounded text-xs cursor-pointer hover:opacity-90 ${
+                              hasStudent ? (
+                                isOwner ? 'bg-blue-600 text-white' : 
+                                isParticipant ? 'bg-green-600 text-white' : 
+                                'bg-var text-white'
+                              ) : (
+                                isOwner ? 'bg-blue-200 text-blue-800' : 
+                                isParticipant ? 'bg-green-200 text-green-800' : 
+                                'bg-gray-200 text-gray-800'
+                              )
+                            }`}
                           >
-                            <div className="truncate">
-                              <p className="font-medium truncate">{interview.title || "Wawancara"}</p>
-                              <p className="truncate">{format(new Date(interview.start_time), 'HH:mm')} - {format(new Date(interview.end_time), 'HH:mm')}</p>
+                            <div className="flex items-center justify-between">
+                              <span className="font-medium truncate">{interview.title || "Wawancara"}</span>
+                              <Badge className="text-[8px] ml-1">{`Slot ${slot.slot_number}`}</Badge>
                             </div>
-                            {isOwner && <Badge className="bg-white text-blue-600 text-[8px]">Pembuat</Badge>}
-                            {isParticipant && <Badge className="bg-white text-green-600 text-[8px]">Peserta</Badge>}
+                            <div className="flex items-center justify-between">
+                              <span className="truncate">
+                                {format(slotStartTime, 'HH:mm')} - {format(slotEndTime, 'HH:mm')}
+                              </span>
+                              {hasStudent && (
+                                <Badge className="bg-yellow-500 text-[7px]">
+                                  {slot.Student?.User?.name ? 
+                                    slot.Student.User.name.split(' ')[0] : 
+                                    "Booked"}
+                                </Badge>
+                              )}
+                            </div>
                           </div>
                         );
                       })}
@@ -524,125 +565,125 @@ export default function WeeklyCalendarView() {
 
       {/* Create/Edit Interview Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-  <DialogContent className="sm:max-w-[600px]">
-    <DialogHeader>
-      <DialogTitle>{editingInterviewId ? "Edit Jadwal Wawancara" : "Buat Jadwal Wawancara Baru"}</DialogTitle>
-    </DialogHeader>
-    <div className="space-y-4 py-4">
-      <div className="space-y-2">
-        <Label htmlFor="title">Judul</Label>
-        <Input
-          id="title"
-          value={formData.title}
-          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-          placeholder="Judul Sesi Wawancara"
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="description">Deskripsi (Opsional)</Label>
-        <Textarea
-          id="description"
-          value={formData.description}
-          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-          placeholder="Deskripsi tambahan mengenai sesi wawancara"
-          rows={3}
-        />
-      </div>
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="date">Tanggal</Label>
-          <Input
-            id="date"
-            type="date"
-            value={formData.date}
-            onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-            required
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="maxStudents">Jumlah Slot</Label>
-          <Input
-            id="maxStudents"
-            type="number"
-            min="1"
-            max="10"
-            value={formData.maxStudents}
-            onChange={(e) => setFormData({ ...formData, maxStudents: parseInt(e.target.value) })}
-            required
-          />
-        </div>
-      </div>
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="startTime">Waktu Mulai Slot Pertama</Label>
-          <Input
-            id="startTime"
-            type="time"
-            value={formData.startTime}
-            onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
-            required
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="endTime">Waktu Selesai Slot Pertama</Label>
-          <Input
-            id="endTime"
-            type="time"
-            value={formData.endTime}
-            onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
-            required
-          />
-        </div>
-      </div>
-      
-      <div className="space-y-2">
-        <p className="text-sm text-gray-600">
-          {formData.maxStudents > 1 ? (
-            <>
-              <strong>Catatan:</strong> Dengan pengaturan ini, {formData.maxStudents} slot akan dibuat secara berurutan dengan durasi yang sama:
-              {formData.date && formData.startTime && formData.endTime && (
-                <ul className="mt-2 pl-5 list-disc">
-                  {Array.from({ length: formData.maxStudents }).map((_, index) => {
-                    if (formData.date && formData.startTime && formData.endTime) {
-                      const startDate = new Date(`${formData.date}T${formData.startTime}`);
-                      const endDate = new Date(`${formData.date}T${formData.endTime}`);
-                      const slotDuration = endDate.getTime() - startDate.getTime();
-                      
-                      const slotStart = new Date(startDate.getTime() + (index * slotDuration));
-                      const slotEnd = new Date(slotStart.getTime() + slotDuration);
-                      
-                      return (
-                        <li key={index}>
-                          Slot {index + 1}: {slotStart.getHours().toString().padStart(2, '0')}:{slotStart.getMinutes().toString().padStart(2, '0')} - {slotEnd.getHours().toString().padStart(2, '0')}:{slotEnd.getMinutes().toString().padStart(2, '0')}
-                        </li>
-                      );
-                    }
-                    return null;
-                  })}
-                </ul>
-              )}
-            </>
-          ) : (
-            "Slot akan dibuat sesuai dengan waktu yang Anda tentukan."
-          )}
-        </p>
-      </div>
-    </div>
-    <DialogFooter>
-      <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Batal</Button>
-      <Button 
-        onClick={handleCreateOrUpdateInterview} 
-        disabled={isLoading || !formData.date || !formData.startTime || !formData.endTime}
-        className="bg-var hover:bg-var/90"
-      >
-        {isLoading ? "Memproses..." : editingInterviewId ? "Update" : "Simpan"}
-      </Button>
-    </DialogFooter>
-  </DialogContent>
-</Dialog>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>{editingInterviewId ? "Edit Jadwal Wawancara" : "Buat Jadwal Wawancara Baru"}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="title">Judul</Label>
+              <Input
+                id="title"
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                placeholder="Judul Sesi Wawancara"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="description">Deskripsi (Opsional)</Label>
+              <Textarea
+                id="description"
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                placeholder="Deskripsi tambahan mengenai sesi wawancara"
+                rows={3}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="date">Tanggal</Label>
+                <Input
+                  id="date"
+                  type="date"
+                  value={formData.date}
+                  onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="maxStudents">Jumlah Slot</Label>
+                <Input
+                  id="maxStudents"
+                  type="number"
+                  min="1"
+                  max="10"
+                  value={formData.maxStudents}
+                  onChange={(e) => setFormData({ ...formData, maxStudents: parseInt(e.target.value) })}
+                  required
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="startTime">Waktu Mulai Slot Pertama</Label>
+                <Input
+                  id="startTime"
+                  type="time"
+                  value={formData.startTime}
+                  onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="endTime">Waktu Selesai Slot Pertama</Label>
+                <Input
+                  id="endTime"
+                  type="time"
+                  value={formData.endTime}
+                  onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
+                  required
+                />
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <p className="text-sm text-gray-600">
+                {formData.maxStudents > 1 ? (
+                  <>
+                    <strong>Catatan:</strong> Dengan pengaturan ini, {formData.maxStudents} slot akan dibuat secara berurutan dengan durasi yang sama:
+                    {formData.date && formData.startTime && formData.endTime && (
+                      <ul className="mt-2 pl-5 list-disc">
+                        {Array.from({ length: formData.maxStudents }).map((_, index) => {
+                          if (formData.date && formData.startTime && formData.endTime) {
+                            const startDate = new Date(`${formData.date}T${formData.startTime}`);
+                            const endDate = new Date(`${formData.date}T${formData.endTime}`);
+                            const slotDuration = endDate.getTime() - startDate.getTime();
+                            
+                            const slotStart = new Date(startDate.getTime() + (index * slotDuration));
+                            const slotEnd = new Date(slotStart.getTime() + slotDuration);
+                            
+                            return (
+                              <li key={index}>
+                                Slot {index + 1}: {format(slotStart, 'HH:mm')} - {format(slotEnd, 'HH:mm')}
+                              </li>
+                            );
+                          }
+                          return null;
+                        })}
+                      </ul>
+                    )}
+                  </>
+                ) : (
+                  "Slot akan dibuat sesuai dengan waktu yang Anda tentukan."
+                )}
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Batal</Button>
+            <Button 
+              onClick={handleCreateOrUpdateInterview} 
+              disabled={isLoading || !formData.date || !formData.startTime || !formData.endTime}
+              className="bg-var hover:bg-var/90"
+            >
+              {isLoading ? "Memproses..." : editingInterviewId ? "Update" : "Simpan"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-      {/* Interview Details Dialog */}
-      <Dialog open={isDetailsDialogOpen} onOpenChange={setIsDetailsDialogOpen}>
+    {/* Interview Details Dialog */}
+    <Dialog open={isDetailsDialogOpen} onOpenChange={setIsDetailsDialogOpen}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
             <DialogTitle>{selectedInterview?.title || "Detail Wawancara"}</DialogTitle>
@@ -658,7 +699,7 @@ export default function WeeklyCalendarView() {
                         {format(new Date(selectedInterview.start_time), "EEEE, d MMMM yyyy", { locale: id })}
                       </p>
                       <p className="text-sm text-gray-600">
-                        {format(new Date(selectedInterview.start_time), "HH:mm")} - {format(new Date(selectedInterview.end_time), "HH:mm")}
+                        Durasi keseluruhan: {format(new Date(selectedInterview.start_time), "HH:mm")} - {format(new Date(selectedInterview.end_time), "HH:mm")}
                       </p>
                     </div>
                   </div>
@@ -701,7 +742,22 @@ export default function WeeklyCalendarView() {
                   )}
                   
                   <div className="mt-4">
-                    <p className="font-medium mb-2">Slot Wawancara:</p>
+                    <p className="font-medium mb-2">Status Slot:</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="p-2 bg-gray-100 rounded">
+                        <p className="text-sm font-medium">Total Slot</p>
+                        <p className="text-lg">{selectedInterview.slots.length}</p>
+                      </div>
+                      <div className="p-2 bg-blue-100 rounded">
+                        <p className="text-sm font-medium">Slot Terisi</p>
+                        <p className="text-lg">{selectedInterview.slots.filter(s => s.student_id !== null).length}</p>
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-2">Klik pada slot di kalender untuk melihat detail slot</p>
+                  </div>
+                  
+                  <div className="mt-4">
+                    <p className="font-medium mb-2">Daftar Slot:</p>
                     <div className="space-y-2 max-h-60 overflow-y-auto">
                       {selectedInterview.slots.map((slot) => (
                         <div 
