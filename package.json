@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev" : "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -53,5 +53,9 @@
     "prisma": "^6.6.0",
     "tailwindcss": "^4",
     "typescript": "^5"
+  },
+  "optionalDependencies": {
+    "@tailwindcss/oxide-linux-x64-gnu": "^4.0.1",
+    "lightningcss-linux-x64-gnu": "^1.29.1"
   }
 }

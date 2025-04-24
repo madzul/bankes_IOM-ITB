@@ -1,0 +1,19 @@
+# Dockerfile.dev
+FROM node:23-slim
+
+WORKDIR /app
+
+ENV NODE_ENV=development
+ENV NEXT_TELEMETRY_DISABLED=1
+
+COPY package.json package-lock.json ./
+RUN npm ci
+
+COPY prisma ./prisma
+RUN npx prisma generate
+
+COPY . .
+
+# 6) Expose Next dev port & start
+EXPOSE 3000
+CMD ["npm", "run", "dev"]
