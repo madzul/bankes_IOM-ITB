@@ -118,8 +118,6 @@ export async function GET() {
     );
   }
 }
-
-// POST /api/interviews - Create a new interview session
 export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
@@ -138,7 +136,6 @@ export async function POST(request: Request) {
       start_time,
       end_time,
       max_students,
-      participantIds = [],
     } = body;
 
     // Validation
@@ -161,52 +158,43 @@ export async function POST(request: Request) {
       );
     }
 
-    // Calculate the duration for each slot
-    const startDateTime = new Date(start_time);
-    const endDateTime = new Date(end_time);
-    const totalMinutes = (endDateTime.getTime() - startDateTime.getTime()) / (1000 * 60);
-    const slotDurationMinutes = totalMinutes / max_students;
+    // Parse the main start and end times
+    const baseStartDateTime = new Date(start_time);
+    const baseEndDateTime = new Date(end_time);
+    
+    // Calculate the duration for each slot in milliseconds
+    const slotDurationMs = baseEndDateTime.getTime() - baseStartDateTime.getTime();
 
-    // Create the interview session
+    // Create the interview session with the initial time range
     const interview = await prisma.interview.create({
       data: {
         title,
         description,
-        start_time: startDateTime,
-        end_time: endDateTime,
+        start_time: baseStartDateTime,
+        // The end time of the interview is now the end of the last slot
+        end_time: new Date(baseStartDateTime.getTime() + (slotDurationMs * max_students)),
         max_students,
         user_id: Number(session.user.id),
         period_id: currentPeriod.period_id,
       },
     });
 
-    // Create the slots
+    // Create the contiguous slots
     const slots = [];
     for (let i = 0; i < max_students; i++) {
-      const slotStart = new Date(startDateTime.getTime() + i * slotDurationMinutes * 60 * 1000);
-      const slotEnd = new Date(slotStart.getTime() + slotDurationMinutes * 60 * 1000);
+      // Each slot starts right after the previous one
+      const slotStartTime = new Date(baseStartDateTime.getTime() + (i * slotDurationMs));
+      const slotEndTime = new Date(slotStartTime.getTime() + slotDurationMs);
 
       const slot = await prisma.interviewSlot.create({
         data: {
           interview_id: interview.interview_id,
           slot_number: i + 1,
-          start_time: slotStart,
-          end_time: slotEnd,
+          start_time: slotStartTime,
+          end_time: slotEndTime,
         },
       });
       slots.push(slot);
-    }
-
-    // Add additional participants
-    const participants = [];
-    for (const participantId of participantIds) {
-      const participant = await prisma.interviewParticipant.create({
-        data: {
-          interview_id: interview.interview_id,
-          user_id: participantId,
-        },
-      });
-      participants.push(participant);
     }
 
     return NextResponse.json({
@@ -214,7 +202,6 @@ export async function POST(request: Request) {
       data: {
         interview,
         slots,
-        participants,
       },
     });
   } catch (error) {

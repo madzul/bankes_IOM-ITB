@@ -2,18 +2,18 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { Card } from "@/components/ui/card";
-import { PlusCircle, Calendar, Clock, Users, Edit, Trash, User, ChevronLeft, ChevronRight } from "lucide-react";
+import { PlusCircle, Calendar, Clock, Users, Edit, Trash, User, UserPlus, UserMinus, ChevronLeft, ChevronRight } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
 import { format, parseISO, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, addWeeks, subWeeks, isWithinInterval } from "date-fns";
 import { id } from "date-fns/locale";
 import { toast } from "sonner";
 import { useSession } from "next-auth/react";
+import { Badge } from "@/components/ui/badge";
 
 // Types
 interface IOMStaff {
@@ -66,13 +66,11 @@ type InterviewFormData = {
   startTime: string;
   endTime: string;
   maxStudents: number;
-  participants: number[];
 };
 
 export default function WeeklyCalendarView() {
   const { data: session } = useSession();
   const [interviews, setInterviews] = useState<Interview[]>([]);
-  const [iomStaff, setIomStaff] = useState<IOMStaff[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [editingInterviewId, setEditingInterviewId] = useState<number | null>(null);
@@ -80,6 +78,7 @@ export default function WeeklyCalendarView() {
   const [currentWeekStart, setCurrentWeekStart] = useState<Date>(startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [selectedInterview, setSelectedInterview] = useState<Interview | null>(null);
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
+  const [iomStaff, setIomStaff] = useState<IOMStaff[]>([]);
   
   const [formData, setFormData] = useState<InterviewFormData>({
     title: "",
@@ -87,8 +86,7 @@ export default function WeeklyCalendarView() {
     date: "",
     startTime: "",
     endTime: "",
-    maxStudents: 1,
-    participants: [],
+    maxStudents: 1
   });
 
   // Calculate week days
@@ -157,7 +155,7 @@ export default function WeeklyCalendarView() {
     setIsLoading(true);
     try {
       // Format start and end times
-      const { date, startTime, endTime, maxStudents, participants, title, description } = formData;
+      const { date, startTime, endTime, maxStudents, title, description } = formData;
       
       const combinedStartTime = `${date}T${startTime}:00`;
       const combinedEndTime = `${date}T${endTime}:00`;
@@ -178,8 +176,7 @@ export default function WeeklyCalendarView() {
           description,
           start_time: combinedStartTime,
           end_time: combinedEndTime,
-          max_students: maxStudents,
-          participantIds: participants,
+          max_students: maxStudents
         }),
       });
 
@@ -197,6 +194,60 @@ export default function WeeklyCalendarView() {
       toast.error("Failed to save interview");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleJoinInterview = async (interviewId: number) => {
+    try {
+      const response = await fetch(`/api/interviews/join`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          interviewId,
+        }),
+      });
+
+      if (response.ok) {
+        toast.success("Joined interview successfully");
+        fetchInterviews();
+        setIsDetailsDialogOpen(false);
+      } else {
+        const error = await response.json();
+        toast.error(error.error || "Failed to join interview");
+      }
+    } catch (error) {
+      console.error("Error joining interview:", error);
+      toast.error("Failed to join interview");
+    }
+  };
+
+  const handleLeaveInterview = async (interviewId: number) => {
+    if (confirm("Are you sure you want to leave this interview session?")) {
+      try {
+        const response = await fetch(`/api/interviews/join`, {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            interviewId,
+          }),
+        });
+
+        if (response.ok) {
+          toast.success("Left interview successfully");
+          fetchInterviews();
+          setIsDetailsDialogOpen(false);
+        } else {
+          const error = await response.json();
+          toast.error(error.error || "Failed to leave interview");
+        }
+      } catch (error) {
+        console.error("Error leaving interview:", error);
+        toast.error("Failed to leave interview");
+      }
     }
   };
 
@@ -253,8 +304,7 @@ export default function WeeklyCalendarView() {
       date: format(startDateTime, "yyyy-MM-dd"),
       startTime: format(startDateTime, "HH:mm"),
       endTime: format(endDateTime, "HH:mm"),
-      maxStudents: interview.max_students,
-      participants: interview.participants.map(p => p.user_id),
+      maxStudents: interview.max_students
     });
     
     setEditingInterviewId(interview.interview_id);
@@ -269,8 +319,7 @@ export default function WeeklyCalendarView() {
       date: "",
       startTime: "",
       endTime: "",
-      maxStudents: 1,
-      participants: [],
+      maxStudents: 1
     });
     setEditingInterviewId(null);
   };
@@ -278,22 +327,6 @@ export default function WeeklyCalendarView() {
   const handleOpenDialog = () => {
     resetForm();
     setIsDialogOpen(true);
-  };
-
-  const toggleParticipant = (userId: number) => {
-    setFormData(prev => {
-      if (prev.participants.includes(userId)) {
-        return {
-          ...prev,
-          participants: prev.participants.filter(id => id !== userId)
-        };
-      } else {
-        return {
-          ...prev,
-          participants: [...prev.participants, userId]
-        };
-      }
-    });
   };
 
   const nextWeek = () => {
@@ -320,13 +353,28 @@ export default function WeeklyCalendarView() {
         end: endOfWeek(currentWeekStart, { weekStartsOn: 1 })
       });
       
-      // Check if interview belongs to selected staff or if they're a participant
-      const isOwnedBySelectedStaff = interview.user_id === parseInt(selectedStaffId || '0');
-      const isParticipant = interview.participants.some(p => p.user_id === parseInt(selectedStaffId || '0'));
+      // Filter by selected staff (owner or participant)
+      if (selectedStaffId) {
+        const isOwnedBySelectedStaff = interview.user_id === parseInt(selectedStaffId);
+        const isParticipant = interview.participants.some(p => p.user_id === parseInt(selectedStaffId));
+        
+        return isInCurrentWeek && (isOwnedBySelectedStaff || isParticipant);
+      }
       
-      return isInCurrentWeek && (isOwnedBySelectedStaff || isParticipant);
+      return isInCurrentWeek;
     });
   }, [interviews, selectedStaffId, currentWeekStart]);
+
+  // Check if current user is owner or participant of an interview
+  const isUserInvolvedInInterview = (interview: Interview) => {
+    if (!session?.user?.id) return false;
+    
+    // Check if user is the owner
+    if (interview.user_id === Number(session.user.id)) return true;
+    
+    // Check if user is a participant
+    return interview.participants.some(p => p.user_id === Number(session.user.id));
+  };
 
   // Organize interviews by day and time
   const interviewsByDay = useMemo(() => {
@@ -445,16 +493,26 @@ export default function WeeklyCalendarView() {
                         isSameDay(day, new Date()) ? 'bg-blue-50/30' : ''
                       }`}
                     >
-                      {interviews.map((interview) => (
-                        <div 
-                          key={interview.interview_id}
-                          onClick={() => showInterviewDetails(interview)}
-                          className="mb-1 p-1 rounded text-xs bg-var text-white cursor-pointer hover:bg-var/90 truncate"
-                        >
-                          <p className="font-medium truncate">{interview.title || "Wawancara"}</p>
-                          <p className="truncate">{format(new Date(interview.start_time), 'HH:mm')} - {format(new Date(interview.end_time), 'HH:mm')}</p>
-                        </div>
-                      ))}
+                      {interviews.map((interview) => {
+                        const isOwner = interview.user_id === Number(session?.user?.id);
+                        const isParticipant = interview.participants.some(p => p.user_id === Number(session?.user?.id));
+                        
+                        return (
+                          <div 
+                            key={interview.interview_id}
+                            onClick={() => showInterviewDetails(interview)}
+                            className={`mb-1 p-1 rounded text-xs cursor-pointer hover:opacity-90 truncate flex items-center justify-between
+                              ${isOwner ? 'bg-blue-600 text-white' : isParticipant ? 'bg-green-600 text-white' : 'bg-var text-white'}`}
+                          >
+                            <div className="truncate">
+                              <p className="font-medium truncate">{interview.title || "Wawancara"}</p>
+                              <p className="truncate">{format(new Date(interview.start_time), 'HH:mm')} - {format(new Date(interview.end_time), 'HH:mm')}</p>
+                            </div>
+                            {isOwner && <Badge className="bg-white text-blue-600 text-[8px]">Pembuat</Badge>}
+                            {isParticipant && <Badge className="bg-white text-green-600 text-[8px]">Peserta</Badge>}
+                          </div>
+                        );
+                      })}
                     </div>
                   );
                 })}
@@ -466,112 +524,122 @@ export default function WeeklyCalendarView() {
 
       {/* Create/Edit Interview Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle>{editingInterviewId ? "Edit Jadwal Wawancara" : "Buat Jadwal Wawancara Baru"}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="title">Judul</Label>
-              <Input
-                id="title"
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                placeholder="Judul Sesi Wawancara"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="description">Deskripsi (Opsional)</Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="Deskripsi tambahan mengenai sesi wawancara"
-                rows={3}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="date">Tanggal</Label>
-                <Input
-                  id="date"
-                  type="date"
-                  value={formData.date}
-                  onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="maxStudents">Jumlah Mahasiswa</Label>
-                <Input
-                  id="maxStudents"
-                  type="number"
-                  min="1"
-                  max="10"
-                  value={formData.maxStudents}
-                  onChange={(e) => setFormData({ ...formData, maxStudents: parseInt(e.target.value) })}
-                  required
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="startTime">Waktu Mulai</Label>
-                <Input
-                  id="startTime"
-                  type="time"
-                  value={formData.startTime}
-                  onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="endTime">Waktu Selesai</Label>
-                <Input
-                  id="endTime"
-                  type="time"
-                  value={formData.endTime}
-                  onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
-                  required
-                />
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <Label>Pengurus IOM Tambahan</Label>
-              <div className="border rounded-md p-4 max-h-60 overflow-y-auto">
-                {iomStaff
-                  .filter(staff => staff.user_id !== parseInt(session?.user?.id as string))
-                  .map((staff) => (
-                    <div key={staff.user_id} className="flex items-center space-x-2 py-2">
-                      <Checkbox 
-                        id={`staff-${staff.user_id}`} 
-                        checked={formData.participants.includes(staff.user_id)}
-                        onCheckedChange={() => toggleParticipant(staff.user_id)} 
-                      />
-                      <label 
-                        htmlFor={`staff-${staff.user_id}`}
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                      >
-                        {staff.name}
-                      </label>
-                    </div>
-                  ))}
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Batal</Button>
-            <Button 
-              onClick={handleCreateOrUpdateInterview} 
-              disabled={isLoading || !formData.date || !formData.startTime || !formData.endTime}
-              className="bg-var hover:bg-var/90"
-            >
-              {isLoading ? "Memproses..." : editingInterviewId ? "Update" : "Simpan"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+  <DialogContent className="sm:max-w-[600px]">
+    <DialogHeader>
+      <DialogTitle>{editingInterviewId ? "Edit Jadwal Wawancara" : "Buat Jadwal Wawancara Baru"}</DialogTitle>
+    </DialogHeader>
+    <div className="space-y-4 py-4">
+      <div className="space-y-2">
+        <Label htmlFor="title">Judul</Label>
+        <Input
+          id="title"
+          value={formData.title}
+          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+          placeholder="Judul Sesi Wawancara"
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="description">Deskripsi (Opsional)</Label>
+        <Textarea
+          id="description"
+          value={formData.description}
+          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          placeholder="Deskripsi tambahan mengenai sesi wawancara"
+          rows={3}
+        />
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="date">Tanggal</Label>
+          <Input
+            id="date"
+            type="date"
+            value={formData.date}
+            onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+            required
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="maxStudents">Jumlah Slot</Label>
+          <Input
+            id="maxStudents"
+            type="number"
+            min="1"
+            max="10"
+            value={formData.maxStudents}
+            onChange={(e) => setFormData({ ...formData, maxStudents: parseInt(e.target.value) })}
+            required
+          />
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="startTime">Waktu Mulai Slot Pertama</Label>
+          <Input
+            id="startTime"
+            type="time"
+            value={formData.startTime}
+            onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
+            required
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="endTime">Waktu Selesai Slot Pertama</Label>
+          <Input
+            id="endTime"
+            type="time"
+            value={formData.endTime}
+            onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
+            required
+          />
+        </div>
+      </div>
+      
+      <div className="space-y-2">
+        <p className="text-sm text-gray-600">
+          {formData.maxStudents > 1 ? (
+            <>
+              <strong>Catatan:</strong> Dengan pengaturan ini, {formData.maxStudents} slot akan dibuat secara berurutan dengan durasi yang sama:
+              {formData.date && formData.startTime && formData.endTime && (
+                <ul className="mt-2 pl-5 list-disc">
+                  {Array.from({ length: formData.maxStudents }).map((_, index) => {
+                    if (formData.date && formData.startTime && formData.endTime) {
+                      const startDate = new Date(`${formData.date}T${formData.startTime}`);
+                      const endDate = new Date(`${formData.date}T${formData.endTime}`);
+                      const slotDuration = endDate.getTime() - startDate.getTime();
+                      
+                      const slotStart = new Date(startDate.getTime() + (index * slotDuration));
+                      const slotEnd = new Date(slotStart.getTime() + slotDuration);
+                      
+                      return (
+                        <li key={index}>
+                          Slot {index + 1}: {slotStart.getHours().toString().padStart(2, '0')}:{slotStart.getMinutes().toString().padStart(2, '0')} - {slotEnd.getHours().toString().padStart(2, '0')}:{slotEnd.getMinutes().toString().padStart(2, '0')}
+                        </li>
+                      );
+                    }
+                    return null;
+                  })}
+                </ul>
+              )}
+            </>
+          ) : (
+            "Slot akan dibuat sesuai dengan waktu yang Anda tentukan."
+          )}
+        </p>
+      </div>
+    </div>
+    <DialogFooter>
+      <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Batal</Button>
+      <Button 
+        onClick={handleCreateOrUpdateInterview} 
+        disabled={isLoading || !formData.date || !formData.startTime || !formData.endTime}
+        className="bg-var hover:bg-var/90"
+      >
+        {isLoading ? "Memproses..." : editingInterviewId ? "Update" : "Simpan"}
+      </Button>
+    </DialogFooter>
+  </DialogContent>
+</Dialog>
 
       {/* Interview Details Dialog */}
       <Dialog open={isDetailsDialogOpen} onOpenChange={setIsDetailsDialogOpen}>
@@ -596,15 +664,32 @@ export default function WeeklyCalendarView() {
                   </div>
                   
                   <div className="flex items-start space-x-2">
-                    <User className="h-4 w-4 mt-0.5 text-gray-500" />
+                    <Users className="h-4 w-4 mt-0.5 text-gray-500" />
                     <div>
-                      <p className="font-medium">Pengurus IOM</p>
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium">Pengurus IOM</p>
+                        {selectedInterview.user_id === Number(session?.user?.id) && (
+                          <Badge className="bg-blue-500">Anda</Badge>
+                        )}
+                      </div>
                       <p className="text-sm text-gray-600">
                         {selectedInterview.User.name}
-                        {selectedInterview.participants.length > 0 && (
-                          <span> dan {selectedInterview.participants.map(p => p.User.name).join(", ")}</span>
-                        )}
                       </p>
+                      {selectedInterview.participants.length > 0 && (
+                        <div className="mt-2">
+                          <p className="font-medium">Peserta</p>
+                          <ul className="text-sm text-gray-600">
+                            {selectedInterview.participants.map(p => (
+                              <li key={p.id} className="flex items-center">
+                                {p.User.name}
+                                {p.user_id === Number(session?.user?.id) && (
+                                  <Badge className="ml-2 bg-green-500 text-xs">Anda</Badge>
+                                )}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
                     </div>
                   </div>
                   
@@ -638,17 +723,19 @@ export default function WeeklyCalendarView() {
                                   <User className="h-4 w-4 mr-2 text-blue-500" />
                                   <span className="font-medium">{slot.Student?.User?.name || "Mahasiswa"}</span>
                                 </div>
-                                <Button 
-                                  variant="outline" 
-                                  size="sm" 
-                                  className="text-red-500 hover:text-red-700"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleCancelBooking(slot.id);
-                                  }}
-                                >
-                                  Batalkan
-                                </Button>
+                                {isUserInvolvedInInterview(selectedInterview) && (
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    className="text-red-500 hover:text-red-700"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleCancelBooking(slot.id);
+                                    }}
+                                  >
+                                    Batalkan
+                                  </Button>
+                                )}
                               </>
                             ) : (
                               <span className="text-sm text-gray-500">Slot kosong</span>
@@ -663,29 +750,60 @@ export default function WeeklyCalendarView() {
             )}
           </div>
           <DialogFooter>
-            <div className="flex space-x-2">
-              <Button 
-                variant="outline" 
-                onClick={() => setIsDetailsDialogOpen(false)}
-              >
-                Tutup
-              </Button>
-              <Button 
-                variant="outline" 
-                className="text-blue-600"
-                onClick={() => handleEditInterview(selectedInterview!)}
-              >
-                <Edit className="h-4 w-4 mr-1" />
-                Edit
-              </Button>
-              <Button 
-                variant="outline" 
-                className="text-red-600"
-                onClick={() => handleDeleteInterview(selectedInterview!.interview_id)}
-              >
-                <Trash className="h-4 w-4 mr-1" />
-                Hapus
-              </Button>
+            <div className="flex space-x-2 w-full justify-between">
+              <div>
+                {selectedInterview && selectedInterview.user_id !== Number(session?.user?.id) && (
+                  selectedInterview.participants.some(p => p.user_id === Number(session?.user?.id)) ? (
+                    <Button 
+                      variant="outline" 
+                      className="text-red-600"
+                      onClick={() => handleLeaveInterview(selectedInterview.interview_id)}
+                    >
+                      <UserMinus className="h-4 w-4 mr-1" />
+                      Tinggalkan Sesi
+                    </Button>
+                  ) : (
+                    <Button 
+                      variant="outline" 
+                      className="text-green-600"
+                      onClick={() => handleJoinInterview(selectedInterview.interview_id)}
+                    >
+                      <UserPlus className="h-4 w-4 mr-1" />
+                      Ikuti Sesi
+                    </Button>
+                  )
+                )}
+              </div>
+              
+              <div className="flex space-x-2">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setIsDetailsDialogOpen(false)}
+                >
+                  Tutup
+                </Button>
+                
+                {selectedInterview && selectedInterview.user_id === Number(session?.user?.id) && (
+                  <>
+                    <Button 
+                      variant="outline" 
+                      className="text-blue-600"
+                      onClick={() => handleEditInterview(selectedInterview)}
+                    >
+                      <Edit className="h-4 w-4 mr-1" />
+                      Edit
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="text-red-600"
+                      onClick={() => handleDeleteInterview(selectedInterview.interview_id)}
+                    >
+                      <Trash className="h-4 w-4 mr-1" />
+                      Hapus
+                    </Button>
+                  </>
+                )}
+              </div>
             </div>
           </DialogFooter>
         </DialogContent>
