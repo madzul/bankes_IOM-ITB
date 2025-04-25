@@ -2,13 +2,12 @@ import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
-import { Prisma } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
 // POST /api/interviews/slots/[id]/book - Book an interview slot
 export async function POST(
-    request: Request,
+    // request: Request,
     { params }: { params: { id: string } }
   ) {
     try {
