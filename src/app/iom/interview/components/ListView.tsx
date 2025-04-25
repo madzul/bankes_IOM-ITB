@@ -25,6 +25,7 @@ interface IOMStaff {
 interface InterviewParticipant {
   id: number;
   user_id: number;
+  slot_id?: number; // Add this field
   User: {
     name: string;
   };
@@ -192,20 +193,23 @@ export default function ListView() {
     }
   };
 
-  const handleJoinInterview = async (interviewId: number) => {
+  const handleJoinInterview = async (interviewId: number, slotId?: number) => {
     try {
+      // If slotId is provided, join a specific slot, otherwise join the entire interview
+      const requestBody = slotId 
+        ? { interviewId, slotId }
+        : { interviewId };
+        
       const response = await fetch(`/api/interviews/join`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          interviewId,
-        }),
+        body: JSON.stringify(requestBody),
       });
-
+  
       if (response.ok) {
-        toast.success("Joined interview successfully");
+        toast.success(slotId ? "Joined slot successfully" : "Joined interview successfully");
         fetchInterviews();
       } else {
         const error = await response.json();
@@ -216,22 +220,29 @@ export default function ListView() {
       toast.error("Failed to join interview");
     }
   };
-
-  const handleLeaveInterview = async (interviewId: number) => {
-    if (confirm("Are you sure you want to leave this interview session?")) {
+  
+  const handleLeaveInterview = async (interviewId: number, slotId?: number) => {
+    const confirmMessage = slotId 
+      ? "Are you sure you want to leave this interview slot?" 
+      : "Are you sure you want to leave this interview session?";
+      
+    if (confirm(confirmMessage)) {
       try {
+        // If slotId is provided, leave a specific slot, otherwise leave the entire interview
+        const requestBody = slotId 
+          ? { interviewId, slotId }
+          : { interviewId };
+          
         const response = await fetch(`/api/interviews/join`, {
           method: "DELETE",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            interviewId,
-          }),
+          body: JSON.stringify(requestBody),
         });
-
+  
         if (response.ok) {
-          toast.success("Left interview successfully");
+          toast.success(slotId ? "Left slot successfully" : "Left interview successfully");
           fetchInterviews();
         } else {
           const error = await response.json();
@@ -287,6 +298,15 @@ export default function ListView() {
     
     // Check if user is a participant
     return interview.participants.some(p => p.user_id === Number(session.user.id));
+  };
+
+  const isUserParticipantInSlot = (interview: Interview, slotId: number) => {
+    if (!session?.user?.id) return false;
+    
+    // Check if there's a participant record with this user's ID and the specified slot ID
+    return interview.participants.some(p => 
+      p.user_id === Number(session.user.id) && p.slot_id === slotId
+    );
   };
 
   // Filter interviews
@@ -403,28 +423,9 @@ export default function ListView() {
                           <Trash className="h-4 w-4 text-red-600" />
                         </Button>
                       </>
-                    ) : isParticipant ? (
-                      // Actions for participants
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => handleLeaveInterview(interview.interview_id)}
-                        className="border-red-200 hover:border-red-300 hover:bg-red-50"
-                      >
-                        <UserMinus className="h-4 w-4 text-red-600 mr-1" />
-                        <span>Tinggalkan</span>
-                      </Button>
                     ) : (
-                      // Actions for non-participants
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => handleJoinInterview(interview.interview_id)}
-                        className="border-green-200 hover:border-green-300 hover:bg-green-50"
-                      >
-                        <UserPlus className="h-4 w-4 text-green-600 mr-1" />
-                        <span>Ikuti</span>
-                      </Button>
+                      // For non-owners, show slot-specific options in the slots section
+                      <span className="text-sm text-gray-500">Please select a specific slot to join or leave</span>
                     )}
                   </div>
                 </div>
@@ -464,7 +465,34 @@ export default function ListView() {
                               )}
                             </>
                           ) : (
-                            <span className="text-sm text-gray-500">Slot kosong</span>
+                            <div className="flex gap-2">
+                              <span className="text-sm text-gray-500 mr-2">Slot kosong</span>
+                              {/* Show join/leave button based on participation status */}
+                              {session?.user?.role === "Pengurus_IOM" && 
+                                interview.user_id !== Number(session.user.id) && (
+                                isUserParticipantInSlot(interview, slot.id) ? (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="text-red-500 border-red-200 hover:border-red-300 hover:bg-red-50"
+                                    onClick={() => handleLeaveInterview(interview.interview_id, slot.id)}
+                                  >
+                                    <UserMinus className="h-4 w-4 mr-1" />
+                                    <span>Tinggalkan</span>
+                                  </Button>
+                                ) : (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="text-green-500 border-green-200 hover:border-green-300 hover:bg-green-50"
+                                    onClick={() => handleJoinInterview(interview.interview_id, slot.id)}
+                                  >
+                                    <UserPlus className="h-4 w-4 mr-1" />
+                                    <span>Ikuti Slot</span>
+                                  </Button>
+                                )
+)}
+                            </div>
                           )}
                         </div>
                       </div>

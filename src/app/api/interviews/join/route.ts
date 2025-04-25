@@ -5,6 +5,7 @@ import { authOptions } from "../../auth/[...nextauth]/route";
 
 const prisma = new PrismaClient();
 
+// POST /api/interviews/join - Join a specific interview slot
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -25,17 +26,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if the interview and slot exist
+    // Check if the slot exists
     const slot = await prisma.interviewSlot.findUnique({
-      where: { 
-        id: slotId,
-        interview_id: interviewId
+      where: { id: slotId },
+      include: {
+        Interview: {
+          select: {
+            interview_id: true,
+          },
+        },
       },
     });
 
-    if (!slot) {
+    if (!slot || slot.Interview.interview_id !== interviewId) {
       return NextResponse.json(
-        { success: false, error: "Slot not found" },
+        { success: false, error: "Slot not found or doesn't belong to specified interview" },
         { status: 404 }
       );
     }
@@ -45,7 +50,7 @@ export async function POST(request: NextRequest) {
       where: {
         interview_id: interviewId,
         user_id: Number(session.user.id),
-        slot_id: slotId
+        slot_id: slotId,
       },
     });
 
@@ -61,7 +66,7 @@ export async function POST(request: NextRequest) {
       data: {
         interview_id: interviewId,
         user_id: Number(session.user.id),
-        slot_id: slotId
+        slot_id: slotId,
       },
     });
 
@@ -71,7 +76,7 @@ export async function POST(request: NextRequest) {
       message: "Successfully joined the interview slot"
     });
   } catch (error) {
-    console.error("Error joining interview:", error);
+    console.error("Error joining interview slot:", error);
     return NextResponse.json(
       { success: false, error: "Failed to join interview slot" },
       { status: 500 }
@@ -79,7 +84,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// API route to leave an interview
+// DELETE /api/interviews/join - Leave a specific interview slot
 export async function DELETE(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -91,33 +96,32 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const { interviewId } = await request.json();
+    const { interviewId, slotId } = await request.json();
     
-    if (!interviewId) {
+    if (!interviewId || !slotId) {
       return NextResponse.json(
-        { success: false, error: "Missing interview ID" },
+        { success: false, error: "Missing interview ID or slot ID" },
         { status: 400 }
       );
     }
 
-    // Delete the participation record
-    await prisma.interviewParticipant.delete({
+    // Delete the participation record for this specific slot
+    await prisma.interviewParticipant.deleteMany({
       where: {
-        interview_id_user_id: {
-          interview_id: interviewId,
-          user_id: Number(session.user.id),
-        },
+        interview_id: interviewId,
+        user_id: Number(session.user.id),
+        slot_id: slotId,
       },
     });
 
     return NextResponse.json({ 
       success: true, 
-      message: "Successfully left the interview session"
+      message: "Successfully left the interview slot"
     });
   } catch (error) {
-    console.error("Error leaving interview:", error);
+    console.error("Error leaving interview slot:", error);
     return NextResponse.json(
-      { success: false, error: "Failed to leave interview" },
+      { success: false, error: "Failed to leave interview slot" },
       { status: 500 }
     );
   }

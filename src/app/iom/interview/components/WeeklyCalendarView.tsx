@@ -203,7 +203,7 @@ export default function WeeklyCalendarView() {
     }
   };
 
-  const handleJoinInterview = async (interviewId: number) => {
+  const handleJoinInterview = async (interviewId: number, slotId: number) => {
     try {
       const response = await fetch(`/api/interviews/join`, {
         method: "POST",
@@ -212,25 +212,27 @@ export default function WeeklyCalendarView() {
         },
         body: JSON.stringify({
           interviewId,
+          slotId,
         }),
       });
-
+  
       if (response.ok) {
-        toast.success("Joined interview successfully");
+        toast.success("Joined interview slot successfully");
         fetchInterviews();
         setIsDetailsDialogOpen(false);
+        setIsSlotDetailsDialogOpen(false);
       } else {
         const error = await response.json();
-        toast.error(error.error || "Failed to join interview");
+        toast.error(error.error || "Failed to join interview slot");
       }
     } catch (error) {
-      console.error("Error joining interview:", error);
-      toast.error("Failed to join interview");
+      console.error("Error joining interview slot:", error);
+      toast.error("Failed to join interview slot");
     }
   };
-
-  const handleLeaveInterview = async (interviewId: number) => {
-    if (confirm("Are you sure you want to leave this interview session?")) {
+  
+  const handleLeaveInterview = async (interviewId: number, slotId: number) => {
+    if (confirm("Are you sure you want to leave this interview slot?")) {
       try {
         const response = await fetch(`/api/interviews/join`, {
           method: "DELETE",
@@ -239,23 +241,26 @@ export default function WeeklyCalendarView() {
           },
           body: JSON.stringify({
             interviewId,
+            slotId,
           }),
         });
-
+  
         if (response.ok) {
-          toast.success("Left interview successfully");
+          toast.success("Left interview slot successfully");
           fetchInterviews();
           setIsDetailsDialogOpen(false);
+          setIsSlotDetailsDialogOpen(false);
         } else {
           const error = await response.json();
-          toast.error(error.error || "Failed to leave interview");
+          toast.error(error.error || "Failed to leave interview slot");
         }
       } catch (error) {
-        console.error("Error leaving interview:", error);
-        toast.error("Failed to leave interview");
+        console.error("Error leaving interview slot:", error);
+        toast.error("Failed to leave interview slot");
       }
     }
   };
+  
 
   const handleDeleteInterview = async (interviewId: number) => {
     if (confirm("Are you sure you want to delete this interview session?")) {
@@ -873,12 +878,14 @@ export default function WeeklyCalendarView() {
                     variant="outline" 
                     className="text-red-500"
                     onClick={() => {
-                      handleLeaveInterview(selectedSlotDetails.interview.interview_id);
-                      setIsSlotDetailsDialogOpen(false);
+                      handleLeaveInterview(
+                        selectedSlotDetails.interview.interview_id,
+                        selectedSlotDetails.id
+                      );
                     }}
                   >
                     <UserMinus className="h-4 w-4 mr-1" />
-                    Leave Session
+                    Leave Slot
                   </Button>
                 )
               ) : (
@@ -886,12 +893,14 @@ export default function WeeklyCalendarView() {
                   variant="outline" 
                   className="text-green-500"
                   onClick={() => {
-                    handleJoinInterview(selectedSlotDetails.interview.interview_id);
-                    setIsSlotDetailsDialogOpen(false);
+                    handleJoinInterview(
+                      selectedSlotDetails.interview.interview_id, 
+                      selectedSlotDetails.id
+                    );
                   }}
                 >
                   <UserPlus className="h-4 w-4 mr-1" />
-                  Join as Participant
+                  Join Slot
                 </Button>
               )}
               
