@@ -10,13 +10,13 @@ services:
     volumes:
       # Mount your app code for live reload
       - ./:/app:delegated            # <— source & package.json, lockfile, prisma, etc.
-      - /app/node_modules            # <— keep the container’s own node_modules intact
+      - /app/node_modules            # <— keep the container's own node_modules intact
     environment:
       # Next.js dev settings
       - NEXT_TELEMETRY_DISABLED=1
       - NODE_ENV=development
 
-      # Your backend env vars (if needed in dev)
+      #  backend env vars (if needed in dev)
       - DATABASE_URL=postgresql://postgres:postgres@postgres/db
       - JWT_SECRET=HIDUPMAHASISWA
       - MINIO_ENDPOINT=minio
