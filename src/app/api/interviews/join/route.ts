@@ -16,61 +16,64 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { interviewId } = await request.json();
+    const { interviewId, slotId } = await request.json();
     
-    if (!interviewId) {
+    if (!interviewId || !slotId) {
       return NextResponse.json(
-        { success: false, error: "Missing interview ID" },
+        { success: false, error: "Missing interview ID or slot ID" },
         { status: 400 }
       );
     }
 
-    // Check if the interview exists
-    const interview = await prisma.interview.findUnique({
-      where: { interview_id: interviewId },
+    // Check if the interview and slot exist
+    const slot = await prisma.interviewSlot.findUnique({
+      where: { 
+        id: slotId,
+        interview_id: interviewId
+      },
     });
 
-    if (!interview) {
+    if (!slot) {
       return NextResponse.json(
-        { success: false, error: "Interview not found" },
+        { success: false, error: "Slot not found" },
         { status: 404 }
       );
     }
 
-    // Check if the user is already a participant
-    const existingParticipant = await prisma.interviewParticipant.findUnique({
+    // Check if the user is already a participant for this slot
+    const existingParticipant = await prisma.interviewParticipant.findFirst({
       where: {
-        interview_id_user_id: {
-          interview_id: interviewId,
-          user_id: Number(session.user.id),
-        },
+        interview_id: interviewId,
+        user_id: Number(session.user.id),
+        slot_id: slotId
       },
     });
 
     if (existingParticipant) {
       return NextResponse.json(
-        { success: false, error: "You are already participating in this interview" },
+        { success: false, error: "You are already participating in this slot" },
         { status: 400 }
       );
     }
 
-    // Add the user as a participant
+    // Add the user as a participant for this specific slot
     const participant = await prisma.interviewParticipant.create({
       data: {
         interview_id: interviewId,
         user_id: Number(session.user.id),
+        slot_id: slotId
       },
     });
 
     return NextResponse.json({ 
       success: true, 
       data: participant,
-      message: "Successfully joined the interview session"
+      message: "Successfully joined the interview slot"
     });
   } catch (error) {
     console.error("Error joining interview:", error);
     return NextResponse.json(
-      { success: false, error: "Failed to join interview" },
+      { success: false, error: "Failed to join interview slot" },
       { status: 500 }
     );
   }

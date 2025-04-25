@@ -81,6 +81,9 @@ export default function WeeklyCalendarView() {
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
   const [isSlotDetailsDialogOpen, setIsSlotDetailsDialogOpen] = useState(false);
   const [iomStaff, setIomStaff] = useState<IOMStaff[]>([]);
+
+  const [isEditSlotDialogOpen, setIsEditSlotDialogOpen] = useState(false);
+  const [editingSlot, setEditingSlot] = useState<any>(null);
   
   const [formData, setFormData] = useState<InterviewFormData>({
     title: "",
@@ -313,6 +316,53 @@ export default function WeeklyCalendarView() {
     setEditingInterviewId(interview.interview_id);
     setIsDialogOpen(true);
     setIsDetailsDialogOpen(false);
+  };
+
+  const handleEditSingleSlot = (slot: any) => {
+    setEditingSlot({
+      id: slot.id,
+      slotNumber: slot.slot_number,
+      date: format(new Date(slot.start_time), "yyyy-MM-dd"),
+      startTime: format(new Date(slot.start_time), "HH:mm"),
+      endTime: format(new Date(slot.end_time), "HH:mm"),
+      interviewId: slot.interview.interview_id
+    });
+    setIsEditSlotDialogOpen(true);
+  };
+  
+  const saveSlotChanges = async () => {
+    if (!editingSlot) return;
+    
+    setIsLoading(true);
+    try {
+      const combinedStartTime = `${editingSlot.date}T${editingSlot.startTime}:00`;
+      const combinedEndTime = `${editingSlot.date}T${editingSlot.endTime}:00`;
+      
+      const response = await fetch(`/api/interviews/slots/${editingSlot.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          start_time: combinedStartTime,
+          end_time: combinedEndTime,
+        }),
+      });
+  
+      if (response.ok) {
+        toast.success("Slot updated successfully");
+        fetchInterviews();
+        setIsEditSlotDialogOpen(false);
+      } else {
+        const error = await response.json();
+        toast.error(error.error || "Failed to update slot");
+      }
+    } catch (error) {
+      console.error("Error updating slot:", error);
+      toast.error("Failed to update slot");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleDeleteSingleSlot = async (slotId: number, interviewId: number) => {
@@ -879,6 +929,22 @@ export default function WeeklyCalendarView() {
           Delete This Slot
         </Button>
       )}
+
+      {/* Edit single slot option */}
+      {selectedSlotDetails.interview.user_id === Number(session?.user?.id) && (
+        <Button
+          variant="outline" 
+          className="text-blue-500"
+          onClick={() => {
+            setIsSlotDetailsDialogOpen(false);
+            // Open a new dialog for editing this specific slot
+            handleEditSingleSlot(selectedSlotDetails);
+          }}
+        >
+          <Edit className="h-4 w-4 mr-1" />
+          Edit This Slot
+        </Button>
+      )}
       
       {/* Delete entire interview option */}
       <Button
@@ -910,6 +976,65 @@ export default function WeeklyCalendarView() {
         </DialogFooter>
       </DialogContent>
     </Dialog>
+
+    {/* Edit Slot Dialog */}
+<Dialog open={isEditSlotDialogOpen} onOpenChange={setIsEditSlotDialogOpen}>
+  <DialogContent className="sm:max-w-[500px]">
+    <DialogHeader>
+      <DialogTitle>Edit Slot {editingSlot?.slotNumber}</DialogTitle>
+    </DialogHeader>
+    <div className="py-4">
+      {editingSlot && (
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="date">Date</Label>
+            <Input
+              id="date"
+              type="date"
+              value={editingSlot.date}
+              onChange={(e) => setEditingSlot({ ...editingSlot, date: e.target.value })}
+              required
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="startTime">Start Time</Label>
+              <Input
+                id="startTime"
+                type="time"
+                value={editingSlot.startTime}
+                onChange={(e) => setEditingSlot({ ...editingSlot, startTime: e.target.value })}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="endTime">End Time</Label>
+              <Input
+                id="endTime"
+                type="time"
+                value={editingSlot.endTime}
+                onChange={(e) => setEditingSlot({ ...editingSlot, endTime: e.target.value })}
+                required
+              />
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+    <DialogFooter>
+      <Button variant="outline" onClick={() => setIsEditSlotDialogOpen(false)}>
+        Cancel
+      </Button>
+      <Button 
+        onClick={saveSlotChanges} 
+        disabled={isLoading}
+        className="bg-var hover:bg-var/90"
+      >
+        {isLoading ? "Saving..." : "Save Changes"}
+      </Button>
+    </DialogFooter>
+  </DialogContent>
+</Dialog>
     </>
   );
 }

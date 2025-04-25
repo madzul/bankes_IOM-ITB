@@ -92,3 +92,83 @@ export async function DELETE(
     );
   }
 }
+// PATCH /api/interviews/slots/[id] - Update a single slot
+export async function PATCH(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.id || session.user.role !== "Pengurus_IOM") {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    const slotId = Number(params.id);
+    if (isNaN(slotId)) {
+      return NextResponse.json(
+        { success: false, error: "Invalid slot ID" },
+        { status: 400 }
+      );
+    }
+
+    const body = await request.json();
+    const { start_time, end_time } = body;
+
+    if (!start_time || !end_time) {
+      return NextResponse.json(
+        { success: false, error: "Missing required fields" },
+        { status: 400 }
+      );
+    }
+
+    // Check if slot exists and user is the interview owner
+    const slot = await prisma.interviewSlot.findUnique({
+      where: { id: slotId },
+      include: {
+        Interview: {
+          select: {
+            user_id: true,
+          },
+        },
+      },
+    });
+
+    if (!slot) {
+      return NextResponse.json(
+        { success: false, error: "Slot not found" },
+        { status: 404 }
+      );
+    }
+
+    if (slot.Interview.user_id !== Number(session.user.id)) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 403 }
+      );
+    }
+
+    // Update the slot
+    const updatedSlot = await prisma.interviewSlot.update({
+      where: { id: slotId },
+      data: {
+        start_time: new Date(start_time),
+        end_time: new Date(end_time),
+      },
+    });
+
+    return NextResponse.json({
+      success: true,
+      data: updatedSlot,
+    });
+  } catch (error) {
+    console.error("Error updating slot:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to update slot" },
+      { status: 500 }
+    );
+  }
+}

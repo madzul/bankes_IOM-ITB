@@ -95,6 +95,8 @@ model InterviewParticipant {
   interview_id Int
   user_id      Int // The IOM staff who participates
   joined_at    DateTime @default(now())
+  slot_id      Int?
+
 
   Interview Interview @relation(fields: [interview_id], references: [interview_id], onDelete: Cascade)
   User      User      @relation(fields: [user_id], references: [user_id])
