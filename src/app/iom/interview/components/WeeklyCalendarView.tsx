@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal } from "react";
 import { Card } from "@/components/ui/card";
-import { PlusCircle, Calendar, Clock, Users, Edit, Trash, User, UserPlus, UserMinus, ChevronLeft, ChevronRight, Info } from "lucide-react";
+import { PlusCircle, Calendar, Clock, Users, Edit, Trash, User, UserPlus, UserMinus, ChevronLeft, ChevronRight, Info, X } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -315,6 +315,59 @@ export default function WeeklyCalendarView() {
     setIsDetailsDialogOpen(false);
   };
 
+  const handleDeleteSingleSlot = async (slotId: number, interviewId: number) => {
+    try {
+      // First, we need to fetch the current slots to calculate the new max_students value
+      const response = await fetch(`/api/interviews/${interviewId}`, {
+        method: "GET",
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to fetch interview details");
+      }
+      
+      const interview = await response.json();
+      const currentSlots = interview.data.slots || [];
+      
+      // If this is the only slot, delete the entire interview
+      if (currentSlots.length <= 1) {
+        return handleDeleteInterview(interviewId);
+      }
+      
+      // Delete the specific slot
+      const deleteSlotResponse = await fetch(`/api/interviews/slots/${slotId}`, {
+        method: "DELETE",
+      });
+      
+      if (!deleteSlotResponse.ok) {
+        const error = await deleteSlotResponse.json();
+        throw new Error(error.error || "Failed to delete slot");
+      }
+      
+      // Update the interview's max_students value
+      const updateInterviewResponse = await fetch(`/api/interviews/${interviewId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          max_students: currentSlots.length - 1
+        }),
+      });
+      
+      if (!updateInterviewResponse.ok) {
+        toast.warning("Slot deleted but failed to update session details");
+      }
+      
+      toast.success("Slot deleted successfully");
+      fetchInterviews();
+    } catch (error) {
+      console.error("Error deleting slot:", error);
+      toast.error("Failed to delete slot");
+    }
+  };
+
   const resetForm = () => {
     setFormData({
       title: "",
@@ -529,7 +582,7 @@ export default function WeeklyCalendarView() {
                       return (
                         <div 
                           key={slot.id}
-                          onClick={() => showSlotDetails(slot)} // Make sure this function is defined
+                          onClick={() => showSlotDetails(slot)}
                           className={`mb-1 p-1 rounded text-xs cursor-pointer hover:opacity-90 ${
                             hasStudent ? (
                               isOwner ? 'bg-blue-600 text-white' : 
@@ -713,6 +766,49 @@ export default function WeeklyCalendarView() {
                 )}
               </div>
               
+              {/* Add this section for IOM staff to join/leave */}
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Session Owner: {selectedSlotDetails.interview.User.name}</p>
+                {selectedSlotDetails.interview.participants.length > 0 && (
+                  <div className="flex flex-col gap-1">
+                    <p className="text-sm">Participants:</p>
+                    <ul className="text-sm ml-5 list-disc">
+                      {selectedSlotDetails.interview.participants.map((p: { id: Key | null | undefined; User: { name: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined; }; }) => (
+                        <li key={p.id}>{p.User.name}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+              
+              {isUserInvolvedInInterview(selectedSlotDetails.interview) ? (
+                selectedSlotDetails.interview.user_id !== Number(session?.user?.id) && (
+                  <Button
+                    variant="outline" 
+                    className="text-red-500"
+                    onClick={() => {
+                      handleLeaveInterview(selectedSlotDetails.interview.interview_id);
+                      setIsSlotDetailsDialogOpen(false);
+                    }}
+                  >
+                    <UserMinus className="h-4 w-4 mr-1" />
+                    Leave Session
+                  </Button>
+                )
+              ) : (
+                <Button
+                  variant="outline" 
+                  className="text-green-500"
+                  onClick={() => {
+                    handleJoinInterview(selectedSlotDetails.interview.interview_id);
+                    setIsSlotDetailsDialogOpen(false);
+                  }}
+                >
+                  <UserPlus className="h-4 w-4 mr-1" />
+                  Join as Participant
+                </Button>
+              )}
+              
               {isUserInvolvedInInterview(selectedSlotDetails.interview) && selectedSlotDetails.student_id && (
                 <Button
                   variant="outline" 
@@ -726,6 +822,45 @@ export default function WeeklyCalendarView() {
                   Cancel Booking
                 </Button>
               )}
+{selectedSlotDetails && selectedSlotDetails.interview.user_id === Number(session?.user?.id) && (
+  <div className="space-y-2 mt-4">
+    <p className="text-sm font-medium">Session Management:</p>
+    <div className="flex gap-2">
+      {/* Delete single slot option */}
+      {selectedSlotDetails.interview.max_students > 1 && (
+        <Button
+          variant="outline" 
+          className="text-amber-500"
+          onClick={() => {
+            if (confirm(`Are you sure you want to delete Slot ${selectedSlotDetails.slot_number} from this interview session?`)) {
+              // Call a new function to delete just this slot
+              handleDeleteSingleSlot(selectedSlotDetails.id, selectedSlotDetails.interview.interview_id);
+              setIsSlotDetailsDialogOpen(false);
+            }
+          }}
+        >
+          <Trash className="h-4 w-4 mr-1" />
+          Delete This Slot
+        </Button>
+      )}
+      
+      {/* Delete entire interview option */}
+      <Button
+        variant="outline" 
+        className="text-red-500"
+        onClick={() => {
+          if (confirm("Are you sure you want to delete the entire interview session? This will delete all slots and bookings.")) {
+            handleDeleteInterview(selectedSlotDetails.interview.interview_id);
+            setIsSlotDetailsDialogOpen(false);
+          }
+        }}
+      >
+        <Trash className="h-4 w-4 mr-1" />
+        Delete Entire Session
+      </Button>
+    </div>
+  </div>
+)}
             </>
           )}
         </div>
