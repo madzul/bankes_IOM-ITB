@@ -109,7 +109,8 @@ export default function WeeklyCalendarView() {
   // Generate time slots for the day (8:00 AM to 5:00 PM with 1-hour intervals)
   const timeSlots = useMemo(() => {
     const slots = [];
-    for (let hour = 8; hour <= 17; hour++) {
+    // Change this to show all 24 hours instead of just 8-17
+    for (let hour = 0; hour < 24; hour++) {
       slots.push(`${hour.toString().padStart(2, '0')}:00`);
     }
     return slots;
@@ -397,16 +398,19 @@ export default function WeeklyCalendarView() {
       // Handle each slot individually
       interview.slots.forEach(slot => {
         const slotStartTime = new Date(slot.start_time);
+        // Get a more precise time slot (nearest 30 min increment)
+        const minutes = slotStartTime.getMinutes();
+        const roundedMinutes = minutes < 30 ? "00" : "30";
+        const slotHour = `${slotStartTime.getHours().toString().padStart(2, '0')}:${roundedMinutes}`;
         const dayStr = format(slotStartTime, 'yyyy-MM-dd');
-        const hourStr = format(slotStartTime, 'HH:00');
         
-        if (result.has(dayStr) && result.get(dayStr)?.has(hourStr)) {
+        if (result.has(dayStr) && result.get(dayStr)?.has(slotHour)) {
           // Add slot with interview reference
           const enhancedSlot = {
             ...slot,
-            interview: interview // Add interview reference to slot
+            interview: interview 
           };
-          result.get(dayStr)?.get(hourStr)?.push(enhancedSlot as any);
+          result.get(dayStr)?.get(slotHour)?.push(enhancedSlot as any);
         }
       });
     });
@@ -422,7 +426,10 @@ export default function WeeklyCalendarView() {
   // Helper to show slot details
   const showSlotDetails = (slot: any) => {
     if (slot.interview) {
-      setSelectedSlotDetails(slot);
+      setSelectedSlotDetails({
+        ...slot,
+        interview: slot.interview
+      });
       setIsSlotDetailsDialogOpen(true);
     }
   };
@@ -512,48 +519,48 @@ export default function WeeklyCalendarView() {
                       }`}
                     >
                       {slots.map((slot: any) => {
-                        const slotStartTime = new Date(slot.start_time);
-                        const slotEndTime = new Date(slot.end_time);
-                        const interview = slot.interview;
-                        const isOwner = interview.user_id === Number(session?.user?.id);
-                        const isParticipant = interview.participants.some(p => p.user_id === Number(session?.user?.id));
-                        const hasStudent = !!slot.student_id;
-                        
-                        return (
-                          <div 
-                            key={slot.id}
-                            onClick={() => showSlotDetails(slot)}
-                            className={`mb-1 p-1 rounded text-xs cursor-pointer hover:opacity-90 ${
-                              hasStudent ? (
-                                isOwner ? 'bg-blue-600 text-white' : 
-                                isParticipant ? 'bg-green-600 text-white' : 
-                                'bg-var text-white'
-                              ) : (
-                                isOwner ? 'bg-blue-200 text-blue-800' : 
-                                isParticipant ? 'bg-green-200 text-green-800' : 
-                                'bg-gray-200 text-gray-800'
-                              )
-                            }`}
-                          >
-                            <div className="flex items-center justify-between">
-                              <span className="font-medium truncate">{interview.title || "Wawancara"}</span>
-                              <Badge className="text-[8px] ml-1">{`Slot ${slot.slot_number}`}</Badge>
-                            </div>
-                            <div className="flex items-center justify-between">
-                              <span className="truncate">
-                                {format(slotStartTime, 'HH:mm')} - {format(slotEndTime, 'HH:mm')}
-                              </span>
-                              {hasStudent && (
-                                <Badge className="bg-yellow-500 text-[7px]">
-                                  {slot.Student?.User?.name ? 
-                                    slot.Student.User.name.split(' ')[0] : 
-                                    "Booked"}
-                                </Badge>
-                              )}
-                            </div>
+                      const slotStartTime = new Date(slot.start_time);
+                      const slotEndTime = new Date(slot.end_time);
+                      const interview = slot.interview;
+                      const isOwner = interview.user_id === Number(session?.user?.id);
+                      const isParticipant = interview.participants.some((p: { user_id: number; }) => p.user_id === Number(session?.user?.id));
+                      const hasStudent = !!slot.student_id;
+                      
+                      return (
+                        <div 
+                          key={slot.id}
+                          onClick={() => showSlotDetails(slot)} // Make sure this function is defined
+                          className={`mb-1 p-1 rounded text-xs cursor-pointer hover:opacity-90 ${
+                            hasStudent ? (
+                              isOwner ? 'bg-blue-600 text-white' : 
+                              isParticipant ? 'bg-green-600 text-white' : 
+                              'bg-var text-white'
+                            ) : (
+                              isOwner ? 'bg-blue-200 text-blue-800' : 
+                              isParticipant ? 'bg-green-200 text-green-800' : 
+                              'bg-gray-200 text-gray-800'
+                            )
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="font-medium truncate">{interview.title || "Wawancara"}</span>
+                            <Badge className="text-[8px] ml-1">{`Slot ${slot.slot_number}`}</Badge>
                           </div>
-                        );
-                      })}
+                          <div className="flex items-center justify-between">
+                            <span className="truncate">
+                              {format(slotStartTime, 'HH:mm')} - {format(slotEndTime, 'HH:mm')}
+                            </span>
+                            {hasStudent && (
+                              <Badge className="bg-yellow-500 text-[7px]">
+                                {slot.Student?.User?.name ? 
+                                  slot.Student.User.name.split(' ')[0] : 
+                                  "Booked"}
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
                     </div>
                   );
                 })}
@@ -683,187 +690,55 @@ export default function WeeklyCalendarView() {
       </Dialog>
 
     {/* Interview Details Dialog */}
-    <Dialog open={isDetailsDialogOpen} onOpenChange={setIsDetailsDialogOpen}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle>{selectedInterview?.title || "Detail Wawancara"}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            {selectedInterview && (
-              <>
-                <div className="space-y-2">
-                  <div className="flex items-start space-x-2">
-                    <Calendar className="h-4 w-4 mt-0.5 text-gray-500" />
-                    <div>
-                      <p className="font-medium">
-                        {format(new Date(selectedInterview.start_time), "EEEE, d MMMM yyyy", { locale: id })}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        Durasi keseluruhan: {format(new Date(selectedInterview.start_time), "HH:mm")} - {format(new Date(selectedInterview.end_time), "HH:mm")}
-                      </p>
-                    </div>
+    <Dialog open={isSlotDetailsDialogOpen} onOpenChange={setIsSlotDetailsDialogOpen}>
+      <DialogContent className="sm:max-w-[500px]">
+        <DialogHeader>
+          <DialogTitle>Slot Details</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 py-4">
+          {selectedSlotDetails && (
+            <>
+              <div className="space-y-2">
+                <p className="font-medium">{selectedSlotDetails.interview.title || "Interview Session"}</p>
+                <p className="text-sm">
+                  Slot {selectedSlotDetails.slot_number}: {format(new Date(selectedSlotDetails.start_time), "HH:mm")} - {format(new Date(selectedSlotDetails.end_time), "HH:mm")}
+                </p>
+                {selectedSlotDetails.student_id ? (
+                  <div className="flex items-center">
+                    <User className="h-4 w-4 mr-2 text-blue-500" />
+                    <span>Booked by: {selectedSlotDetails.Student?.User?.name || "Student"}</span>
                   </div>
-                  
-                  <div className="flex items-start space-x-2">
-                    <Users className="h-4 w-4 mt-0.5 text-gray-500" />
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <p className="font-medium">Pengurus IOM</p>
-                        {selectedInterview.user_id === Number(session?.user?.id) && (
-                          <Badge className="bg-blue-500">Anda</Badge>
-                        )}
-                      </div>
-                      <p className="text-sm text-gray-600">
-                        {selectedInterview.User.name}
-                      </p>
-                      {selectedInterview.participants.length > 0 && (
-                        <div className="mt-2">
-                          <p className="font-medium">Peserta</p>
-                          <ul className="text-sm text-gray-600">
-                            {selectedInterview.participants.map(p => (
-                              <li key={p.id} className="flex items-center">
-                                {p.User.name}
-                                {p.user_id === Number(session?.user?.id) && (
-                                  <Badge className="ml-2 bg-green-500 text-xs">Anda</Badge>
-                                )}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  
-                  {selectedInterview.description && (
-                    <div className="mt-2 text-gray-700">
-                      <p className="font-medium mb-1">Deskripsi:</p>
-                      <p className="text-sm">{selectedInterview.description}</p>
-                    </div>
-                  )}
-                  
-                  <div className="mt-4">
-                    <p className="font-medium mb-2">Status Slot:</p>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="p-2 bg-gray-100 rounded">
-                        <p className="text-sm font-medium">Total Slot</p>
-                        <p className="text-lg">{selectedInterview.slots.length}</p>
-                      </div>
-                      <div className="p-2 bg-blue-100 rounded">
-                        <p className="text-sm font-medium">Slot Terisi</p>
-                        <p className="text-lg">{selectedInterview.slots.filter(s => s.student_id !== null).length}</p>
-                      </div>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-2">Klik pada slot di kalender untuk melihat detail slot</p>
-                  </div>
-                  
-                  <div className="mt-4">
-                    <p className="font-medium mb-2">Daftar Slot:</p>
-                    <div className="space-y-2 max-h-60 overflow-y-auto">
-                      {selectedInterview.slots.map((slot) => (
-                        <div 
-                          key={slot.id} 
-                          className={`p-3 rounded-md flex justify-between items-center ${
-                            slot.student_id ? 'bg-blue-50 border border-blue-200' : 'bg-gray-50 border border-gray-200'
-                          }`}
-                        >
-                          <div>
-                            <p className="font-medium">Slot {slot.slot_number}</p>
-                            <p className="text-sm text-gray-500">
-                              {format(new Date(slot.start_time), "HH:mm")} - {format(new Date(slot.end_time), "HH:mm")}
-                            </p>
-                          </div>
-                          <div className="flex items-center">
-                            {slot.student_id ? (
-                              <>
-                                <div className="flex items-center mr-4">
-                                  <User className="h-4 w-4 mr-2 text-blue-500" />
-                                  <span className="font-medium">{slot.Student?.User?.name || "Mahasiswa"}</span>
-                                </div>
-                                {isUserInvolvedInInterview(selectedInterview) && (
-                                  <Button 
-                                    variant="outline" 
-                                    size="sm" 
-                                    className="text-red-500 hover:text-red-700"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleCancelBooking(slot.id);
-                                    }}
-                                  >
-                                    Batalkan
-                                  </Button>
-                                )}
-                              </>
-                            ) : (
-                              <span className="text-sm text-gray-500">Slot kosong</span>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
-          <DialogFooter>
-            <div className="flex space-x-2 w-full justify-between">
-              <div>
-                {selectedInterview && selectedInterview.user_id !== Number(session?.user?.id) && (
-                  selectedInterview.participants.some(p => p.user_id === Number(session?.user?.id)) ? (
-                    <Button 
-                      variant="outline" 
-                      className="text-red-600"
-                      onClick={() => handleLeaveInterview(selectedInterview.interview_id)}
-                    >
-                      <UserMinus className="h-4 w-4 mr-1" />
-                      Tinggalkan Sesi
-                    </Button>
-                  ) : (
-                    <Button 
-                      variant="outline" 
-                      className="text-green-600"
-                      onClick={() => handleJoinInterview(selectedInterview.interview_id)}
-                    >
-                      <UserPlus className="h-4 w-4 mr-1" />
-                      Ikuti Sesi
-                    </Button>
-                  )
+                ) : (
+                  <p className="text-sm text-gray-500">Slot available</p>
                 )}
               </div>
               
-              <div className="flex space-x-2">
-                <Button 
+              {isUserInvolvedInInterview(selectedSlotDetails.interview) && selectedSlotDetails.student_id && (
+                <Button
                   variant="outline" 
-                  onClick={() => setIsDetailsDialogOpen(false)}
+                  className="text-red-500"
+                  onClick={() => {
+                    handleCancelBooking(selectedSlotDetails.id);
+                    setIsSlotDetailsDialogOpen(false);
+                  }}
                 >
-                  Tutup
+                  <X className="h-4 w-4 mr-1" />
+                  Cancel Booking
                 </Button>
-                
-                {selectedInterview && selectedInterview.user_id === Number(session?.user?.id) && (
-                  <>
-                    <Button 
-                      variant="outline" 
-                      className="text-blue-600"
-                      onClick={() => handleEditInterview(selectedInterview)}
-                    >
-                      <Edit className="h-4 w-4 mr-1" />
-                      Edit
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      className="text-red-600"
-                      onClick={() => handleDeleteInterview(selectedInterview.interview_id)}
-                    >
-                      <Trash className="h-4 w-4 mr-1" />
-                      Hapus
-                    </Button>
-                  </>
-                )}
-              </div>
-            </div>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+              )}
+            </>
+          )}
+        </div>
+        <DialogFooter>
+          <Button 
+            variant="outline" 
+            onClick={() => setIsSlotDetailsDialogOpen(false)}
+          >
+            Close
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
     </>
   );
 }
