@@ -1,52 +1,53 @@
-# Dockerfile.prod
-# -----------------
-# Multi-stage build for small, secure production image:
-# 1. deps: npm ci only installs production deps
-# 2. builder: builds your Next.js app & Prisma client
-# 3. runner: minimal runtime, non-root user, only built artifacts
+# ───────────────────────────────────────────────────────────────────────────────
+# 1) Builder: install everything and build
+# ───────────────────────────────────────────────────────────────────────────────
+FROM node:23-slim AS builder
 
-# Base image
-FROM node:23-alpine AS base
+WORKDIR /app
+
+ENV NODE_ENV=development
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Install dependencies only when package.json changes
-FROM base AS deps
-WORKDIR /app
-COPY package.json package-lock.json* ./
-RUN npm ci --production
+# 1.1) install all dependencies
+COPY package.json package-lock.json ./
+RUN npm ci
 
-# Build stage: compile & build
-FROM base AS builder
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
-COPY . .
+# 1.2) generate Prisma client
+COPY prisma/ ./prisma/
 RUN npx prisma generate
-# Skip ESLint in prod builds to avoid blocking (alternatively, run lint earlier)
-# Activate if eslint is needed in prod builds
-ENV NEXT_DISABLE_ESLINT=true
-# ENV NEXT_DISABLE_ESLINT=false
+
+# 1.3) copy rest of the app and build
+COPY . .
 RUN npm run build
 
-# Production runtime
-FROM base AS runner
+# ───────────────────────────────────────────────────────────────────────────────
+# 2) Runner: minimal runtime with only prod deps
+# ───────────────────────────────────────────────────────────────────────────────
+FROM node:23-slim AS runner
+
 WORKDIR /app
 
 ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
 
-# Create non-root user for security
-RUN addgroup -S nodejs && adduser -S nextjs -G nodejs
+# 2.1) copy only production node_modules from builder
+COPY --from=builder /app/node_modules/ ./node_modules/
 
-# Copy built files & node_modules
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/prisma ./prisma
+# 2.2) copy Prisma client
+COPY --from=builder /app/node_modules/.prisma/ ./node_modules/.prisma/
+COPY --from=builder /app/node_modules/@prisma/ ./node_modules/@prisma/
 
-# Fix permissions and switch user
-RUN chown -R nextjs:nodejs /app
-USER nextjs
+# 2.3) copy app artifacts
+COPY --from=builder /app/package.json ./
+COPY --from=builder /app/next.config.js ./
+COPY --from=builder /app/public/ ./public/
+COPY --from=builder /app/.next/ ./.next/
+
+# Optional: copy other needed runtime files
+# COPY --from=builder /app/next-i18next.config.js ./
+
+# 2.4) prune dev dependencies just in case
+RUN npm prune --production
 
 EXPOSE 3000
-
-CMD ["npm", "run", "start"]
+CMD ["npm", "start"]

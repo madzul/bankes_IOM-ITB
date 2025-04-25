@@ -1,21 +1,35 @@
 # Dockerfile.dev
 FROM node:23-slim
 
-RUN apt-get update -y && apt-get install -y openssl
+# Install OpenSSL (for Prisma) plus bash & curl for any scripts
+RUN apt-get update -y \
+ && apt-get install -y --no-install-recommends \
+      openssl \
+      bash \
+      curl \
+ && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
+# Dev environment flags
 ENV NODE_ENV=development
 ENV NEXT_TELEMETRY_DISABLED=1
 
+# 1) Install all dependencies (including optional oxide + lightningcss)
 COPY package.json package-lock.json ./
 RUN npm ci
 
+# 2) Generate Prisma client
 COPY prisma ./prisma
 RUN npx prisma generate
 
+# 3) Copy and make MinIO-init script executable
+COPY scripts/minio-init.sh ./scripts/minio-init.sh
+RUN chmod +x ./scripts/minio-init.sh
+
+# 4) Copy the rest of source
 COPY . .
 
-# 6) Expose Next dev port & start
+# 5) Expose dev port & run migrations + Next.js dev server
 EXPOSE 3000
-CMD ["sh", "-c", "npx prisma migrate deploy && npm run dev"]
+CMD ["bash", "-c", "npx prisma migrate deploy && npm run dev"]
