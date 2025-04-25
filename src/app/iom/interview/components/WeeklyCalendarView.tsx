@@ -448,20 +448,20 @@ export default function WeeklyCalendarView() {
     
     // Place individual slots in appropriate day and time slot
     filteredInterviews.forEach(interview => {
-      // Handle each slot individually
       interview.slots.forEach(slot => {
         const slotStartTime = new Date(slot.start_time);
-        // Get a more precise time slot (nearest 30 min increment)
-        const minutes = slotStartTime.getMinutes();
-        const roundedMinutes = minutes < 30 ? "00" : "30";
-        const slotHour = `${slotStartTime.getHours().toString().padStart(2, '0')}:${roundedMinutes}`;
+        const slotEndTime = new Date(slot.end_time);
         const dayStr = format(slotStartTime, 'yyyy-MM-dd');
         
+        // Get hour for initial placement
+        const slotHour = `${slotStartTime.getHours().toString().padStart(2, '0')}:00`;
+        
         if (result.has(dayStr) && result.get(dayStr)?.has(slotHour)) {
-          // Add slot with interview reference
+          // Add slot with interview reference and duration info
           const enhancedSlot = {
             ...slot,
-            interview: interview 
+            interview: interview,
+            duration: Math.ceil((slotEndTime.getTime() - slotStartTime.getTime()) / (60 * 60 * 1000)) // Duration in hours
           };
           result.get(dayStr)?.get(slotHour)?.push(enhancedSlot as any);
         }
@@ -534,30 +534,47 @@ export default function WeeklyCalendarView() {
         </div>
       </div>
 
-      <Card className="p-0 w-full overflow-auto shadow-sm">
+      <Card className="p-0 w-full overflow-auto shadow-sm rounded-xl border-none">
         <div className="min-w-[800px]">
-          {/* Header with days */}
-          <div className="grid grid-cols-[60px_repeat(7,1fr)] bg-gray-50 border-b">
-            <div className="p-3 border-r"></div>
+          {/* Header with days - remove borders */}
+          <div className="grid grid-cols-[60px_repeat(7,1fr)] bg-gray-50">
+            <div className="p-3"></div> {/* Remove border-r */}
             {weekDays.map((day, index) => (
               <div 
                 key={index} 
-                className={`p-3 text-center border-r ${
-                  isSameDay(day, new Date()) ? 'bg-blue-50' : ''
+                className={`p-3 text-center ${
+                  isSameDay(day, new Date()) ? 'bg-blue-50 font-bold' : ''
                 }`}
               >
                 <p className="font-medium">{format(day, 'EEEE', { locale: id })}</p>
-                <p className="text-sm">{format(day, 'd MMM', { locale: id })}</p>
+                <div className="flex items-center justify-center gap-1 mt-1">
+                  <div className={`${
+                    isSameDay(day, new Date()) ? 
+                    'bg-var text-white rounded-full w-8 h-8 flex items-center justify-center' : 
+                    ''
+                  }`}>
+                    {format(day, 'd')}
+                  </div>
+                  <span className="text-sm">{format(day, 'MMM', { locale: id })}</span>
+                </div>
               </div>
             ))}
           </div>
+    
           
-          {/* Time slots */}
+          {/* Time slots - add subtle styling */}
           <div className="relative">
             {timeSlots.map((timeSlot, timeIndex) => (
-              <div key={timeSlot} className="grid grid-cols-[60px_repeat(7,1fr)] border-b">
-                <div className="p-2 text-center text-sm border-r">
-                  {timeSlot}
+              <div 
+                key={timeSlot} 
+                className={`grid grid-cols-[60px_repeat(7,1fr)] border-b ${
+                  timeIndex % 2 === 0 ? 'bg-gray-50/30' : ''
+                }`}
+              >
+                <div className="border-r flex items-center justify-center">
+                  <div className="font-roboto font-medium w-12 h-12 flex items-center justify-center  text-gray-700 text-sm">
+                    {timeSlot}
+                  </div>
                 </div>
                 
                 {weekDays.map((day, dayIndex) => {
@@ -579,11 +596,15 @@ export default function WeeklyCalendarView() {
                       const isParticipant = interview.participants.some((p: { user_id: number; }) => p.user_id === Number(session?.user?.id));
                       const hasStudent = !!slot.student_id;
                       
+                      // Calculate the duration in hours (or in pixels if preferred)
+                      const durationHours = (slotEndTime.getTime() - slotStartTime.getTime()) / (60 * 60 * 1000);
+                      const heightInPixels = Math.max(durationHours * 80, 80); // Assuming each hour cell is 80px
+                      
                       return (
                         <div 
                           key={slot.id}
                           onClick={() => showSlotDetails(slot)}
-                          className={`mb-1 p-1 rounded text-xs cursor-pointer hover:opacity-90 ${
+                          className={`mb-1 p-1 rounded text-xs cursor-pointer hover:opacity-90 absolute left-1 right-1 z-10 ${
                             hasStudent ? (
                               isOwner ? 'bg-blue-600 text-white' : 
                               isParticipant ? 'bg-green-600 text-white' : 
@@ -594,6 +615,11 @@ export default function WeeklyCalendarView() {
                               'bg-gray-200 text-gray-800'
                             )
                           }`}
+                          style={{ 
+                            top: '0', // Change from '1px' to '0'
+                            height: `${heightInPixels}px`, // Remove the subtraction 
+                            pointerEvents: 'auto'
+                          }}
                         >
                           <div className="flex items-center justify-between">
                             <span className="font-medium truncate">{interview.title || "Wawancara"}</span>
@@ -619,6 +645,16 @@ export default function WeeklyCalendarView() {
                 })}
               </div>
             ))}
+          {/* Add hour lines for better visual reference */}
+          <div className="absolute inset-0 grid grid-cols-[60px_repeat(7,1fr)] pointer-events-none">
+            {timeSlots.map((_, timeIndex) => (
+              <div 
+                key={timeIndex} 
+                className="col-span-8 border-t border-gray-200" 
+                style={{ height: '80px', marginTop: '-1px' }}
+              ></div>
+            ))}
+          </div>
           </div>
         </div>
       </Card>
