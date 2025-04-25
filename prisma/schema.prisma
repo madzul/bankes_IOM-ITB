@@ -107,9 +107,11 @@ model InterviewParticipant {
   interview_id Int
   user_id      Int 
   joined_at    DateTime @default(now())
+  slot_id      Int? // Add this field to track which specific slot they're joining
 
-  Interview Interview @relation(fields: [interview_id], references: [interview_id], onDelete: Cascade)
-  User      User      @relation(fields: [user_id], references: [user_id])
+  Interview  Interview     @relation(fields: [interview_id], references: [interview_id], onDelete: Cascade)
+  User       User          @relation(fields: [user_id], references: [user_id])
+  Slot       InterviewSlot? @relation(fields: [slot_id], references: [id])
 
   @@unique([interview_id, user_id])
 }
@@ -125,6 +127,9 @@ model InterviewSlot {
 
   Interview Interview @relation(fields: [interview_id], references: [interview_id], onDelete: Cascade)
   Student   Student?  @relation(fields: [student_id], references: [student_id])
+  
+  // Add this relation to connect participants to specific slots
+  Participants InterviewParticipant[]
 
   @@unique([interview_id, slot_number])
 }
