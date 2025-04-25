@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import SidebarMahasiswa from "@/app/components/layout/sidebarmahasiswa";
 import { useSession } from "next-auth/react";
-import { Calendar, Clock, Users, User, Check, X } from "lucide-react";
+import { Calendar, Clock, Users, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
@@ -58,7 +58,7 @@ export default function StudentInterviewPage() {
   
   useEffect(() => {
     fetchInterviews();
-  }, []);
+  });
 
   const fetchInterviews = async () => {
     try {

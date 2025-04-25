@@ -13,6 +13,7 @@ export async function PATCH(
     return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
   }
 
+
   await prisma.notification.update({
     where: { notification_id: notificationId },
     data: { has_read: true },

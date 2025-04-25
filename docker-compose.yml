@@ -1,0 +1,87 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3000:3000"
+    volumes:
+      # Mount your app code for live reload
+      - ./:/app:delegated            # <— source & package.json, lockfile, prisma, etc.
+      - /app/node_modules            # <— keep the container's own node_modules intact
+    environment:
+      # Next.js dev settings
+      - NEXT_TELEMETRY_DISABLED=1
+      - NODE_ENV=development
+
+      #  backend env vars (if needed in dev)
+      - DATABASE_URL=postgresql://postgres:postgres@postgres/db
+      - JWT_SECRET=HIDUPMAHASISWA
+      - MINIO_ENDPOINT=minio
+      - MINIO_PORT=9000
+      - MINIO_USE_SSL=false
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadmin
+      - MINIO_BUCKET_NAME=iom-itb
+      - AZURE_AD_CLIENT_ID=399d7b9a-36a0-42ac-883b-b72485a32d79
+      - AZURE_AD_CLIENT_SECRET=mkE8Q~ACq6pSwVy3j4dHncFIijwEbzD_KyAHJaLC
+      - AZURE_AD_TENANT_ID=db6e1183-4c65-405c-82ce-7cd53fa6e9dc
+      - NEXTAUTH_SECRET=random
+      - NEXTAUTH_URL=http://localhost:3000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:15-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=db
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  minio:
+    image: minio/minio
+    ports:
+      - "9000:9000"  # API
+      - "9001:9001"  # Console
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin
+    volumes:
+      - minio-data:/data
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    restart: unless-stopped
+
+  minio-init:
+    image: minio/mc
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: ["/bin/sh", "-c", "/app/scripts/minio-init.sh"]
+    volumes:
+      - ./minio-init.sh:/app/scripts/minio-init.sh:ro
+    restart: "no"
+
+volumes:
+  postgres-data:
+  minio-data:

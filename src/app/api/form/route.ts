@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { getServerSession } from "next-auth";
-import { authOptions } from "../../auth/[...nextauth]/authOptions";
+import { authOptions } from "../auth/[...nextauth]/authOptions";
 
 const prisma = new PrismaClient();
 
@@ -26,31 +26,24 @@ export async function POST(request: Request) {
       );
     }
 
-    const studentData = await prisma.status.findMany({
+    const notes = await prisma.notes.findMany({
       where: {
-        period_id: Number(period_id),
+        interview: {
+            period_id: Number(period_id),
+        },
       },
       select: {
-        student_id: true,
-        period_id: true,
-        passDitmawa: true,
-        passIOM: true,
-        Student: {
+        text: true,
+        student: {
           select: {
             nim: true,
+          },
+        },
+        interview: {
+          select: {
             User: {
               select: {
-                user_id: true,
                 name: true,
-              },
-            },
-            Files: {
-              select: {
-                file_id: true,
-                student_id: true,
-                file_url: true,
-                file_name: true,
-                type: true,
               },
             },
           },
@@ -58,9 +51,15 @@ export async function POST(request: Request) {
       },
     });
 
-    return NextResponse.json({ success: true, data: studentData });
+    const formatted = notes.map(note => ({
+      text: note.text,
+      nim: note.student.nim,
+      userName: note.interview.User.name
+    }));
+
+    return NextResponse.json({ success: true, data: formatted });
   } catch (error) {
-    console.error("Error fetching students and files:", error);
+    console.error("Error fetching form interview:", error);
     return NextResponse.json(
       { success: false, error: "Failed to fetch data" },
       { status: 500 }

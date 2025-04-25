@@ -79,7 +79,7 @@ CREATE TABLE "Interview" (
 CREATE TABLE "Notes" (
     "interview_id" INTEGER NOT NULL,
     "student_id" INTEGER NOT NULL,
-    "text" JSONB NOT NULL,
+    "text" TEXT NOT NULL,
 
     CONSTRAINT "Notes_pkey" PRIMARY KEY ("interview_id","student_id")
 );
@@ -90,6 +90,7 @@ CREATE TABLE "InterviewParticipant" (
     "interview_id" INTEGER NOT NULL,
     "user_id" INTEGER NOT NULL,
     "joined_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "slot_id" INTEGER,
 
     CONSTRAINT "InterviewParticipant_pkey" PRIMARY KEY ("id")
 );
@@ -180,6 +181,9 @@ ALTER TABLE "InterviewParticipant" ADD CONSTRAINT "InterviewParticipant_intervie
 
 -- AddForeignKey
 ALTER TABLE "InterviewParticipant" ADD CONSTRAINT "InterviewParticipant_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User"("user_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "InterviewParticipant" ADD CONSTRAINT "InterviewParticipant_slot_id_fkey" FOREIGN KEY ("slot_id") REFERENCES "InterviewSlot"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "InterviewSlot" ADD CONSTRAINT "InterviewSlot_interview_id_fkey" FOREIGN KEY ("interview_id") REFERENCES "Interview"("interview_id") ON DELETE CASCADE ON UPDATE CASCADE;

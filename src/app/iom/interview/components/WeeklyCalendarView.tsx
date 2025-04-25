@@ -456,7 +456,10 @@ export default function WeeklyCalendarView() {
   const filteredInterviews = useMemo(() => {
     return interviews.filter(interview => {
       const interviewStart = new Date(interview.start_time);
-      const interviewEnd = new Date(interview.end_time);
+      /**
+       * Not used for now 
+       */
+      // const interviewEnd = new Date(interview.end_time);
       
       // Check if interview is within the current week
       const isInCurrentWeek = isWithinInterval(interviewStart, {
@@ -632,7 +635,7 @@ export default function WeeklyCalendarView() {
                   </div>
                 </div>
                 
-                {weekDays.map((day, dayIndex) => {
+                {weekDays.map((day) => {
                   const dayStr = format(day, 'yyyy-MM-dd');
                   const slots = slotsByDayAndTime.get(dayStr)?.get(timeSlot) || [];
                   
