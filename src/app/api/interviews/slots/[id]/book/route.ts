@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 
 // POST /api/interviews/slots/[id]/book - Book an interview slot
 export async function POST(
-    request: Request,
+    // request: Request,
     { params }: { params: { id: string } }
   ) {
     try {
@@ -74,6 +74,19 @@ export async function POST(
           booked_at: new Date(),
         },
       });
+
+      await prisma.notes.create({
+        data: {
+          interview_id : slot.interview_id,
+          student_id : Number(session.user.id),
+          text : JSON.stringify({
+            namaPewawancara:"",
+            noHpPewawancara:"",
+            namaMahasiswa:"",
+            nimMahasiswa:"",
+          })
+        }
+      })
   
       return NextResponse.json({
         success: true,

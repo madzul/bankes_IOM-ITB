@@ -3,7 +3,7 @@
 import { signOut, useSession } from "next-auth/react";
 import type React from "react"
 import Image from "next/image"
-import { User, FileUp, GraduationCap, Lock, LogOut } from "lucide-react"
+import { User, FileUp, GraduationCap, Calendar, LogOut } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react";
@@ -58,10 +58,10 @@ export default function SidebarMahasiswa({ activeTab }: SidebarMahasiswaProps) {
       icon: <FileUp className="h-5 w-5" />,
     },
     {
-      id: "password",
-      label: "Ubah Password",
-      link: "/student/change-password",
-      icon: <Lock className="h-5 w-5" />,
+      id: "interview",
+      label: "Interwiew",
+      link: "/student/interview",
+      icon: <Calendar className="h-5 w-5" />,
     },
   ]
 

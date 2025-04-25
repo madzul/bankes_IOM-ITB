@@ -3,9 +3,10 @@
 import SidebarAdmin from "@/app/components/layout/sidebaradmin";
 import { Card } from "@/components/ui/card";
 import { useState, useEffect } from "react";
+import { User }  from "@/types/index";
 
 export default function AccountPage() {
-  const [users, setUsers] = useState<any[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
 
   // Fetch users with role "Guest"
   const fetchUsers = async () => {
@@ -22,6 +23,11 @@ export default function AccountPage() {
       }
 
       const data = await response.json();
+
+      data.forEach((user: User) => {
+        user.user_id = user.user_id.toString(); // Ensure user_id is a string
+      })
+
       setUsers(data); // Update the state with the fetched data
     } catch (error) {
       console.error("Error fetching users:", error);

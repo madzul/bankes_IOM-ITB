@@ -58,7 +58,7 @@ export default function LoginPage() {
                 const user = await response.json();
                 const userrole : string = user.role;
                 const roleBasedCallbackUrls : { [key: string] : string }  = {
-                    "Mahasiswa" : "student/profile",
+                    Mahasiswa : "student/profile",
                     "Admin" : "/admin/account/",
                     "Pengurus_IOM" : "/iom/document/",
                     "Guest" : "/guest/",
@@ -87,6 +87,12 @@ export default function LoginPage() {
                 const { email, password } = formData;
 
                 // Trigger the credentials provider login
+                // const profile: Profile = {
+                //     email: email,
+                //     password: password,
+                //     redirect: false,
+                // }
+                
                 const result = await signIn("credentials", {
                     email,
                     password,

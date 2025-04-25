@@ -76,11 +76,21 @@ CREATE TABLE "Interview" (
 );
 
 -- CreateTable
+CREATE TABLE "Notes" (
+    "interview_id" INTEGER NOT NULL,
+    "student_id" INTEGER NOT NULL,
+    "text" TEXT NOT NULL,
+
+    CONSTRAINT "Notes_pkey" PRIMARY KEY ("interview_id","student_id")
+);
+
+-- CreateTable
 CREATE TABLE "InterviewParticipant" (
     "id" SERIAL NOT NULL,
     "interview_id" INTEGER NOT NULL,
     "user_id" INTEGER NOT NULL,
     "joined_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "slot_id" INTEGER,
 
     CONSTRAINT "InterviewParticipant_pkey" PRIMARY KEY ("id")
 );
@@ -114,6 +124,7 @@ CREATE TABLE "Notification" (
     "user_id" INTEGER NOT NULL,
     "header" TEXT NOT NULL,
     "body" TEXT NOT NULL,
+    "url" TEXT,
     "has_read" BOOLEAN NOT NULL DEFAULT false,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -160,10 +171,19 @@ ALTER TABLE "Interview" ADD CONSTRAINT "Interview_user_id_fkey" FOREIGN KEY ("us
 ALTER TABLE "Interview" ADD CONSTRAINT "Interview_period_id_fkey" FOREIGN KEY ("period_id") REFERENCES "Period"("period_id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "Notes" ADD CONSTRAINT "Notes_interview_id_fkey" FOREIGN KEY ("interview_id") REFERENCES "Interview"("interview_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Notes" ADD CONSTRAINT "Notes_student_id_fkey" FOREIGN KEY ("student_id") REFERENCES "Student"("student_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "InterviewParticipant" ADD CONSTRAINT "InterviewParticipant_interview_id_fkey" FOREIGN KEY ("interview_id") REFERENCES "Interview"("interview_id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "InterviewParticipant" ADD CONSTRAINT "InterviewParticipant_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User"("user_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "InterviewParticipant" ADD CONSTRAINT "InterviewParticipant_slot_id_fkey" FOREIGN KEY ("slot_id") REFERENCES "InterviewSlot"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "InterviewSlot" ADD CONSTRAINT "InterviewSlot_interview_id_fkey" FOREIGN KEY ("interview_id") REFERENCES "Interview"("interview_id") ON DELETE CASCADE ON UPDATE CASCADE;

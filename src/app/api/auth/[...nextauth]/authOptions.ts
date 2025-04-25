@@ -1,8 +1,10 @@
-import NextAuth, { NextAuthOptions } from "next-auth";
+import { NextAuthOptions, Account, Profile } from "next-auth";
 import AzureADProvider from "next-auth/providers/azure-ad";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
+import { JWT } from "next-auth/jwt";
+import { Session } from "next-auth";
 
 const prisma = new PrismaClient();
 
@@ -139,14 +141,14 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async signIn({ account, profile }: { account: any; profile?: any }) {
+    async signIn({ account, profile }: { account: Account | null; profile?: Profile }) {
       if (profile?.email?.endsWith("@mahasiswa.itb.ac.id")) {
         const isUserExists = await prisma.user.findFirst({
           where: {
             email: profile.email,
           },
         });
-        if (!isUserExists) {
+        if (!isUserExists && profile.name) {
           const newUser = await prisma.user.create({
             data: {
               name: profile.name,
@@ -172,15 +174,15 @@ export const authOptions: NextAuthOptions = {
       }
       return false;
     },
-    async jwt({ token, account, profile }: { token: any; account?: any; profile?: any }) {
+    async jwt({ token, profile }: { token: JWT; profile?: Profile }) {
       if (profile) {
         const user = await prisma.user.findFirst({
           where: { email: profile.email },
           select: { user_id: true, role: true },
         });
     
-        if (user) {
-          token.id = user.user_id;
+        if (user && user.user_id != null) {
+          token.id = user.user_id.toString();
           token.role = user.role;
         }
       }
@@ -192,14 +194,14 @@ export const authOptions: NextAuthOptions = {
         });
     
         if (user) {
-          token.id = user.user_id;
+          token.id = user.user_id.toString();
           token.role = user.role;
         }
       }
     
       return token;
     },
-    async session({ session, token }: { session: any; token: any }) {
+    async session({ session, token }: { session: Session; token: JWT }) {
       if (session.user) {
         session.user.id = token.id as string;
         session.user.role = token.role as string;
