@@ -79,7 +79,7 @@ CREATE TABLE "Interview" (
 CREATE TABLE "Notes" (
     "interview_id" INTEGER NOT NULL,
     "student_id" INTEGER NOT NULL,
-    "text" TEXT NOT NULL,
+    "text" JSONB NOT NULL,
 
     CONSTRAINT "Notes_pkey" PRIMARY KEY ("interview_id","student_id")
 );
