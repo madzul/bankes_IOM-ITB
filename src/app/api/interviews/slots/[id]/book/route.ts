@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
+import { Prisma } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -74,6 +75,19 @@ export async function POST(
           booked_at: new Date(),
         },
       });
+
+      await prisma.notes.create({
+        data: {
+          interview_id : slot.interview_id,
+          student_id : Number(session.user.id),
+          text : JSON.stringify({
+            namaPewawancara:"",
+            noHpPewawancara:"",
+            namaMahasiswa:"",
+            nimMahasiswa:"",
+          })
+        }
+      })
   
       return NextResponse.json({
         success: true,

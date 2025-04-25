@@ -94,7 +94,7 @@ model Interview {
 model Notes {
   interview_id Int
   student_id   Int
-  text         Json
+  text         String
 
   @@id([interview_id, student_id])
 

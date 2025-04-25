@@ -12,39 +12,11 @@ export interface Period {
   is_current: boolean;
 }
 
-interface File {
-  file_id: number;
-  file_url: string;
-  file_name: string;
-  type: string;
-}
-
-interface Status {
-  passDitmawa: boolean;
-  passIOM: boolean;
-}
-
 interface Student {
-  student_id: number;
-  period_id: number;
-  passDitmawa: boolean;
-  passIOM: boolean;
-  Student: {
-    nim: string;
-    User: {
-      user_id: number;
-      name: string;
-    };
-    Files: File[];
-    Statuses: Status[];
-  };
+  nim : string;
+  userName : string;
+  text : JSON;
 }
-
-const fileTypes = [
-  { title: "KTP", key: "KTP" },
-  { title: "CV", key: "CV" },
-  { title: "Transkrip Nilai", key: "Transkrip_Nilai" },
-];
 
 export default function Form() {
   const [periods, setPeriods] = useState<Period[]>([]);
@@ -81,6 +53,7 @@ export default function Form() {
           throw new Error("Failed to fetch form interview");
         }
         const fileData = await fileResponse.json();
+        console.log(fileData,);
         if (fileData.success) {
           setStudents(fileData.data);
         } else {
@@ -128,51 +101,6 @@ export default function Form() {
     }
   };
 
-  const handleCheckboxChange = (
-    studentId: number,
-    field: "passDitmawa" | "passIOM",
-    value: boolean
-  ) => {
-    setStudents((prevStudents) =>
-      prevStudents.map((student) =>
-        student.student_id === studentId
-          ? { ...student, [field]: value }
-          : student
-      )
-    );
-  };
-
-  const handleUpdateStatuses = async () => {
-    setIsUpdating(true);
-    try {
-      const studentsToUpdate = students.map((student) => ({
-        student_id: student.student_id,
-        period_id: selectedPeriod?.period_id || 0,
-        Statuses: [{ passDitmawa: student.passDitmawa, passIOM: student.passIOM }],
-      }));
-
-      const response = await fetch("/api/status/update-status", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(studentsToUpdate),
-      });
-
-      const result = await response.json();
-      if (result.success) {
-        toast.success("Student statuses updated successfully!");
-      } else {
-        toast.error("Failed to update student statuses.");
-      }
-    } catch (error) {
-      console.error("Error updating student statuses:", error);
-      toast.error("An error occurred while updating student statuses.");
-    } finally {
-      setIsUpdating(false);
-    }
-  };
-
   return (
     <div className="flex min-h-screen bg-gray-100">
       <Toaster position="bottom-right" richColors />
@@ -215,85 +143,22 @@ export default function Form() {
                         >
                           Nama
                         </th>
-                        {fileTypes.map(({ title, key }) => (
-                          <th
-                            key={key}
-                            scope="col"
-                            className="px-6 py-3 text-left text-xs font-medium min-w-52 uppercase tracking-wider"
-                          >
-                            {title}
-                          </th>
-                        ))}
                         <th
                           scope="col"
                           className="px-6 py-3 text-left text-xs font-medium min-w-52 uppercase tracking-wider"
                         >
-                          Lolos Seleksi Berkas Ditmawa?
-                        </th>
-                        <th
-                          scope="col"
-                          className="px-6 py-3 text-left text-xs font-medium min-w-52 uppercase tracking-wider"
-                        >
-                          Lolos Seleksi Berkas IOM?
+                          Form Interview
                         </th>
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                       {students.map((student) => (
-                        <tr key={student.student_id}>
+                        <tr key={student.nim}>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {student.Student.nim}
+                            {student.nim}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {student.Student.User.name}
-                          </td>
-                          {fileTypes.map(({ key, title }) => {
-                            const file = student.Student.Files.find((f) => f.type === key);
-                            return (
-                              <td
-                                key={key}
-                                className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
-                              >
-                                {file ? (
-                                  <a
-                                    href={file.file_url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-blue-600 hover:underline"
-                                  >
-                                    {title}
-                                  </a>
-                                ) : (
-                                  <span className="text-gray-500">Not Uploaded</span>
-                                )}
-                              </td>
-                            );
-                          })}
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            <input
-                              type="checkbox"
-                              checked={student.passDitmawa}
-                              onChange={(e) =>
-                                handleCheckboxChange(
-                                  student.student_id,
-                                  "passDitmawa",
-                                  e.target.checked
-                                )
-                              }
-                            />
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            <input
-                              type="checkbox"
-                              checked={student.passIOM}
-                              onChange={(e) =>
-                                handleCheckboxChange(
-                                  student.student_id,
-                                  "passIOM",
-                                  e.target.checked
-                                )
-                              }
-                            />
+                            {student.userName}
                           </td>
                         </tr>
                       ))}
@@ -301,13 +166,6 @@ export default function Form() {
                   </table>
                 </div>
               )}
-              <button
-                className="w-[300px] mt-4 px-4 py-2 bg-[#003793] text-white rounded-md disabled:bg-gray-400"
-                onClick={handleUpdateStatuses}
-                disabled={isUpdating}
-              >
-                {isUpdating ? "Updating..." : "Finalize Changes"}
-              </button>
             </>
           )}
         </Card>
