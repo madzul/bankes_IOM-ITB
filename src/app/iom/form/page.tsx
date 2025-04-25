@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import SidebarIOM from "@/app/components/layout/sidebariom";
-import { Toaster, toast } from "sonner";
+import InterviewFormDialog from "./components/InterviewFormDialog";
 
 export interface Period {
   period_id: number;
@@ -15,14 +15,13 @@ export interface Period {
 interface Student {
   nim : string;
   userName : string;
-  text : JSON;
+  text : string;
 }
 
 export default function Form() {
   const [periods, setPeriods] = useState<Period[]>([]);
   const [selectedPeriod, setSelectedPeriod] = useState<Period | null>(null);
   const [students, setStudents] = useState<Student[]>([]);
-  const [isUpdating, setIsUpdating] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -101,9 +100,40 @@ export default function Form() {
     }
   };
 
+  const handleSaveForm = async (nim: string, updatedData: string) => {
+    try {
+      const response = await fetch("/api/form/save", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ periods, nim, formData: updatedData }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to save form data")
+      }
+
+      const result = await response.json()
+
+      if (result.success) {
+        // Update the local state with the new data
+        setStudents((prevStudents) =>
+          prevStudents.map((student) => (student.nim === nim ? { ...student, text: updatedData } : student)),
+        )
+
+        alert("Form data saved successfully")
+      } else {
+        throw new Error(result.error || "Failed to save form data")
+      }
+    } catch (error) {
+      console.error("Error saving form data:", error)
+      alert("Failed to save form data. Please try again.")
+    }
+  }
+
   return (
     <div className="flex min-h-screen bg-gray-100">
-      <Toaster position="bottom-right" richColors />
       <div className="w-1/4 m-8">
         <SidebarIOM activeTab="form" />
       </div>
@@ -159,6 +189,14 @@ export default function Form() {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             {student.userName}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            <InterviewFormDialog
+                              studentName={student.userName}
+                              nim={student.nim}
+                              formData={student.text}
+                              onSave={handleSaveForm}
+                            />
                           </td>
                         </tr>
                       ))}
