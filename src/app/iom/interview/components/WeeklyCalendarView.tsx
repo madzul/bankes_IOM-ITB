@@ -599,11 +599,11 @@ export default function WeeklyCalendarView() {
         </div>
       </div>
 
-      <Card className="p-0 w-full overflow-auto shadow-sm rounded-xl border-none">
-        <div className="min-w-[800px]">
+      <Card className="p-0 w-full overflow-auto shadow-sm border-none">
+      <div className="min-w-[800px]">
           {/* Header with days - remove borders */}
-          <div className="grid grid-cols-[60px_repeat(7,1fr)] bg-gray-50">
-            <div className="p-3"></div> {/* Remove border-r */}
+          <div className="grid grid-cols-[60px_repeat(7,1fr)] bg-white">
+            <div className="p-3 bg-white"></div>
             {weekDays.map((day, index) => (
               <div 
                 key={index} 
@@ -636,8 +636,8 @@ export default function WeeklyCalendarView() {
                   timeIndex % 2 === 0 ? 'bg-gray-50/30' : ''
                 }`}
               >
-                <div className="border-r flex items-center justify-center">
-                  <div className="font-roboto font-medium w-12 h-12 flex items-center justify-center  text-gray-700 text-sm">
+                <div className="flex items-start border-r bg-white relative z-10">
+                  <div className="font-roboto font-medium px-2 -mt-2.5 text-gray-700 text-sm bg-white">
                     {timeSlot}
                   </div>
                 </div>
