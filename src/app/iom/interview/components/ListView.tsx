@@ -196,9 +196,10 @@ export default function ListView() {
   const handleJoinInterview = async (interviewId: number, slotId?: number) => {
     try {
       // If slotId is provided, join a specific slot, otherwise join the entire interview
-      const requestBody = slotId 
-        ? { interviewId, slotId }
-        : { interviewId };
+      const requestBody = { 
+        interviewId, 
+        slotId  // This is the key part - we need to pass the slotId to the API
+      };
         
       const response = await fetch(`/api/interviews/join`, {
         method: "POST",
@@ -338,7 +339,7 @@ export default function ListView() {
             <SelectItem value="date">Filter Berdasarkan Tanggal</SelectItem>
           </SelectContent>
         </Select>
-
+  
         {filter === "date" && (
           <Input
             type="date"
@@ -355,7 +356,7 @@ export default function ListView() {
           </Button>
         </div>
       </div>
-
+  
       {filteredInterviews.length === 0 ? (
         <Card className="p-8 w-full text-center">
           <p className="text-gray-500">Tidak ada jadwal wawancara yang ditemukan.</p>
@@ -429,11 +430,15 @@ export default function ListView() {
                     )}
                   </div>
                 </div>
-
+  
                 <div className="mt-6">
                   <h3 className="text-md font-semibold mb-2 text-gray-700">Daftar Slot</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {interview.slots.map((slot) => (
+                  {interview.slots.map((slot) => {
+                    const slotParticipants = interview.participants.filter(p => p.slot_id === slot.id);
+                    const isUserParticipantInThisSlot = slotParticipants.some(p => p.user_id === Number(session?.user?.id));
+                    
+                    return (
                       <div 
                         key={slot.id} 
                         className={`p-3 rounded-md flex justify-between items-center ${
@@ -445,6 +450,12 @@ export default function ListView() {
                           <p className="text-sm text-gray-500">
                             {format(new Date(slot.start_time), "HH:mm")} - {format(new Date(slot.end_time), "HH:mm")}
                           </p>
+                          {/* Display slot-specific participants if any */}
+                          {slotParticipants.length > 0 && (
+                            <p className="text-xs text-gray-600 mt-1">
+                              Peserta: {slotParticipants.map(p => p.User.name).join(", ")}
+                            </p>
+                          )}
                         </div>
                         <div className="flex items-center">
                           {slot.student_id ? (
@@ -470,7 +481,7 @@ export default function ListView() {
                               {/* Show join/leave button based on participation status */}
                               {session?.user?.role === "Pengurus_IOM" && 
                                 interview.user_id !== Number(session.user.id) && (
-                                isUserParticipantInSlot(interview, slot.id) ? (
+                                isUserParticipantInThisSlot ? (
                                   <Button
                                     variant="outline"
                                     size="sm"
@@ -491,12 +502,13 @@ export default function ListView() {
                                     <span>Ikuti Slot</span>
                                   </Button>
                                 )
-)}
+                              )}
                             </div>
                           )}
                         </div>
                       </div>
-                    ))}
+                    );
+                  })}
                   </div>
                 </div>
               </Card>
@@ -504,6 +516,7 @@ export default function ListView() {
           })}
         </div>
       )}
+  
 
       {/* Create/Edit Interview Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>

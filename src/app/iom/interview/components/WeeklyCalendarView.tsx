@@ -25,6 +25,7 @@ interface IOMStaff {
 interface InterviewParticipant {
   id: number;
   user_id: number;
+  slot_id?: number; // Add this field
   User: {
     name: string;
   };
@@ -303,6 +304,15 @@ export default function WeeklyCalendarView() {
         toast.error("Failed to cancel booking");
       }
     }
+  };
+
+  const isUserParticipantInSlot = (interview: Interview, slotId: number) => {
+    if (!session?.user?.id) return false;
+    
+    // Check if there's a participant record with this user's ID and the specified slot ID
+    return interview.participants.some(p => 
+      p.user_id === Number(session.user.id) && p.slot_id === slotId
+    );
   };
 
   const handleEditInterview = (interview: Interview) => {
@@ -592,11 +602,11 @@ export default function WeeklyCalendarView() {
         </div>
       </div>
 
-      <Card className="p-0 w-full overflow-auto shadow-sm rounded-xl border-none">
-        <div className="min-w-[800px]">
+      <Card className="p-0 w-full overflow-auto shadow-sm border-none">
+      <div className="min-w-[800px]">
           {/* Header with days - remove borders */}
-          <div className="grid grid-cols-[60px_repeat(7,1fr)] bg-gray-50">
-            <div className="p-3"></div> {/* Remove border-r */}
+          <div className="grid grid-cols-[60px_repeat(7,1fr)] bg-white">
+            <div className="p-3 bg-white"></div>
             {weekDays.map((day, index) => (
               <div 
                 key={index} 
@@ -629,8 +639,8 @@ export default function WeeklyCalendarView() {
                   timeIndex % 2 === 0 ? 'bg-gray-50/30' : ''
                 }`}
               >
-                <div className="border-r flex items-center justify-center">
-                  <div className="font-roboto font-medium w-12 h-12 flex items-center justify-center  text-gray-700 text-sm">
+                <div className="flex items-start border-r bg-white relative z-10">
+                  <div className="font-roboto font-medium px-2 -mt-2.5 text-gray-700 text-sm bg-white">
                     {timeSlot}
                   </div>
                 </div>
@@ -665,11 +675,11 @@ export default function WeeklyCalendarView() {
                           className={`mb-1 p-1 rounded text-xs cursor-pointer hover:opacity-90 absolute left-1 right-1 z-10 ${
                             hasStudent ? (
                               isOwner ? 'bg-blue-600 text-white' : 
-                              isParticipant ? 'bg-green-600 text-white' : 
+                              interview.participants.some((p: { user_id: number; slot_id: any; }) => p.user_id === Number(session?.user?.id) && p.slot_id === slot.id) ? 'bg-green-600 text-white' : 
                               'bg-var text-white'
                             ) : (
                               isOwner ? 'bg-blue-200 text-blue-800' : 
-                              isParticipant ? 'bg-green-200 text-green-800' : 
+                              interview.participants.some((p: { user_id: number; slot_id: any; }) => p.user_id === Number(session?.user?.id) && p.slot_id === slot.id) ? 'bg-green-200 text-green-800' : 
                               'bg-gray-200 text-gray-800'
                             )
                           }`}
@@ -860,16 +870,21 @@ export default function WeeklyCalendarView() {
                 )}
               </div>
               
-              {/* Add this section for IOM staff to join/leave */}
               <div className="space-y-2">
                 <p className="text-sm font-medium">Session Owner: {selectedSlotDetails.interview.User.name}</p>
-                {selectedSlotDetails.interview.participants.length > 0 && (
+                {/* Only show participants for this specific slot */}
+                {selectedSlotDetails.interview.participants
+                  .filter((p: { slot_id: any; }) => p.slot_id === selectedSlotDetails.id)
+                  .length > 0 && (
                   <div className="flex flex-col gap-1">
-                    <p className="text-sm">Participants:</p>
+                    <p className="text-sm">Slot Participants:</p>
                     <ul className="text-sm ml-5 list-disc">
-                      {selectedSlotDetails.interview.participants.map((p: { id: Key | null | undefined; User: { name: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined; }; }) => (
+                      {selectedSlotDetails?.interview.participants
+                      .filter((p: { slot_id: any; }) => p.slot_id === selectedSlotDetails.id)  // Only show participants of this specific slot
+                      .map((p: { id: Key | null | undefined; User: { name: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined; }; }) => (
                         <li key={p.id}>{p.User.name}</li>
-                      ))}
+                      ))
+                    }
                     </ul>
                   </div>
                 )}
