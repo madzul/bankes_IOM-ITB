@@ -98,25 +98,26 @@ export async function DELETE(request: NextRequest) {
 
     const { interviewId, slotId } = await request.json();
     
-    if (!interviewId || !slotId) {
+    if (!interviewId) {
       return NextResponse.json(
-        { success: false, error: "Missing interview ID or slot ID" },
+        { success: false, error: "Missing interview ID" },
         { status: 400 }
       );
     }
 
     // Delete the participation record for this specific slot
+    // This is the key change - adding the slot_id filter
     await prisma.interviewParticipant.deleteMany({
       where: {
         interview_id: interviewId,
         user_id: Number(session.user.id),
-        slot_id: slotId,
+        ...(slotId ? { slot_id: slotId } : {})
       },
     });
 
     return NextResponse.json({ 
       success: true, 
-      message: "Successfully left the interview slot"
+      message: slotId ? "Successfully left the interview slot" : "Successfully left the interview"
     });
   } catch (error) {
     console.error("Error leaving interview slot:", error);
