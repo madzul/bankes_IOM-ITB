@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { Calendar, ChartColumn, File, Lock, LogOut, BookText } from "lucide-react"
+import { Calendar, ChartColumn, File, Lock, LogOut, BookText, Star } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useRouter } from "next/navigation"
 import { signOut, useSession } from "next-auth/react";
@@ -61,6 +61,12 @@ export default function SidebarIOM({ activeTab }: SidebarIOMProps) {
       label: "Form Interview",
       link: "/iom/form",
       icon: <BookText className="h-5 w-5" />,
+    },
+    {
+      id: "scoring",
+      label: "Penilaian Mahasiswa",
+      link: "/iom/scoring",
+      icon: <Star className="h-5 w-5" />,
     },
     {
       id: "password",
