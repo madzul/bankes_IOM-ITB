@@ -8,154 +8,134 @@ datasource db {
 }
 
 model User {
-  user_id       Int       @id @default(autoincrement()) @unique
-  name          String
-  email         String    @unique
-  password      String?
-  role          Role
+  user_id  Int     @id @unique @default(autoincrement())
+  name     String
+  email    String  @unique
+  password String?
+  role     Role
 
-  Students      Student[] 
-  Interviews    Interview[]
-  NotificationEndpoints NotificationEndpoint[]
-  Notifications  Notification[]
+  Students               Student[]
+  NotificationEndpoints  NotificationEndpoint[]
+  Notifications          Notification[]
   ParticipatedInterviews InterviewParticipant[]
+  InterviewSlot          InterviewSlot[]
 }
 
 model Student {
-  student_id    Int       @id @default(autoincrement()) @unique
-  nim           String
-  faculty       String
-  major         String
+  student_id Int    @id @unique @default(autoincrement())
+  nim        String
+  faculty    String
+  major      String
 
-  Files         File[]
-  Statuses      Status[]
-  Interviews    Interview[]
+  Files          File[]
+  Statuses       Status[]
   InterviewSlots InterviewSlot[]
 
-  User          User     @relation(fields: [student_id], references: [user_id])
-  notes        Notes[]
+  User  User    @relation(fields: [student_id], references: [user_id])
+  notes Notes[]
 }
 
 model File {
-  file_id       Int       @id @default(autoincrement())
-  student_id    Int
-  file_url      String
-  file_name     String
-  type          FileType
+  file_id    Int      @id @default(autoincrement())
+  student_id Int
+  file_url   String
+  file_name  String
+  type       FileType
 
-  Student       Student  @relation(fields: [student_id], references: [student_id])
+  Student Student @relation(fields: [student_id], references: [student_id])
 }
 
 model Status {
   student_id    Int
   period_id     Int
-  passDitmawa    Boolean
+  passDitmawa   Boolean
   passIOM       Boolean
   passInterview Boolean
   amount        Int?
-  Student       Student  @relation(fields: [student_id], references: [student_id])
-  Period        Period   @relation(fields: [period_id], references: [period_id])
+  Student       Student @relation(fields: [student_id], references: [student_id])
+  Period        Period  @relation(fields: [period_id], references: [period_id])
 
-  @@id([student_id, period_id]) 
+  @@id([student_id, period_id])
 }
 
 model Period {
-  period_id     Int       @id @default(autoincrement())
-  period        String
-  start_date    DateTime
-  end_date      DateTime
-  is_current    Boolean
-  is_open	Boolean
+  period_id  Int      @id @default(autoincrement())
+  period     String
+  start_date DateTime
+  end_date   DateTime
+  is_current Boolean
+  is_open    Boolean
 
   Statuses      Status[]
-  Interviews    Interview[]
-}
-
-model Interview {
-  interview_id Int      @id @default(autoincrement())
-  title        String? 
-  description  String? 
-  student_id   Int? 
-  user_id      Int 
-  period_id    Int
-  start_time   DateTime
-  end_time     DateTime
-  max_students Int      @default(1)
-
-  Student      Student? @relation(fields: [student_id], references: [student_id])
-  User         User     @relation(fields: [user_id], references: [user_id])
-  Period       Period   @relation(fields: [period_id], references: [period_id])
-
-  participants InterviewParticipant[]
-  slots        InterviewSlot[]
-  notes        Notes[]
+  InterviewSlot InterviewSlot[]
 }
 
 model Notes {
-  interview_id Int
-  student_id   Int
-  text         String
+  slot_id    Int // Change from interview_id to slot_id
+  student_id Int
+  text       String
 
-  @@id([interview_id, student_id])
+  slot    InterviewSlot @relation(fields: [slot_id], references: [id]) // Change relation
+  student Student       @relation(fields: [student_id], references: [student_id])
 
-  interview    Interview @relation(fields: [interview_id], references: [interview_id])
-  student      Student   @relation(fields: [student_id], references: [student_id])
+  @@id([slot_id, student_id])
 }
 
 model InterviewParticipant {
-  id           Int      @id @default(autoincrement())
-  interview_id Int
-  user_id      Int 
-  joined_at    DateTime @default(now())
-  slot_id      Int? // Add this field to track which specific slot they're joining
+  id        Int      @id @default(autoincrement())
+  slot_id   Int // Only need slot_id now, not interview_id
+  user_id   Int
+  joined_at DateTime @default(now())
 
-  Interview  Interview     @relation(fields: [interview_id], references: [interview_id], onDelete: Cascade)
-  User       User          @relation(fields: [user_id], references: [user_id])
-  Slot       InterviewSlot? @relation(fields: [slot_id], references: [id])
+  Slot InterviewSlot @relation(fields: [slot_id], references: [id], onDelete: Cascade)
+  User User          @relation(fields: [user_id], references: [user_id])
 
-  @@unique([interview_id, user_id])
+  @@unique([slot_id, user_id])
 }
 
 model InterviewSlot {
-  id           Int       @id @default(autoincrement())
-  interview_id Int
-  student_id   Int? 
-  slot_number  Int 
-  start_time   DateTime
-  end_time     DateTime
-  booked_at    DateTime?
+  id          Int       @id @default(autoincrement())
+  title       String? // Add this field
+  description String? // Add this field
+  user_id     Int // Add this field (the creator)
+  period_id   Int // Add this field
+  start_time  DateTime
+  end_time    DateTime
+  student_id  Int? // Student who booked the slot
+  booked_at   DateTime?
 
-  Interview Interview @relation(fields: [interview_id], references: [interview_id], onDelete: Cascade)
-  Student   Student?  @relation(fields: [student_id], references: [student_id])
-  
-  // Add this relation to connect participants to specific slots
+  // Keep these relations
+  Student Student? @relation(fields: [student_id], references: [student_id])
+  User    User     @relation(fields: [user_id], references: [user_id])
+  Period  Period   @relation(fields: [period_id], references: [period_id])
+
+  // Participant relation
   Participants InterviewParticipant[]
-
-  @@unique([interview_id, slot_number])
+  notes        Notes[] // Move relation from Interview to here
 }
 
-
 model NotificationEndpoint {
-  user_id  Int
-  endpoint String
-  keys     Json
+  user_id   Int
+  endpoint  String
+  keys      Json
   createdAt DateTime @default(now())
 
-  User     User @relation(fields: [user_id], references: [user_id])
+  User User @relation(fields: [user_id], references: [user_id])
 
-  @@id([user_id, endpoint]) 
+  @@id([user_id, endpoint])
 }
 
 model Notification {
-  notification_id Int     @id @default(autoincrement()) 
-  user_id         Int     
+  notification_id Int      @id @default(autoincrement())
+  user_id         Int
   header          String
   body            String
-  url             String? 
-  has_read        Boolean @default(false)
+  url             String?
+  has_read        Boolean  @default(false)
   created_at      DateTime @default(now())
 
-  User           User @relation(fields: [user_id], references: [user_id])
+  User User @relation(fields: [user_id], references: [user_id])
+
   @@index([user_id])
 }
 
