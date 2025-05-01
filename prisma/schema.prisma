@@ -83,7 +83,7 @@ model Notes {
 
 model InterviewParticipant {
   id        Int      @id @default(autoincrement())
-  slot_id   Int // Only need slot_id now, not interview_id
+  slot_id   Int      // Only need slot_id now, not interview_id
   user_id   Int
   joined_at DateTime @default(now())
 
@@ -95,23 +95,21 @@ model InterviewParticipant {
 
 model InterviewSlot {
   id          Int       @id @default(autoincrement())
-  title       String? // Add this field
-  description String? // Add this field
-  user_id     Int // Add this field (the creator)
-  period_id   Int // Add this field
+  title       String?
+  description String?
+  user_id     Int       // The creator
+  period_id   Int
   start_time  DateTime
   end_time    DateTime
-  student_id  Int? // Student who booked the slot
+  student_id  Int?      // Student who booked the slot
   booked_at   DateTime?
 
-  // Keep these relations
-  Student Student? @relation(fields: [student_id], references: [student_id])
-  User    User     @relation(fields: [user_id], references: [user_id])
-  Period  Period   @relation(fields: [period_id], references: [period_id])
-
-  // Participant relation
+  // Relations
+  Student      Student?               @relation(fields: [student_id], references: [student_id])
+  User         User                   @relation(fields: [user_id], references: [user_id])
+  Period       Period                 @relation(fields: [period_id], references: [period_id])
   Participants InterviewParticipant[]
-  notes        Notes[] // Move relation from Interview to here
+  notes        Notes[]
 }
 
 model NotificationEndpoint {
