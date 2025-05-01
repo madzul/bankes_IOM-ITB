@@ -9,6 +9,104 @@ import { v4 as uuidv4 } from "uuid";
 
 const prisma = new PrismaClient();
 
+/**
+ * @swagger
+ * /api/files/upload:
+ *   post:
+ *     summary: Upload one or more files for a student and store in MinIO
+ *     tags:
+ *       - Files
+ *     parameters:
+ *       - in: query
+ *         name: bucket
+ *         schema:
+ *           type: string
+ *         description: Optional MinIO bucket name (defaults to "documents-bucket")
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               files:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: binary
+ *                 description: Array of files to upload
+ *               documentTypes:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: Corresponding document type for each file (e.g., KTM, KTP)
+ *             required:
+ *               - files
+ *     responses:
+ *       200:
+ *         description: Files uploaded successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 files:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       fileName:
+ *                         type: string
+ *                         description: Generated file name in MinIO
+ *                       fileUrl:
+ *                         type: string
+ *                         description: Public URL of the uploaded file
+ *                       documentType:
+ *                         type: string
+ *                         description: Document type provided by user
+ *       400:
+ *         description: No files provided or invalid input
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "No files provided"
+ *       401:
+ *         description: Unauthorized (user not authenticated)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "Unauthorized"
+ *       500:
+ *         description: Server error during file upload
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "Upload failed"
+ */
 const minioClient = new Client({
   endPoint: process.env.MINIO_ENDPOINT || "localhost",
   port: 9000,

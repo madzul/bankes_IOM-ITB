@@ -5,6 +5,89 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
 
 const prisma = new PrismaClient();
 
+/**
+ * @swagger
+ * /api/interviews/slots/{id}/book:
+ *   post:
+ *     summary: Book an interview slot
+ *     tags:
+ *       - Interviews
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID of the slot to book
+ *     responses:
+ *       200:
+ *         description: Slot successfully booked
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   $ref: '#/components/schemas/InterviewSlot'
+ *       400:
+ *         description: Invalid slot ID, slot already booked, or existing booking conflict
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "Slot already booked"
+ *                 existingSlotId:
+ *                   type: integer
+ *                   description: ID of previously booked slot when conflict occurs
+ *       401:
+ *         description: Unauthorized (student role required)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "Unauthorized"
+ *       404:
+ *         description: Slot not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "Slot not found"
+ *       500:
+ *         description: Server error booking slot
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "Failed to book slot"
+ */
 // POST /api/interviews/slots/[id]/book - Book an interview slot
 export async function POST(
     // request: Request,

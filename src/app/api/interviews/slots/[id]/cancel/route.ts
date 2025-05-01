@@ -5,6 +5,99 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
 
 const prisma = new PrismaClient();
 
+/**
+ * @swagger
+ * /api/interviews/slots/{id}/cancel:
+ *   post:
+ *     summary: Cancel a booking for an interview slot
+ *     tags:
+ *       - InterviewSlots
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID of the slot to cancel booking
+ *     responses:
+ *       200:
+ *         description: Booking successfully cancelled
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   $ref: '#/components/schemas/InterviewSlot'
+ *       400:
+ *         description: Invalid slot ID
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "Invalid slot ID"
+ *       401:
+ *         description: Unauthorized (user must be Mahasiswa or creating IOM staff)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "Unauthorized"
+ *       403:
+ *         description: Forbidden (not permitted to cancel this booking)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "Unauthorized to cancel this booking"
+ *       404:
+ *         description: Slot not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "Slot not found"
+ *       500:
+ *         description: Server error cancelling booking
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "Failed to cancel booking"
+ */
 // POST /api/interviews/slots/[id]/cancel - Cancel a booking
 export async function POST(
     request: Request,

@@ -4,6 +4,65 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
+
+/**
+ * @swagger
+ * /api/periods/new:
+ *   post:
+ *     summary: Create a new academic period
+ *     tags:
+ *       - Periods
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               period:
+ *                 type: string
+ *                 description: Academic period name/identifier (e.g., "2024/2025")
+ *               start_date:
+ *                 type: string
+ *                 format: date-time
+ *                 description: ISO 8601 formatted start datetime of the period
+ *               end_date:
+ *                 type: string
+ *                 format: date-time
+ *                 description: ISO 8601 formatted end datetime of the period
+ *             required:
+ *               - period
+ *               - start_date
+ *               - end_date
+ *     responses:
+ *       201:
+ *         description: Newly created period
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Period'
+ *       400:
+ *         description: Missing required fields
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Missing required fields"
+ *       500:
+ *         description: Server error creating period
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Error creating period"
+ */
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();

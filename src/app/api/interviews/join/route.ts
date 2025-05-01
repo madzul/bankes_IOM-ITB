@@ -5,6 +5,170 @@ import { authOptions } from "../../auth/[...nextauth]/route";
 
 const prisma = new PrismaClient();
 
+/**
+ * @swagger
+ * /api/interviews/join:
+ *   post:
+ *     summary: Join a specific interview slot
+ *     tags:
+ *       - Interviews
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               interviewId:
+ *                 type: integer
+ *                 description: ID of the interview to join
+ *               slotId:
+ *                 type: integer
+ *                 description: ID of the specific slot to join
+ *             required:
+ *               - interviewId
+ *               - slotId
+ *     responses:
+ *       200:
+ *         description: Successfully joined the interview slot
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   $ref: '#/components/schemas/InterviewParticipant'
+ *                 message:
+ *                   type: string
+ *                   example: "Successfully joined the interview slot"
+ *       400:
+ *         description: Missing interview ID or slot ID, or already participating
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "Missing interview ID or slot ID"
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "Unauthorized"
+ *       404:
+ *         description: Slot not found or doesn't belong to specified interview
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "Slot not found or doesn't belong to specified interview"
+ *       500:
+ *         description: Server error joining interview slot
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "Failed to join interview slot"
+ *
+ *   delete:
+ *     summary: Leave a specific interview slot or entire interview
+ *     tags:
+ *       - Interviews
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               interviewId:
+ *                 type: integer
+ *                 description: ID of the interview to leave
+ *               slotId:
+ *                 type: integer
+ *                 description: ID of the specific slot to leave (optional)
+ *     responses:
+ *       200:
+ *         description: Successfully left the interview slot or interview
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Successfully left the interview slot"
+ *       400:
+ *         description: Missing interview ID
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "Missing interview ID"
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "Unauthorized"
+ *       500:
+ *         description: Server error leaving interview slot
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "Failed to leave interview slot"
+ */
+
 // POST /api/interviews/join - Join a specific interview slot
 export async function POST(request: NextRequest) {
   try {

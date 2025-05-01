@@ -3,6 +3,53 @@ import { NextResponse } from "next/server";
 
 const prisma = new PrismaClient();
 
+/**
+ * @swagger
+ * /api/notification/{id}/read:
+ *   patch:
+ *     summary: Mark a notification as read
+ *     tags:
+ *       - Notifications
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID of the notification to mark as read
+ *     responses:
+ *       200:
+ *         description: Notification successfully marked as read
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *       400:
+ *         description: Invalid notification ID
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Invalid ID"
+ *       500:
+ *         description: Server error marking notification as read
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Error marking notification as read"
+ */
+
 export async function PATCH(
   req: Request,
   { params }: { params: { id: string } }

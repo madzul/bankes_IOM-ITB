@@ -13,6 +13,53 @@ interface IOM_Notification {
   created_at: Date;
 }
 
+/**
+ * @swagger
+ * /api/notification/get:
+ *   get:
+ *     summary: Retrieve notifications for a specific user
+ *     tags:
+ *       - Notifications
+ *     parameters:
+ *       - in: query
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID of the user whose notifications are to be fetched
+ *     responses:
+ *       200:
+ *         description: A list of notifications for the user
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 notifications:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Notification'
+ *       400:
+ *         description: Missing or invalid userId parameter
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Missing userId"
+ *       500:
+ *         description: Server error fetching notifications
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Error fetching notifications"
+ */
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const userId = searchParams.get("userId");
