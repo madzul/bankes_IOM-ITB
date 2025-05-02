@@ -57,6 +57,7 @@ type SlotFormData = {
   date: string;
   startTime: string;
   endTime: string;
+  studentCount: number; // Add this new field
 };
 
 export default function WeeklyCalendarView() {
@@ -77,6 +78,7 @@ export default function WeeklyCalendarView() {
     date: "",
     startTime: "",
     endTime: "",
+    studentCount: 1
   });
 
   // Calculate week days
@@ -145,38 +147,77 @@ export default function WeeklyCalendarView() {
     setIsLoading(true);
     try {
       // Format start and end times
-      const { date, startTime, endTime, title, description } = formData;
+      const { date, startTime, endTime, title, description, studentCount } = formData;
       
-      const combinedStartTime = `${date}T${startTime}:00`;
-      const combinedEndTime = `${date}T${endTime}:00`;
-      
-      const endpoint = editingSlotId 
-        ? `/api/slots/${editingSlotId}` 
-        : "/api/slots";
-      
-      const method = editingSlotId ? "PUT" : "POST";
-      
-      const response = await fetch(endpoint, {
-        method,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          title,
-          description,
-          start_time: combinedStartTime,
-          end_time: combinedEndTime,
-        }),
-      });
-
-      if (response.ok) {
-        toast.success(editingSlotId ? "Slot updated successfully" : "Slot created successfully");
-        fetchSlots();
-        setIsDialogOpen(false);
-        resetForm();
+      if (editingSlotId) {
+        // Just update the single slot as before
+        const combinedStartTime = `${date}T${startTime}:00`;
+        const combinedEndTime = `${date}T${endTime}:00`;
+        
+        const response = await fetch(`/api/slots/${editingSlotId}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            title,
+            description,
+            start_time: combinedStartTime,
+            end_time: combinedEndTime,
+          }),
+        });
+  
+        if (response.ok) {
+          toast.success("Slot updated successfully");
+          fetchSlots();
+          setIsDialogOpen(false);
+          resetForm();
+        } else {
+          const error = await response.json();
+          toast.error(error.error || "Failed to update slot");
+        }
       } else {
-        const error = await response.json();
-        toast.error(error.error || "Failed to save slot");
+        // Create multiple slots if studentCount > 1
+        const startDateObj = new Date(`${date}T${startTime}`);
+        const endDateObj = new Date(`${date}T${endTime}`);
+        const durationMs = endDateObj.getTime() - startDateObj.getTime();
+        
+        const createPromises = [];
+        
+        for (let i = 0; i < studentCount; i++) {
+          const slotStartTime = new Date(startDateObj.getTime() + (i * durationMs));
+          const slotEndTime = new Date(slotStartTime.getTime() + durationMs);
+          
+          const formattedStartTime = slotStartTime.toISOString();
+          const formattedEndTime = slotEndTime.toISOString();
+          
+          createPromises.push(
+            fetch("/api/slots", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                title,
+                description,
+                start_time: formattedStartTime,
+                end_time: formattedEndTime,
+              }),
+            })
+          );
+        }
+        
+        const responses = await Promise.all(createPromises);
+        const allSuccessful = responses.every(response => response.ok);
+        
+        if (allSuccessful) {
+          toast.success(`${studentCount} slots created successfully`);
+          fetchSlots();
+          setIsDialogOpen(false);
+          resetForm();
+        } else {
+          toast.error("Failed to create some slots");
+        }
       }
     } catch (error) {
       console.error("Error saving slot:", error);
@@ -296,6 +337,7 @@ export default function WeeklyCalendarView() {
       date: format(startDateTime, "yyyy-MM-dd"),
       startTime: format(startDateTime, "HH:mm"),
       endTime: format(endDateTime, "HH:mm"),
+      studentCount: 1
     });
     
     setEditingSlotId(slot.id);
@@ -310,6 +352,7 @@ export default function WeeklyCalendarView() {
       date: "",
       startTime: "",
       endTime: "",
+      studentCount: 1
     });
     setEditingSlotId(null);
   };
@@ -633,6 +676,37 @@ export default function WeeklyCalendarView() {
                   required
                 />
               </div>
+              {!editingSlotId && (
+                <div className="space-y-2">
+                  <Label htmlFor="studentCount">Jumlah Mahasiswa</Label>
+                  <Input
+                    id="studentCount"
+                    type="number"
+                    value={formData.studentCount}
+                    onChange={(e) => setFormData({ ...formData, studentCount: parseInt(e.target.value) || 1 })}
+                    required
+                  />
+                  {formData.studentCount > 1 && (
+                    <div className="mt-2 p-3 bg-blue-50 rounded-md text-sm">
+                      <p className="font-medium mb-1">Jadwal slot yang akan dibuat:</p>
+                      {Array.from({ length: formData.studentCount }).map((_, index) => {
+                        const startDate = new Date(`${formData.date}T${formData.startTime}`);
+                        const endDate = new Date(`${formData.date}T${formData.endTime}`);
+                        const durationMs = endDate.getTime() - startDate.getTime();
+                        
+                        const slotStartTime = new Date(startDate.getTime() + (index * durationMs));
+                        const slotEndTime = new Date(slotStartTime.getTime() + durationMs);
+                        
+                        return (
+                          <p key={index} className="text-gray-700">
+                            Slot {index + 1}: {format(slotStartTime, "HH:mm")} - {format(slotEndTime, "HH:mm")}
+                          </p>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
           <DialogFooter>
