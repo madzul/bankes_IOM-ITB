@@ -2,6 +2,9 @@
   "name": "if3250_k01_g01_iom-01",
   "version": "0.1.0",
   "private": true,
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  },
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
@@ -20,6 +23,7 @@
     "@types/jsonwebtoken": "^9.0.9",
     "axios": "^1.8.3",
     "bcrypt": "^5.1.1",
+    "bcryptjs": "^3.0.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
@@ -44,7 +48,7 @@
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
     "@types/next-auth": "^3.13.0",
-    "@types/node": "^20",
+    "@types/node": "^20.17.32",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/swagger-ui-react": "^5.18.0",
@@ -55,7 +59,8 @@
     "eslint-config-next": "15.2.1",
     "prisma": "^6.6.0",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
   },
   "optionalDependencies": {
     "@tailwindcss/oxide-linux-x64-gnu": "^4.0.1",
