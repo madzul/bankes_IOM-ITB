@@ -565,7 +565,7 @@ export default function SlotListView() {
                     onChange={(e) => setFormData({ ...formData, studentCount: parseInt(e.target.value) || 1 })}
                     required
                   />
-                  {formData.studentCount > 1 && (
+                  {formData.studentCount > 1 && formData.date && formData.startTime && formData.endTime && (
                     <div className="mt-2 p-3 bg-blue-50 rounded-md text-sm">
                       <p className="font-medium mb-1">Jadwal slot yang akan dibuat:</p>
                       {Array.from({ length: formData.studentCount }).map((_, index) => {

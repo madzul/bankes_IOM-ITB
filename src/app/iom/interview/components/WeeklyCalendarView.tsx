@@ -697,11 +697,12 @@ export default function WeeklyCalendarView() {
                   <Input
                     id="studentCount"
                     type="number"
+                    min="1"
                     value={formData.studentCount}
-                    onChange={(e) => setFormData({ ...formData, studentCount: parseInt(e.target.value) || 1 })}
+                    onChange={(e) => setFormData({ ...formData, studentCount: e.target.value === '' ? 0 : parseInt(e.target.value) })}
                     required
                   />
-                  {formData.studentCount > 1 && (
+                  {formData.studentCount > 1 && formData.date && formData.startTime && formData.endTime && (
                     <div className="mt-2 p-3 bg-blue-50 rounded-md text-sm">
                       <p className="font-medium mb-1">Jadwal slot yang akan dibuat:</p>
                       {Array.from({ length: formData.studentCount }).map((_, index) => {
