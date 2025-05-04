@@ -61,7 +61,6 @@ export default function Upload() {
   const currentStudents = students.slice(indexOfFirstStudent, indexOfLastStudent);
   const totalPages = Math.ceil(students.length / itemsPerPage);
 
-
   useEffect(() => {
     async function fetchPeriodsAndStudentFiles() {
       try {
@@ -105,7 +104,7 @@ export default function Upload() {
 
   const handlePeriodChange = async (event: React.ChangeEvent<HTMLSelectElement>) => {
     try {
-      // setLoading(true);
+      setLoading(true);
       const selectedId = event.target.value;
       const selected = periods.find((period) => period.period_id === parseInt(selectedId, 10));
       setSelectedPeriod(selected || null);
@@ -132,7 +131,7 @@ export default function Upload() {
     } catch (error) {
       console.error("Error:", error);
     } finally {
-      // setLoading(false);
+      setLoading(false);
     }
   };
 
