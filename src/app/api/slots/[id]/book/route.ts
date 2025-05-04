@@ -8,7 +8,7 @@ const prisma = new PrismaClient();
 // POST /api/slots/[id]/book - Book a slot
 export async function POST(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> } // Awaiting the params
   ) {
     try {
       const session = await getServerSession(authOptions);
@@ -20,7 +20,8 @@ export async function POST(
         );
       }
   
-      const slotId = Number(params.id);
+      const { id } = await params; // Await params before using id
+      const slotId = Number(id);
       if (isNaN(slotId)) {
         return NextResponse.json(
           { success: false, error: "Invalid slot ID" },
@@ -81,7 +82,7 @@ export async function POST(
           slot_id: slotId,
           student_id: Number(session.user.id),
           text: JSON.stringify({
-            namaPewawancara:"",
+            namaPewawancara:"", 
             noHpPewawancara:"",
             namaMahasiswa:"",
             nimMahasiswa:"",

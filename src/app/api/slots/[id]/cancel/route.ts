@@ -1,5 +1,3 @@
-// src/app/api/slots/[id]/cancel/route.ts
-
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
@@ -10,7 +8,7 @@ const prisma = new PrismaClient();
 // POST /api/slots/[id]/cancel - Cancel a booking
 export async function POST(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> } // Await params
   ) {
     try {
       const session = await getServerSession(authOptions);
@@ -22,7 +20,8 @@ export async function POST(
         );
       }
   
-      const slotId = Number(params.id);
+      const { id } = await params; // Await params before using id
+      const slotId = Number(id);
       if (isNaN(slotId)) {
         return NextResponse.json(
           { success: false, error: "Invalid slot ID" },
@@ -97,6 +96,6 @@ export async function POST(
       return NextResponse.json(
         { success: false, error: "Failed to cancel booking" },
         { status: 500 }
-    );
+      );
+    }
   }
-}
