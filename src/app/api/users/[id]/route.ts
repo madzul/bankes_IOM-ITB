@@ -1,39 +1,23 @@
 // app/api/users/[id]/route.ts
 import { NextResponse } from 'next/server';
 import { PrismaClient } from "@prisma/client";
+import { getServerSession } from 'next-auth';
+import { authOptions } from '../../auth/[...nextauth]/authOptions';
 
 const prisma = new PrismaClient();
 
-export async function GET(req: Request, context: { params: Promise<{ id: string }> }) {
-  const params = (await context.params).id;
-  const userId = parseInt(params, 10);
-
-  if (isNaN(userId)) {
-    return NextResponse.json({ error: "Invalid user ID" }, { status: 400 });
-  }
-
-  try {
-    const user = await prisma.user.findUnique({
-      where: { user_id: userId },
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-
-    return NextResponse.json(user);
-  } catch (error) {
-    console.error("Error fetching user:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
-  }
-}
-
 export async function DELETE(req: Request, context: { params: Promise<{ id: string }> }) {
+  const session = await getServerSession(authOptions);
+    
+  if (!session?.user || session.user.role !== "Admin") {
+    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+  }
+
   const params = (await context.params).id;
   const userId = parseInt(params, 10);
 
   if (isNaN(userId)) {
-    return NextResponse.json({ error: "Invalid user ID" }, { status: 400 });
+    return NextResponse.json({ success: false, error: "Invalid user ID" }, { status: 400 });
   }
 
   try {
@@ -45,18 +29,24 @@ export async function DELETE(req: Request, context: { params: Promise<{ id: stri
   } catch (error) {
     console.error(error);
     return NextResponse.json(
-      { message: "Error deleting user" },
+      { success: false, error: "Error deleting user" },
       { status: 500 }
     );
   }
 }
 
 export async function PATCH(req: Request, context: { params: Promise<{ id: string }> }) {
+  const session = await getServerSession(authOptions);
+    
+  if (!session?.user || session.user.role !== "Admin") {
+    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+  }
+
   const params = (await context.params).id;
   const userId = parseInt(params, 10);
 
   if (isNaN(userId)) {
-    return NextResponse.json({ error: "Invalid user ID" }, { status: 400 });
+    return NextResponse.json({ success: false, error: "Invalid user ID" }, { status: 400 });
   }
 
   try {

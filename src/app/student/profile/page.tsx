@@ -18,14 +18,14 @@ export default function Account() {
       if (session?.user?.id) {
         try {
           // Fetch user data
-          let response = await fetch(`/api/users/${session.user.id}`);
+          let response = await fetch(`/api/users`);
           if (response.ok) {
             const user = await response.json();
             setName(user.name);
           }
 
           // Fetch student data
-          response = await fetch(`/api/student/${session.user.id}`);
+          response = await fetch(`/api/student`);
           if (response.ok) {
             const student = await response.json();
             setNim(student.nim);
