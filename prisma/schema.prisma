@@ -160,7 +160,6 @@ model Notification {
 }
 
 enum FileType {
-  KTM
   KTP
   CV
   Transkrip_Nilai
