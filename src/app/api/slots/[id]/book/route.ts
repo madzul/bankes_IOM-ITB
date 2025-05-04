@@ -5,10 +5,10 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
 
 const prisma = new PrismaClient();
 
-// POST /api/interviews/slots/[id]/book - Book an interview slot
+// POST /api/slots/[id]/book - Book a slot
 export async function POST(
-    // request: Request,
-    { params }: { params: { id: string } }
+    request: Request,
+    { params }: { params: Promise<{ id: string }> } // Awaiting the params
   ) {
     try {
       const session = await getServerSession(authOptions);
@@ -20,7 +20,8 @@ export async function POST(
         );
       }
   
-      const slotId = Number(params.id);
+      const { id } = await params; // Await params before using id
+      const slotId = Number(id);
       if (isNaN(slotId)) {
         return NextResponse.json(
           { success: false, error: "Invalid slot ID" },
@@ -47,10 +48,10 @@ export async function POST(
         );
       }
   
-      // Check if student has already booked another slot in the same interview
+      // Check if student has already booked another slot in the same period
       const existingBooking = await prisma.interviewSlot.findFirst({
         where: {
-          interview_id: slot.interview_id,
+          period_id: slot.period_id,
           student_id: Number(session.user.id),
         },
       });
@@ -59,7 +60,7 @@ export async function POST(
         return NextResponse.json(
           { 
             success: false, 
-            error: "You already have a booking for this interview session",
+            error: "You already have a booking for this period",
             existingSlotId: existingBooking.id
           },
           { status: 400 }
@@ -75,18 +76,19 @@ export async function POST(
         },
       });
 
+      // Create notes for the interview
       await prisma.notes.create({
         data: {
-          interview_id : slot.interview_id,
-          student_id : Number(session.user.id),
-          text : JSON.stringify({
-            namaPewawancara:"",
+          slot_id: slotId,
+          student_id: Number(session.user.id),
+          text: JSON.stringify({
+            namaPewawancara:"", 
             noHpPewawancara:"",
             namaMahasiswa:"",
             nimMahasiswa:"",
           })
         }
-      })
+      });
   
       return NextResponse.json({
         success: true,
