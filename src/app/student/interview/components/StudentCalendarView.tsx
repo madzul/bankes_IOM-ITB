@@ -117,21 +117,37 @@ export default function StudentCalendarView({
         result.get(dayStr)?.set(timeSlot, []);
       });
     });
+
+    // Add sorting after the forEach block:
+    result.forEach((dayMap) => {
+      dayMap.forEach((slots) => {
+        slots.sort((a: any, b: any) => a.exactStartTime - b.exactStartTime);
+      });
+    });
     
     // Place slots in appropriate day and time slot
     filteredSlots.forEach(slot => {
       const slotStartTime = new Date(slot.start_time);
       const dayStr = format(slotStartTime, 'yyyy-MM-dd');
       
-      // Get hour for initial placement
-      const slotHour = `${slotStartTime.getHours().toString().padStart(2, '0')}:00`;
+      // Get exact position based on hour and minutes
+      const startHours = slotStartTime.getHours();
+      const startMinutes = slotStartTime.getMinutes();
+      
+      // Calculate the pixel offset based on minutes within the hour
+      const minuteOffset = (startMinutes / 60) * 80; // 80px is the height per hour cell
+      
+      // Store the slot with positioning information
+      const slotHour = `${startHours.toString().padStart(2, '0')}:00`;
       
       if (result.has(dayStr) && result.get(dayStr)?.has(slotHour)) {
-        // Add slot with duration info
+        // Add slot with duration and position info
         const slotEndTime = new Date(slot.end_time);
         const enhancedSlot = {
           ...slot,
-          duration: Math.ceil((slotEndTime.getTime() - slotStartTime.getTime()) / (60 * 60 * 1000)) // Duration in hours
+          duration: Math.ceil((slotEndTime.getTime() - slotStartTime.getTime()) / (60 * 60 * 1000)), // Duration in hours
+          minuteOffset, // Add exact minute position
+          exactStartTime: slotStartTime.getTime(), // For sorting purposes
         };
         result.get(dayStr)?.get(slotHour)?.push(enhancedSlot as any);
       }
@@ -223,23 +239,24 @@ export default function StudentCalendarView({
                         const isMyBooking = slot.student_id === Number(session?.user?.id);
                         const isBooked = slot.student_id !== null;
                         
-                        // Calculate height based on duration
-                        const durationHours = (slotEndTime.getTime() - slotStartTime.getTime()) / (60 * 60 * 1000);
-                        const heightInPixels = Math.max(durationHours * 80, 80); // Assuming each hour cell is 80px
+                        // Calculate exact duration in minutes
+                        const durationMinutes = (slotEndTime.getTime() - slotStartTime.getTime()) / (60 * 1000);
+                        const heightInPixels = Math.max((durationMinutes / 60) * 80, 40); // Minimum height of 40px for visibility
                         
                         return (
                           <div 
                             key={slot.id}
                             onClick={() => showSlotDetails(slot)}
-                            className={`mb-1 p-1 rounded text-xs cursor-pointer hover:opacity-90 absolute left-1 right-1 z-10 ${
+                            className={`mb-1 p-1 rounded text-xs cursor-pointer hover:opacity-100 absolute left-1 right-1 z-10 ${
                               isMyBooking ? 'bg-green-600 text-white' : 
                               isBooked ? 'bg-gray-400 text-white' : 
                               'bg-blue-200 text-blue-800'
                             }`}
                             style={{ 
-                              top: '0',
+                              top: `${slot.minuteOffset || 0}px`,
                               height: `${heightInPixels}px`,
-                              pointerEvents: 'auto'
+                              pointerEvents: 'auto',
+                              opacity: 0.8
                             }}
                           >
                             <div className="flex items-center justify-between">

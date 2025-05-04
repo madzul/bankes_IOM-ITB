@@ -59,7 +59,7 @@ export default function StudentInterviewPage() {
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<InterviewSlot | null>(null);
   const [activeTab, setActiveTab] = useState("available");
-  const [viewMode, setViewMode] = useState<"calendar" | "list">("list");
+  const [viewMode, setViewMode] = useState<"calendar" | "list">("calendar");
   
   useEffect(() => {
     fetchSlots();

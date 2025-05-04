@@ -376,7 +376,7 @@ export default function SlotListView() {
             const isMyBooking = slot.student_id === Number(session?.user?.id);
             
             return (
-              <Card key={slot.id} className="p-4 w-full shadow-sm hover:shadow-md transition-shadow duration-200">
+                <Card key={slot.id} className="p-4 w-full shadow-sm hover:shadow-md transition-shadow duration-200" style={{ backgroundColor: isBooked ? 'rgba(156, 163, 175, 0.8)' : 'rgba(255, 255, 255, 0.9)' }}>
                 <div className="flex justify-between items-start">
                   <div>
                     <div className="flex items-center gap-2">

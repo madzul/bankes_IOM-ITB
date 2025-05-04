@@ -580,7 +580,7 @@ export default function WeeklyCalendarView() {
                           <div 
                             key={slot.id}
                             onClick={() => showSlotDetails(slot)}
-                            className={`mb-1 p-1 rounded text-xs cursor-pointer hover:opacity-90 absolute left-1 right-1 z-10 ${
+                            className={`mb-1 p-1 rounded text-xs cursor-pointer hover:opacity-100 absolute left-1 right-1 z-10 ${
                               hasStudent ? (
                                 isOwner ? 'bg-blue-600 text-white' : 
                                 isParticipant ? 'bg-green-600 text-white' : 
@@ -594,7 +594,8 @@ export default function WeeklyCalendarView() {
                             style={{ 
                               top: `${slot.minuteOffset || 0}px`,
                               height: `${heightInPixels}px`,
-                              pointerEvents: 'auto'
+                              pointerEvents: 'auto',
+                              opacity: 0.6  // Add this line
                             }}
                           >
                             <div className="flex items-center justify-between">
