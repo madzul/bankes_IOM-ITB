@@ -11,7 +11,7 @@ const prisma = new PrismaClient();
  *   post:
  *     summary: Book an interview slot
  *     tags:
- *       - Interviews
+ *       - InterviewSlots
  *     parameters:
  *       - in: path
  *         name: id
