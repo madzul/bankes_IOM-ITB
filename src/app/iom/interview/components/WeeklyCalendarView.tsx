@@ -421,21 +421,36 @@ export default function WeeklyCalendarView() {
         result.get(dayStr)?.set(timeSlot, []);
       });
     });
+
+    result.forEach((dayMap) => {
+      dayMap.forEach((slots) => {
+        slots.sort((a: any, b: any) => a.exactStartTime - b.exactStartTime);
+      });
+    });
     
     // Place slots in appropriate day and time slot
     filteredSlots.forEach(slot => {
       const slotStartTime = new Date(slot.start_time);
       const dayStr = format(slotStartTime, 'yyyy-MM-dd');
       
-      // Get hour for initial placement
-      const slotHour = `${slotStartTime.getHours().toString().padStart(2, '0')}:00`;
+      // Get exact position based on hour and minutes
+      const startHours = slotStartTime.getHours();
+      const startMinutes = slotStartTime.getMinutes();
+      
+      // Calculate the pixel offset based on minutes within the hour
+      const minuteOffset = (startMinutes / 60) * 80; // 80px is the height per hour cell
+      
+      // Store the slot with positioning information
+      const slotHour = `${startHours.toString().padStart(2, '0')}:00`;
       
       if (result.has(dayStr) && result.get(dayStr)?.has(slotHour)) {
-        // Add slot with duration info
+        // Add slot with duration and position info
         const slotEndTime = new Date(slot.end_time);
         const enhancedSlot = {
           ...slot,
-          duration: Math.ceil((slotEndTime.getTime() - slotStartTime.getTime()) / (60 * 60 * 1000)) // Duration in hours
+          duration: Math.ceil((slotEndTime.getTime() - slotStartTime.getTime()) / (60 * 60 * 1000)), // Duration in hours
+          minuteOffset, // Add exact minute position
+          exactStartTime: slotStartTime.getTime(), // For sorting purposes
         };
         result.get(dayStr)?.get(slotHour)?.push(enhancedSlot as any);
       }
@@ -557,9 +572,9 @@ export default function WeeklyCalendarView() {
                         const isParticipant = slot.Participants.some((p: { user_id: number; }) => p.user_id === Number(session?.user?.id));
                         const hasStudent = !!slot.student_id;
                         
-                        // Calculate the duration in hours (or in pixels if preferred)
-                        const durationHours = (slotEndTime.getTime() - slotStartTime.getTime()) / (60 * 60 * 1000);
-                        const heightInPixels = Math.max(durationHours * 80, 80); // Assuming each hour cell is 80px
+                        // Calculate exact duration in minutes
+                        const durationMinutes = (slotEndTime.getTime() - slotStartTime.getTime()) / (60 * 1000);
+                        const heightInPixels = Math.max((durationMinutes / 60) * 80, 40); // Minimum height of 40px for visibility
                         
                         return (
                           <div 
@@ -577,7 +592,7 @@ export default function WeeklyCalendarView() {
                               )
                             }`}
                             style={{ 
-                              top: '0',
+                              top: `${slot.minuteOffset || 0}px`,
                               height: `${heightInPixels}px`,
                               pointerEvents: 'auto'
                             }}
