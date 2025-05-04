@@ -64,6 +64,12 @@ export default function StudentInterviewPage() {
   useEffect(() => {
     fetchSlots();
   }, []);
+  useEffect(() => {
+    const bookings = slots.filter((slot: InterviewSlot) => 
+      slot.student_id === Number(session?.user?.id)
+    );
+    setMyBookings(bookings);
+  }, [slots, session]);
 
   const fetchSlots = async () => {
     try {
@@ -92,10 +98,10 @@ export default function StudentInterviewPage() {
       const response = await fetch(`/api/slots/${selectedSlot.id}/book`, {
         method: "POST",
       });
-
+  
       if (response.ok) {
         toast.success("Slot reserved successfully");
-        fetchSlots();
+        fetchSlots(); // This will update both slots and myBookings
         setConfirmDialogOpen(false);
       } else {
         const error = await response.json();
@@ -121,21 +127,23 @@ export default function StudentInterviewPage() {
         const response = await fetch(`/api/slots/${slotId}/cancel`, {
           method: "POST",
         });
-
+  
         if (response.ok) {
           toast.success("Booking cancelled successfully");
-          // Update both the slots and my bookings lists
+          
+          // Remove the booking from myBookings
           const updatedBookings = myBookings.filter(booking => booking.id !== slotId);
           setMyBookings(updatedBookings);
           
-          // Update the slot in the slots list to show as available
+          // Update the slot in the slots list
           setSlots(prevSlots => 
             prevSlots.map(slot => 
               slot.id === slotId ? { ...slot, student_id: null, booked_at: null } : slot
             )
           );
           
-          fetchSlots(); // Refresh data
+          // Also fetch fresh data to ensure sync
+          fetchSlots();
         } else {
           const errorData = await response.json();
           toast.error(errorData.error || "Failed to cancel booking");
