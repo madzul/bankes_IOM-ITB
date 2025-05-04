@@ -7,113 +7,94 @@ const prisma = new PrismaClient();
 
 /**
  * @swagger
- * /api/files/fetch:
- *   post:
- *     summary: Fetch student status and associated files for a given period
- *     tags:
- *       - Files
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               period_id:
- *                 type: integer
- *                 description: ID of the academic period
- *             required:
- *               - period_id
- *     responses:
- *       200:
- *         description: Successfully retrieved student status and files
+ * paths:
+ *   /api/files/fetch:
+ *     post:
+ *       tags:
+ *         - Files
+ *       summary: Fetch students and their files for a specific period
+ *       security:
+ *         - cookieAuth: []
+ *       requestBody:
+ *         required: true
  *         content:
  *           application/json:
  *             schema:
  *               type: object
+ *               required:
+ *                 - period_id
  *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 data:
- *                   type: array
- *                   items:
- *                     type: object
- *                     properties:
- *                       student_id:
- *                         type: integer
- *                       period_id:
- *                         type: integer
- *                       passDitmawa:
- *                         type: boolean
- *                       passIOM:
- *                         type: boolean
- *                       Student:
- *                         type: object
- *                         properties:
- *                           nim:
- *                             type: string
- *                           User:
- *                             type: object
- *                             properties:
- *                               user_id:
- *                                 type: integer
- *                               name:
- *                                 type: string
- *                           Files:
- *                             type: array
- *                             items:
+ *                 period_id:
+ *                   type: integer
+ *                   description: ID of the period to fetch data for
+ *       responses:
+ *         '200':
+ *           description: Successfully fetched students and files
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 type: object
+ *                 properties:
+ *                   success:
+ *                     type: boolean
+ *                   data:
+ *                     type: array
+ *                     items:
+ *                       type: object
+ *                       properties:
+ *                         student_id:
+ *                           type: integer
+ *                         period_id:
+ *                           type: integer
+ *                         passDitmawa:
+ *                           type: boolean
+ *                         passIOM:
+ *                           type: boolean
+ *                         Student:
+ *                           type: object
+ *                           properties:
+ *                             nim:
+ *                               type: string
+ *                             User:
  *                               type: object
  *                               properties:
- *                                 file_id:
+ *                                 user_id:
  *                                   type: integer
- *                                 student_id:
- *                                   type: integer
- *                                 file_url:
+ *                                 name:
  *                                   type: string
- *                                 file_name:
- *                                   type: string
- *                                 type:
- *                                   type: string
- *       400:
+ *                             Files:
+ *                               type: array
+ *                               items:
+ *                                 type: object
+ *                                 properties:
+ *                                   file_id:
+ *                                     type: integer
+ *                                   student_id:
+ *                                     type: integer
+ *                                   file_url:
+ *                                     type: string
+ *                                   file_name:
+ *                                     type: string
+ *                                   type:
+ *                                     type: string
+ *       '400':
  *         description: Invalid or missing period_id
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 error:
- *                   type: string
- *                   example: "Invalid or missing period_id"
- *       403:
- *         description: Forbidden (insufficient permissions)
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       '403':
+ *         description: Unauthorized access (not Pengurus_IOM)
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 error:
- *                   type: string
- *                   example: "Unauthorized"
- *       500:
- *         description: Server error fetching data
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       '500':
+ *         description: Failed to fetch data due to server error
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 error:
- *                   type: string
- *                   example: "Failed to fetch data"
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 export async function POST(request: Request) {
   try {

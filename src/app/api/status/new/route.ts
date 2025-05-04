@@ -14,7 +14,7 @@ const prisma = new PrismaClient();
  *     summary: Register student for academic period
  *     description: Creates a new registration status record with default values
  *     security:
- *       - bearerAuth: []
+ *       - CookieAuth: []
  *     requestBody:
  *       required: true
  *       content:

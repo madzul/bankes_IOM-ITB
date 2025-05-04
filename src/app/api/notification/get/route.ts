@@ -15,50 +15,43 @@ interface IOM_Notification {
 
 /**
  * @swagger
- * /api/notification/get:
- *   get:
- *     summary: Retrieve notifications for a specific user
- *     tags:
- *       - Notifications
- *     parameters:
- *       - in: query
- *         name: userId
- *         required: true
- *         schema:
- *           type: integer
- *         description: ID of the user whose notifications are to be fetched
- *     responses:
- *       200:
- *         description: A list of notifications for the user
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 notifications:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/Notification'
- *       400:
- *         description: Missing or invalid userId parameter
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   example: "Missing userId"
- *       500:
- *         description: Server error fetching notifications
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   example: "Error fetching notifications"
+ * paths:
+ *   /api/notification/get:
+ *     get:
+ *       tags:
+ *         - Notifications
+ *       summary: Get notifications for a user
+ *       parameters:
+ *         - name: userId
+ *           in: query
+ *           description: ID of the user to fetch notifications for
+ *           required: true
+ *           schema:
+ *             type: integer
+ *       responses:
+ *         '200':
+ *           description: List of notifications retrieved successfully
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 type: object
+ *                 properties:
+ *                   notifications:
+ *                     type: array
+ *                     items:
+ *                       $ref: '#/components/schemas/Notification'
+ *         '400':
+ *           description: Missing userId
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '500':
+ *           description: Server error while fetching notifications
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
  */
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);

@@ -16,85 +16,67 @@ const minioClient = new Client({
 
 /**
  * @swagger
- * /api/files:
- *   delete:
- *     tags:
- *       - Files
- *     summary: Delete a user's file
- *     description: Deletes a specific file from storage and its database record based on file type. Requires user authentication.
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - fileType
- *             properties:
- *               fileType:
- *                 type: string
- *                 description: Type of file to delete (e.g., 'transcript', 'certificate')
- *     responses:
- *       200:
- *         description: File deleted successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 message:
- *                   type: string
- *       400:
- *         description: Missing file type
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *       401:
- *         description: Unauthorized request
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 error:
- *                   type: string
- *       404:
- *         description: File not found
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *       500:
- *         description: Server error during deletion
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 error:
- *                   type: string
- * 
  * components:
  *   securitySchemes:
- *     bearerAuth:
- *       type: http
- *       scheme: bearer
- *       bearerFormat: JWT
+ *     CookieAuth:
+ *       type: apiKey
+ *       in: cookie
+ *       name: next-auth.session-token
+
+ * paths:
+ *   /api/files/delete:
+ *     delete:
+ *       tags:
+ *         - Files
+ *       summary: Delete a student's uploaded file by type
+ *       security:
+ *         - CookieAuth: []
+ *       requestBody:
+ *         required: true
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 fileType:
+ *                   type: string
+ *                   description: The type of file to delete (e.g., TRANSKRIP, CV)
+ *       responses:
+ *         '200':
+ *           description: File deleted successfully
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 type: object
+ *                 properties:
+ *                   success:
+ *                     type: boolean
+ *                   message:
+ *                     type: string
+ *         '400':
+ *           description: Missing or invalid file type
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '401':
+ *           description: Unauthorized access
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '404':
+ *           description: File not found
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '500':
+ *           description: Server error during deletion
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
  */
 export async function DELETE(request: NextRequest) {
   try {

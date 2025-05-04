@@ -99,12 +99,6 @@ type Errors = {
  *           type: string
  *         password:
  *           type: string
- * 
- *   securitySchemes:
- *     bearerAuth:
- *       type: http
- *       scheme: bearer
- *       bearerFormat: JWT
  */
 export async function POST(req: Request){
     try{

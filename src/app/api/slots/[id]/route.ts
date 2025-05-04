@@ -5,6 +5,195 @@ import { authOptions } from '../../auth/[...nextauth]/authOptions';
 
 const prisma = new PrismaClient();
 
+/**
+ * @swagger
+ * paths:
+ *   /api/slots/{id}:
+ *     get:
+ *       tags:
+ *         - Slots
+ *       summary: Fetch a single interview slot by ID
+ *       security:
+ *         - CookieAuth: []
+ *       parameters:
+ *         - name: id
+ *           in: path
+ *           description: Numeric ID of the interview slot
+ *           required: true
+ *           schema:
+ *             type: integer
+ *       responses:
+ *         '200':
+ *           description: Slot retrieved successfully
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 type: object
+ *                 properties:
+ *                   success:
+ *                     type: boolean
+ *                     const: true
+ *                   data:
+ *                     $ref: '#/components/schemas/InterviewSlot'
+ *         '400':
+ *           description: Invalid slot ID
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '401':
+ *           description: Unauthorized access
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '404':
+ *           description: Slot not found
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '500':
+ *           description: Server error
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *
+ *     put:
+ *       tags:
+ *         - Slots
+ *       summary: Update an interview slot
+ *       security:
+ *         - CookieAuth: []
+ *       parameters:
+ *         - name: id
+ *           in: path
+ *           description: Numeric ID of the interview slot
+ *           required: true
+ *           schema:
+ *             type: integer
+ *       requestBody:
+ *         required: true
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 title:
+ *                   type: string
+ *                 description:
+ *                   type: string
+ *                 start_time:
+ *                   type: string
+ *                   format: date-time
+ *                 end_time:
+ *                   type: string
+ *                   format: date-time
+ *               required:
+ *                 - start_time
+ *                 - end_time
+ *       responses:
+ *         '200':
+ *           description: Slot updated successfully
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 type: object
+ *                 properties:
+ *                   success:
+ *                     type: boolean
+ *                     const: true
+ *                   data:
+ *                     $ref: '#/components/schemas/InterviewSlot'
+ *         '400':
+ *           description: Missing or invalid fields
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '401':
+ *           description: Unauthorized access
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '403':
+ *           description: Forbidden—only owner can update
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '404':
+ *           description: Slot not found
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '500':
+ *           description: Server error
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *
+ *     delete:
+ *       tags:
+ *         - Slots
+ *       summary: Delete an interview slot
+ *       security:
+ *         - CookieAuth: []
+ *       parameters:
+ *         - name: id
+ *           in: path
+ *           description: Numeric ID of the interview slot
+ *           required: true
+ *           schema:
+ *             type: integer
+ *       responses:
+ *         '200':
+ *           description: Slot deleted successfully
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 type: object
+ *                 properties:
+ *                   success:
+ *                     type: boolean
+ *                     const: true
+ *                   message:
+ *                     type: string
+ *         '400':
+ *           description: Invalid slot ID
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '401':
+ *           description: Unauthorized access
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '403':
+ *           description: Forbidden—only owner can delete
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '404':
+ *           description: Slot not found
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '500':
+ *           description: Server error
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ */
 // GET /api/slots/[id] - Get a slot by ID
 export async function GET(
   request: NextRequest,

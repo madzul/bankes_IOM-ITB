@@ -18,7 +18,7 @@ const prisma = new PrismaClient();
  *     summary: Get a user by ID
  *     description: Retrieve user details using their user ID
  *     security:
- *       - bearerAuth: []
+ *       - CookieAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -82,7 +82,7 @@ const prisma = new PrismaClient();
  *     summary: Delete a user by ID
  *     description: Permanently delete a user by their ID (Admin only)
  *     security:
- *       - bearerAuth: []
+ *       - CookieAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -143,7 +143,7 @@ const prisma = new PrismaClient();
  *     summary: Promote user role to Pengurus_IOM
  *     description: Updates a user's role to "Pengurus_IOM" (Admin only)
  *     security:
- *       - bearerAuth: []
+ *       - CookieAuth: []
  *     parameters:
  *       - in: path
  *         name: id

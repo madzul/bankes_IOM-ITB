@@ -4,7 +4,123 @@ import { PrismaClient } from "@prisma/client";
 import { authOptions } from "../../auth/[...nextauth]/authOptions";
 
 const prisma = new PrismaClient();
-
+/**
+ * @swagger
+ * paths:
+ *   /api/slots/join:
+ *     post:
+ *       tags:
+ *         - Slots
+ *       summary: Join a slot as a participant
+ *       security:
+ *         - CookieAuth: []
+ *       requestBody:
+ *         required: true
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 slotId:
+ *                   type: integer
+ *               required:
+ *                 - slotId
+ *       responses:
+ *         '200':
+ *           description: Successfully joined the slot
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 type: object
+ *                 properties:
+ *                   success:
+ *                     type: boolean
+ *                     const: true
+ *                   data:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                       slot_id:
+ *                         type: integer
+ *                       user_id:
+ *                         type: integer
+ *                   message:
+ *                     type: string
+ *         '400':
+ *           description: Missing slot ID or already participating
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '401':
+ *           description: Not authenticated or wrong role
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '404':
+ *           description: Slot not found
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '500':
+ *           description: Server error
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *
+ *     delete:
+ *       tags:
+ *         - Slots
+ *       summary: Leave a slot (remove participation)
+ *       security:
+ *         - CookieAuth: []
+ *       requestBody:
+ *         required: true
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 slotId:
+ *                   type: integer
+ *               required:
+ *                 - slotId
+ *       responses:
+ *         '200':
+ *           description: Successfully left the slot
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 type: object
+ *                 properties:
+ *                   success:
+ *                     type: boolean
+ *                     const: true
+ *                   message:
+ *                     type: string
+ *         '400':
+ *           description: Missing slot ID
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '401':
+ *           description: Not authenticated or wrong role
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '500':
+ *           description: Server error
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ */
 // POST /api/slots/join - Join a slot
 export async function POST(request: NextRequest) {
   try {

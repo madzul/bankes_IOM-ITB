@@ -7,203 +7,131 @@ const prisma = new PrismaClient();
 
 /**
  * @swagger
- * /api/interviews/slots/{id}:
- *   delete:
- *     summary: Delete a single interview slot and reindex remaining slots
- *     tags:
- *       - InterviewSlots
+ * paths:
+ *   /api/interviews/slots/{id}:
  *     parameters:
- *       - in: path
- *         name: id
+ *       - name: id
+ *         in: path
+ *         description: Numeric ID of the interview slot
  *         required: true
  *         schema:
  *           type: integer
- *         description: ID of the slot to delete
- *     responses:
- *       200:
- *         description: Slot deleted and remaining slots reindexed successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 message:
- *                   type: string
- *                   example: "Slot deleted successfully"
- *       400:
- *         description: Invalid slot ID
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 error:
- *                   type: string
- *                   example: "Invalid slot ID"
- *       401:
- *         description: Unauthorized (only interview owner)
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 error:
- *                   type: string
- *                   example: "Unauthorized: Only the interview owner can delete slots"
- *       403:
- *         description: Forbidden (not the interview owner)
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 error:
- *                   type: string
- *                   example: "Unauthorized: Only the interview owner can delete slots"
- *       404:
- *         description: Slot not found
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 error:
- *                   type: string
- *                   example: "Slot not found"
- *       500:
- *         description: Server error deleting slot
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 error:
- *                   type: string
- *                   example: "Failed to delete slot"
  *
- *   patch:
- *     summary: Update a single interview slot's start and end times
- *     tags:
- *       - InterviewSlots
- *     parameters:
- *       - in: path
- *         name: id
+ *     delete:
+ *       tags:
+ *         - InterviewSlots
+ *       summary: Delete a single interview slot
+ *       security:
+ *         - CookieAuth: []
+ *       responses:
+ *         '200':
+ *           description: Slot deleted successfully
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 type: object
+ *                 properties:
+ *                   success:
+ *                     type: boolean
+ *                     const: true
+ *                   message:
+ *                     type: string
+ *         '400':
+ *           description: Invalid slot ID
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '401':
+ *           description: Not authenticated or wrong role
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '403':
+ *           description: Unauthorized—only the interview owner can delete slots
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '404':
+ *           description: Slot not found
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '500':
+ *           description: Server error
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *
+ *     patch:
+ *       tags:
+ *         - InterviewSlots
+ *       summary: Update a single interview slot’s start and end time
+ *       security:
+ *         - CookieAuth: []
+ *       requestBody:
  *         required: true
- *         schema:
- *           type: integer
- *         description: ID of the slot to update
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               start_time:
- *                 type: string
- *                 format: date-time
- *               end_time:
- *                 type: string
- *                 format: date-time
- *             required:
- *               - start_time
- *               - end_time
- *     responses:
- *       200:
- *         description: Slot updated successfully
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 data:
- *                   $ref: '#/components/schemas/InterviewSlot'
- *       400:
- *         description: Invalid slot ID or missing fields
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 error:
+ *                 start_time:
  *                   type: string
- *                   example: "Missing required fields"
- *       401:
- *         description: Unauthorized (only interview owner)
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 error:
+ *                   format: date-time
+ *                 end_time:
  *                   type: string
- *                   example: "Unauthorized"
- *       403:
- *         description: Forbidden (not the interview owner)
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 error:
- *                   type: string
- *                   example: "Unauthorized"
- *       404:
- *         description: Slot not found
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 error:
- *                   type: string
- *                   example: "Slot not found"
- *       500:
- *         description: Server error updating slot
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 error:
- *                   type: string
- *                   example: "Failed to update slot"
+ *                   format: date-time
+ *               required:
+ *                 - start_time
+ *                 - end_time
+ *       responses:
+ *         '200':
+ *           description: Updated slot returned
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 type: object
+ *                 properties:
+ *                   success:
+ *                     type: boolean
+ *                     const: true
+ *                   data:
+ *                     $ref: '#/components/schemas/InterviewSlot'
+ *         '400':
+ *           description: Missing or invalid fields
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '401':
+ *           description: Not authenticated or wrong role
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '403':
+ *           description: Unauthorized—only the interview owner can update slots
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '404':
+ *           description: Slot not found
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '500':
+ *           description: Server error
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
  */
 
 // DELETE /api/interviews/slots/[id] - Delete a single slot

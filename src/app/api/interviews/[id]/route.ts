@@ -7,397 +7,289 @@ const prisma = new PrismaClient();
 
 /**
  * @swagger
- * /api/interviews/{id}:
- *   get:
- *     summary: Get an interview by ID
- *     tags:
- *       - Interviews
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: integer
- *         description: ID of the interview to retrieve
- *     responses:
- *       200:
- *         description: Successfully retrieved the interview
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 data:
- *                   $ref: '#/components/schemas/Interview'
- *       400:
- *         description: Invalid interview ID
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 error:
- *                   type: string
- *                   example: "Invalid interview ID"
- *       401:
- *         description: Unauthorized
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 error:
- *                   type: string
- *                   example: "Unauthorized"
- *       404:
- *         description: Interview not found
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 error:
- *                   type: string
- *                   example: "Interview not found"
- *       500:
- *         description: Server error fetching interview
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 error:
- *                   type: string
- *                   example: "Failed to fetch interview"
+ * openapi: 3.0.3
+ * info:
+ *   title: Interviews API
+ *   version: 1.0.0
+ * components:
+ *   securitySchemes:
+ *     CookieAuth:
+ *       type: apiKey
+ *       in: cookie
+ *       name: next-auth.session-token
  *
- *   patch:
- *     summary: Update the max_students of an interview
- *     tags:
- *       - Interviews
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
+ *   schemas:
+ *     Interview:
+ *       type: object
+ *       properties:
+ *         interview_id:
  *           type: integer
- *         description: ID of the interview to update
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               max_students:
- *                 type: integer
- *                 description: New maximum number of students (must be ≥1)
- *             required:
- *               - max_students
- *     responses:
- *       200:
- *         description: Successfully updated max_students
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 data:
- *                   $ref: '#/components/schemas/Interview'
- *       400:
- *         description: Invalid input or interview ID
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 error:
- *                   type: string
- *                   example: "Invalid max_students value"
- *       401:
- *         description: Unauthorized
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 error:
- *                   type: string
- *                   example: "Unauthorized"
- *       403:
- *         description: Forbidden (not the owner)
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 error:
- *                   type: string
- *                   example: "Unauthorized"
- *       404:
- *         description: Interview not found
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 error:
- *                   type: string
- *                   example: "Interview not found"
- *       500:
- *         description: Server error updating interview
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 error:
- *                   type: string
- *                   example: "Failed to update interview"
+ *         user_id:
+ *           type: integer
+ *         title:
+ *           type: string
+ *         description:
+ *           type: string
+ *         start_time:
+ *           type: string
+ *           format: date-time
+ *         end_time:
+ *           type: string
+ *           format: date-time
+ *         max_students:
+ *           type: integer
+ *       required:
+ *         - interview_id
+ *         - user_id
+ *         - title
+ *         - start_time
+ *         - end_time
+ *         - max_students
  *
- *   put:
- *     summary: Update interview details and regenerate slots
- *     tags:
- *       - Interviews
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
+ *     InterviewSlot:
+ *       type: object
+ *       properties:
+ *         slot_id:
  *           type: integer
- *         description: ID of the interview to update
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               title:
- *                 type: string
- *               description:
- *                 type: string
- *               start_time:
- *                 type: string
- *                 format: date-time
- *               end_time:
- *                 type: string
- *                 format: date-time
- *               max_students:
- *                 type: integer
- *             required:
- *               - start_time
- *               - end_time
- *               - max_students
- *     responses:
- *       200:
- *         description: Interview updated and slots regenerated
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 data:
- *                   type: object
- *                   properties:
- *                     interview:
- *                       $ref: '#/components/schemas/Interview'
- *                     slots:
- *                       type: array
- *                       items:
- *                         $ref: '#/components/schemas/InterviewSlot'
- *       400:
- *         description: Invalid input or interview ID
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 error:
- *                   type: string
- *                   example: "Missing required fields"
- *       401:
- *         description: Unauthorized
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 error:
- *                   type: string
- *                   example: "Unauthorized"
- *       403:
- *         description: Forbidden (not the owner)
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 error:
- *                   type: string
- *                   example: "Unauthorized"
- *       404:
- *         description: Interview not found
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 error:
- *                   type: string
- *                   example: "Interview not found"
- *       500:
- *         description: Server error updating interview
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 error:
- *                   type: string
- *                   example: "Failed to update interview"
+ *         interview_id:
+ *           type: integer
+ *         slot_number:
+ *           type: integer
+ *         start_time:
+ *           type: string
+ *           format: date-time
+ *         end_time:
+ *           type: string
+ *           format: date-time
+ *       required:
+ *         - slot_id
+ *         - interview_id
+ *         - slot_number
+ *         - start_time
+ *         - end_time
  *
- *   delete:
- *     summary: Delete an interview
- *     tags:
- *       - Interviews
+ *     ErrorResponse:
+ *       type: object
+ *       properties:
+ *         success:
+ *           type: boolean
+ *           const: false
+ *         error:
+ *           type: string
+ *       required:
+ *         - success
+ *         - error
+ *
+ *     UpdateMaxStudentsRequest:
+ *       type: object
+ *       properties:
+ *         max_students:
+ *           type: integer
+ *           minimum: 1
+ *       required:
+ *         - max_students
+ *
+ *     UpdateInterviewRequest:
+ *       type: object
+ *       properties:
+ *         title:
+ *           type: string
+ *         description:
+ *           type: string
+ *         start_time:
+ *           type: string
+ *           format: date-time
+ *         end_time:
+ *           type: string
+ *           format: date-time
+ *         max_students:
+ *           type: integer
+ *           minimum: 1
+ *       required:
+ *         - start_time
+ *         - end_time
+ *         - max_students
+ *
+ * paths:
+ *   /api/interviews/{id}:
  *     parameters:
- *       - in: path
- *         name: id
+ *       - name: id
+ *         in: path
+ *         description: Numeric ID of the interview
  *         required: true
  *         schema:
  *           type: integer
- *         description: ID of the interview to delete
- *     responses:
- *       200:
- *         description: Interview deleted successfully
+ *
+ *     patch:
+ *       tags:
+ *         - Interviews
+ *       summary: Update max_students on an existing interview
+ *       security:
+ *         - CookieAuth: []
+ *       requestBody:
+ *         required: true
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 message:
- *                   type: string
- *                   example: "Interview deleted successfully"
- *       400:
- *         description: Invalid interview ID
+ *               $ref: '#/components/schemas/UpdateMaxStudentsRequest'
+ *       responses:
+ *         '200':
+ *           description: Updated interview returned
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 type: object
+ *                 properties:
+ *                   success:
+ *                     type: boolean
+ *                     const: true
+ *                   data:
+ *                     $ref: '#/components/schemas/Interview'
+ *         '400':
+ *           description: Invalid input or parameters
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '401':
+ *           description: Not authenticated or wrong role
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '403':
+ *           description: Unauthorized—user does not own the interview
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '404':
+ *           description: Interview not found
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '500':
+ *           description: Server error
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *
+ *     put:
+ *       tags:
+ *         - Interviews
+ *       summary: Update an interview and regenerate its time slots
+ *       security:
+ *         - CookieAuth: []
+ *       requestBody:
+ *         required: true
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 error:
- *                   type: string
- *                   example: "Invalid interview ID"
- *       401:
- *         description: Unauthorized
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 error:
- *                   type: string
- *                   example: "Unauthorized"
- *       403:
- *         description: Forbidden (not the owner)
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 error:
- *                   type: string
- *                   example: "Unauthorized"
- *       404:
- *         description: Interview not found
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 error:
- *                   type: string
- *                   example: "Interview not found"
- *       500:
- *         description: Server error deleting interview
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 error:
- *                   type: string
- *                   example: "Failed to delete interview"
+ *               $ref: '#/components/schemas/UpdateInterviewRequest'
+ *       responses:
+ *         '200':
+ *           description: Interview and slots updated
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 type: object
+ *                 properties:
+ *                   success:
+ *                     type: boolean
+ *                     const: true
+ *                   data:
+ *                     type: object
+ *                     properties:
+ *                       interview:
+ *                         $ref: '#/components/schemas/Interview'
+ *                       slots:
+ *                         type: array
+ *                         items:
+ *                           $ref: '#/components/schemas/InterviewSlot'
+ *         '400':
+ *           description: Missing or invalid fields
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '401':
+ *           description: Not authenticated or wrong role
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '403':
+ *           description: Unauthorized—user does not own the interview
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '404':
+ *           description: Interview not found
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '500':
+ *           description: Server error
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *
+ *     delete:
+ *       tags:
+ *         - Interviews
+ *       summary: Delete an interview (and its slots/bookings)
+ *       security:
+ *         - CookieAuth: []
+ *       responses:
+ *         '200':
+ *           description: Interview deleted successfully
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 type: object
+ *                 properties:
+ *                   success:
+ *                     type: boolean
+ *                     const: true
+ *                   message:
+ *                     type: string
+ *         '400':
+ *           description: Invalid interview ID
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '401':
+ *           description: Not authenticated or wrong role
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '403':
+ *           description: Unauthorized—user does not own the interview
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '404':
+ *           description: Interview not found
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '500':
+ *           description: Server error
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
  */
+
 // GET /api/interviews/[id] - Get an interview by ID
 export async function GET(
   request: Request,

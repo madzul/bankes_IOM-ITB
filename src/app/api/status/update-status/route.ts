@@ -64,7 +64,7 @@ interface StudentUpdate {
  *     summary: Update student status
  *     description: Update evaluation status for a student in a specific period (Admin only)
  *     security:
- *       - bearerAuth: []
+ *       - CookieAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -179,13 +179,8 @@ interface StudentUpdate {
  *           nullable: true
  *         Student:
  *           $ref: '#/components/schemas/Student'
- *         Period:
+ *         Period:A
  *           $ref: '#/components/schemas/Period'
- *   securitySchemes:
- *     bearerAuth:
- *       type: http
- *       scheme: bearer
- *       bearerFormat: JWT
  */
 export async function POST(request: Request) {
   try {

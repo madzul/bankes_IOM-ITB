@@ -18,7 +18,7 @@ const prisma = new PrismaClient();
  *     summary: Get the authenticated student's data
  *     description: Retrieves the student profile associated with the currently authenticated user
  *     security:
- *       - bearerAuth: []
+ *       - CookieAuth: []
  *     responses:
  *       200:
  *         description: Successfully retrieved student data

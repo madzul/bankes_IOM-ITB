@@ -5,51 +5,43 @@ const prisma = new PrismaClient();
 
 /**
  * @swagger
- * /api/notification/{id}/read:
- *   patch:
- *     summary: Mark a notification as read
- *     tags:
- *       - Notifications
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: integer
- *         description: ID of the notification to mark as read
- *     responses:
- *       200:
- *         description: Notification successfully marked as read
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *       400:
- *         description: Invalid notification ID
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   example: "Invalid ID"
- *       500:
- *         description: Server error marking notification as read
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   example: "Error marking notification as read"
+ * paths:
+ *   /api/notification/{id}/read:
+ *     patch:
+ *       tags:
+ *         - Notifications
+ *       summary: Mark a notification as read
+ *       parameters:
+ *         - name: id
+ *           in: path
+ *           description: ID of the notification to mark as read
+ *           required: true
+ *           schema:
+ *             type: integer
+ *       responses:
+ *         '200':
+ *           description: Notification marked as read successfully
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 type: object
+ *                 properties:
+ *                   success:
+ *                     type: boolean
+ *                     const: true
+ *         '400':
+ *           description: Invalid notification ID
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '500':
+ *           description: Server error while updating notification
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
  */
-
 export async function PATCH(
   req: Request,
   { params }: { params: { id: string } }

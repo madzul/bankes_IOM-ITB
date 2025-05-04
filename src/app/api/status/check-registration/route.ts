@@ -14,7 +14,7 @@ const prisma = new PrismaClient();
  *     summary: Check student registration status
  *     description: Verify if a student is registered for a specific academic period
  *     security:
- *       - bearerAuth: []
+ *       - CookieAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -81,12 +81,6 @@ const prisma = new PrismaClient();
  *                 error:
  *                   type: string
  *                   example: "Internal Server Error"
- * components:
- *   securitySchemes:
- *     bearerAuth:
- *       type: http
- *       scheme: bearer
- *       bearerFormat: JWT
  */
 export async function POST(request: Request) {
   try {

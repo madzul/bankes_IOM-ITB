@@ -17,7 +17,7 @@ const prisma = new PrismaClient();
  *     summary: Get the authenticated user's profile
  *     description: Retrieve the profile of the currently authenticated user
  *     security:
- *       - bearerAuth: []
+ *       - CookieAuth: []
  *     responses:
  *       200:
  *         description: Authenticated user profile retrieved successfully

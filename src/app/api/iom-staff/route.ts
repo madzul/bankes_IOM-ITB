@@ -7,63 +7,50 @@ const prisma = new PrismaClient();
 
 /**
  * @swagger
- * /api/iom-staff:
- *   get:
- *     summary: Get all IOM staff for the participant dropdown
- *     tags:
- *       - IOM
- *     responses:
- *       200:
- *         description: Successfully retrieved list of IOM staff
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 data:
- *                   type: array
- *                   items:
- *                     type: object
- *                     properties:
- *                       user_id:
- *                         type: integer
- *                         description: Unique identifier of the IOM staff user
- *                       name:
- *                         type: string
- *                         description: Full name of the IOM staff member
- *                       email:
- *                         type: string
- *                         description: Email address of the IOM staff member
- *       401:
- *         description: Unauthorized access
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 error:
- *                   type: string
- *                   example: "Unauthorized"
- *       500:
- *         description: Server error while fetching IOM staff
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 error:
- *                   type: string
- *                   example: "Failed to fetch IOM staff"
+ * paths:
+ *   /api/iom-staff:
+ *     get:
+ *       tags:
+ *         - IOM
+ *       summary: Fetch all IOM staff users
+ *       security:
+ *         - CookieAuth: []
+ *       responses:
+ *         '200':
+ *           description: A list of IOM staff members
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 type: object
+ *                 properties:
+ *                   success:
+ *                     type: boolean
+ *                     const: true
+ *                   data:
+ *                     type: array
+ *                     items:
+ *                       type: object
+ *                       properties:
+ *                         user_id:
+ *                           type: integer
+ *                         name:
+ *                           type: string
+ *                         email:
+ *                           type: string
+ *         '401':
+ *           description: Not authenticated or unauthorized role
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '500':
+ *           description: Server error
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
  */
+
 // GET /api/iom-staff - Get all IOM staff for the participant dropdown
 export async function GET() {
     try {
