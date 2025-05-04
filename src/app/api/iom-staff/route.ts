@@ -69,7 +69,7 @@ export async function GET() {
     try {
       const session = await getServerSession(authOptions);
   
-      if (!session?.user?.id || session.user.role !== "Pengurus_IOM") {
+      if (!session?.user?.id || (session.user.role !== "Pengurus_IOM" && session.user.role !== "Mahasiswa")) {
         return NextResponse.json(
           { success: false, error: "Unauthorized" },
           { status: 401 }

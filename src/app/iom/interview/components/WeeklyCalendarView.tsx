@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useMemo, JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Card } from "@/components/ui/card";
-import { PlusCircle, Calendar, Clock, Users, Edit, Trash, User, UserPlus, UserMinus, ChevronLeft, ChevronRight, Info, X } from "lucide-react";
+import { PlusCircle, Calendar, Clock, User, Edit, Trash, UserPlus, UserMinus, ChevronLeft, ChevronRight, Info, X } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -25,7 +25,6 @@ interface IOMStaff {
 interface InterviewParticipant {
   id: number;
   user_id: number;
-  slot_id?: number; // Add this field
   User: {
     name: string;
   };
@@ -33,10 +32,18 @@ interface InterviewParticipant {
 
 interface InterviewSlot {
   id: number;
-  slot_number: number;
+  title: string | null;
+  description: string | null;
   start_time: string;
   end_time: string;
+  user_id: number;
+  period_id: number;
   student_id: number | null;
+  User: {
+    name: string;
+    email: string;
+  };
+  Participants: InterviewParticipant[];
   Student?: {
     User: {
       name: string;
@@ -44,55 +51,34 @@ interface InterviewSlot {
   };
 }
 
-interface Interview {
-  interview_id: number;
-  title: string | null;
-  description: string | null;
-  start_time: string;
-  end_time: string;
-  max_students: number;
-  user_id: number;
-  User: {
-    name: string;
-    email: string;
-  };
-  participants: InterviewParticipant[];
-  slots: InterviewSlot[];
-}
-
-type InterviewFormData = {
+type SlotFormData = {
   title: string;
   description: string;
   date: string;
   startTime: string;
   endTime: string;
-  maxStudents: number;
+  studentCount: number; // Add this new field
 };
 
 export default function WeeklyCalendarView() {
   const { data: session } = useSession();
-  const [interviews, setInterviews] = useState<Interview[]>([]);
+  const [slots, setSlots] = useState<InterviewSlot[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [editingInterviewId, setEditingInterviewId] = useState<number | null>(null);
+  const [editingSlotId, setEditingSlotId] = useState<number | null>(null);
   const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null);
   const [currentWeekStart, setCurrentWeekStart] = useState<Date>(startOfWeek(new Date(), { weekStartsOn: 1 }));
-  const [selectedInterview, setSelectedInterview] = useState<Interview | null>(null);
-  const [selectedSlotDetails, setSelectedSlotDetails] = useState<any>(null);
+  const [selectedSlot, setSelectedSlot] = useState<InterviewSlot | null>(null);
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
-  const [isSlotDetailsDialogOpen, setIsSlotDetailsDialogOpen] = useState(false);
   const [iomStaff, setIomStaff] = useState<IOMStaff[]>([]);
-
-  const [isEditSlotDialogOpen, setIsEditSlotDialogOpen] = useState(false);
-  const [editingSlot, setEditingSlot] = useState<any>(null);
   
-  const [formData, setFormData] = useState<InterviewFormData>({
+  const [formData, setFormData] = useState<SlotFormData>({
     title: "",
     description: "",
     date: "",
     startTime: "",
     endTime: "",
-    maxStudents: 1
+    studentCount: 1
   });
 
   // Calculate week days
@@ -113,16 +99,15 @@ export default function WeeklyCalendarView() {
   // Generate time slots for the day (8:00 AM to 5:00 PM with 1-hour intervals)
   const timeSlots = useMemo(() => {
     const slots = [];
-    // Change this to show all 24 hours instead of just 8-17
     for (let hour = 0; hour < 24; hour++) {
       slots.push(`${hour.toString().padStart(2, '0')}:00`);
     }
     return slots;
   }, []);
 
-  // Fetch interviews and IOM staff
+  // Fetch slots and IOM staff
   useEffect(() => {
-    fetchInterviews();
+    fetchSlots();
     fetchIOMStaff();
   }, []);
 
@@ -133,16 +118,16 @@ export default function WeeklyCalendarView() {
     }
   }, [session]);
 
-  const fetchInterviews = async () => {
+  const fetchSlots = async () => {
     try {
-      const response = await fetch("/api/interviews");
+      const response = await fetch("/api/slots");
       if (response.ok) {
         const data = await response.json();
-        setInterviews(data.data);
+        setSlots(data.data);
       }
     } catch (error) {
-      console.error("Error fetching interviews:", error);
-      toast.error("Failed to load interviews");
+      console.error("Error fetching slots:", error);
+      toast.error("Failed to load slots");
     }
   };
 
@@ -158,129 +143,158 @@ export default function WeeklyCalendarView() {
     }
   };
 
-  const handleCreateOrUpdateInterview = async () => {
+  const handleCreateOrUpdateSlot = async () => {
     setIsLoading(true);
     try {
       // Format start and end times
-      const { date, startTime, endTime, maxStudents, title, description } = formData;
+      const { date, startTime, endTime, title, description, studentCount } = formData;
       
-      const combinedStartTime = `${date}T${startTime}:00`;
-      const combinedEndTime = `${date}T${endTime}:00`;
-      
-      const endpoint = editingInterviewId 
-        ? `/api/interviews/${editingInterviewId}` 
-        : "/api/interviews";
-      
-      const method = editingInterviewId ? "PUT" : "POST";
-      
-      const response = await fetch(endpoint, {
-        method,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          title,
-          description,
-          start_time: combinedStartTime,
-          end_time: combinedEndTime,
-          max_students: maxStudents
-        }),
-      });
-
-      if (response.ok) {
-        toast.success(editingInterviewId ? "Interview updated successfully" : "Interview created successfully");
-        fetchInterviews();
-        setIsDialogOpen(false);
-        resetForm();
+      if (editingSlotId) {
+        // Just update the single slot as before
+        const combinedStartTime = `${date}T${startTime}:00`;
+        const combinedEndTime = `${date}T${endTime}:00`;
+        
+        const response = await fetch(`/api/slots/${editingSlotId}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            title,
+            description,
+            start_time: combinedStartTime,
+            end_time: combinedEndTime,
+          }),
+        });
+  
+        if (response.ok) {
+          toast.success("Slot updated successfully");
+          fetchSlots();
+          setIsDialogOpen(false);
+          resetForm();
+        } else {
+          const error = await response.json();
+          toast.error(error.error || "Failed to update slot");
+        }
       } else {
-        const error = await response.json();
-        toast.error(error.error || "Failed to save interview");
+        // Create multiple slots if studentCount > 1
+        const startDateObj = new Date(`${date}T${startTime}`);
+        const endDateObj = new Date(`${date}T${endTime}`);
+        const durationMs = endDateObj.getTime() - startDateObj.getTime();
+        
+        const createPromises = [];
+        
+        for (let i = 0; i < studentCount; i++) {
+          const slotStartTime = new Date(startDateObj.getTime() + (i * durationMs));
+          const slotEndTime = new Date(slotStartTime.getTime() + durationMs);
+          
+          const formattedStartTime = slotStartTime.toISOString();
+          const formattedEndTime = slotEndTime.toISOString();
+          
+          createPromises.push(
+            fetch("/api/slots", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                title,
+                description,
+                start_time: formattedStartTime,
+                end_time: formattedEndTime,
+              }),
+            })
+          );
+        }
+        
+        const responses = await Promise.all(createPromises);
+        const allSuccessful = responses.every(response => response.ok);
+        
+        if (allSuccessful) {
+          toast.success(`${studentCount} slots created successfully`);
+          fetchSlots();
+          setIsDialogOpen(false);
+          resetForm();
+        } else {
+          toast.error("Failed to create some slots");
+        }
       }
     } catch (error) {
-      console.error("Error saving interview:", error);
-      toast.error("Failed to save interview");
+      console.error("Error saving slot:", error);
+      toast.error("Failed to save slot");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleJoinInterview = async (interviewId: number, slotId: number) => {
+  const handleJoinSlot = async (slotId: number) => {
     try {
-      const response = await fetch(`/api/interviews/join`, {
+      const response = await fetch(`/api/slots/join`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          interviewId,
-          slotId,
-        }),
+        body: JSON.stringify({ slotId }),
       });
   
       if (response.ok) {
-        toast.success("Joined interview slot successfully");
-        fetchInterviews();
+        toast.success("Joined slot successfully");
+        fetchSlots();
         setIsDetailsDialogOpen(false);
-        setIsSlotDetailsDialogOpen(false);
       } else {
         const error = await response.json();
-        toast.error(error.error || "Failed to join interview slot");
+        toast.error(error.error || "Failed to join slot");
       }
     } catch (error) {
-      console.error("Error joining interview slot:", error);
-      toast.error("Failed to join interview slot");
+      console.error("Error joining slot:", error);
+      toast.error("Failed to join slot");
     }
   };
   
-  const handleLeaveInterview = async (interviewId: number, slotId: number) => {
-    if (confirm("Are you sure you want to leave this interview slot?")) {
+  const handleLeaveSlot = async (slotId: number) => {
+    if (confirm("Are you sure you want to leave this slot?")) {
       try {
-        const response = await fetch(`/api/interviews/join`, {
+        const response = await fetch(`/api/slots/join`, {
           method: "DELETE",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            interviewId,
-            slotId,
-          }),
+          body: JSON.stringify({ slotId }),
         });
   
         if (response.ok) {
-          toast.success("Left interview slot successfully");
-          fetchInterviews();
+          toast.success("Left slot successfully");
+          fetchSlots();
           setIsDetailsDialogOpen(false);
-          setIsSlotDetailsDialogOpen(false);
         } else {
           const error = await response.json();
-          toast.error(error.error || "Failed to leave interview slot");
+          toast.error(error.error || "Failed to leave slot");
         }
       } catch (error) {
-        console.error("Error leaving interview slot:", error);
-        toast.error("Failed to leave interview slot");
+        console.error("Error leaving slot:", error);
+        toast.error("Failed to leave slot");
       }
     }
   };
-  
 
-  const handleDeleteInterview = async (interviewId: number) => {
-    if (confirm("Are you sure you want to delete this interview session?")) {
+  const handleDeleteSlot = async (slotId: number) => {
+    if (confirm("Are you sure you want to delete this slot?")) {
       try {
-        const response = await fetch(`/api/interviews/${interviewId}`, {
+        const response = await fetch(`/api/slots/${slotId}`, {
           method: "DELETE",
         });
 
         if (response.ok) {
-          toast.success("Interview deleted successfully");
-          fetchInterviews();
+          toast.success("Slot deleted successfully");
+          fetchSlots();
           setIsDetailsDialogOpen(false);
         } else {
           const error = await response.json();
-          toast.error(error.error || "Failed to delete interview");
+          toast.error(error.error || "Failed to delete slot");
         }
       } catch (error) {
-        console.error("Error deleting interview:", error);
-        toast.error("Failed to delete interview");
+        console.error("Error deleting slot:", error);
+        toast.error("Failed to delete slot");
       }
     }
   };
@@ -288,13 +302,13 @@ export default function WeeklyCalendarView() {
   const handleCancelBooking = async (slotId: number) => {
     if (confirm("Are you sure you want to cancel this booking?")) {
       try {
-        const response = await fetch(`/api/interviews/slots/${slotId}/cancel`, {
+        const response = await fetch(`/api/slots/${slotId}/cancel`, {
           method: "POST",
         });
 
         if (response.ok) {
           toast.success("Booking cancelled successfully");
-          fetchInterviews();
+          fetchSlots();
         } else {
           const error = await response.json();
           toast.error(error.error || "Failed to cancel booking");
@@ -306,131 +320,29 @@ export default function WeeklyCalendarView() {
     }
   };
 
-  const isUserParticipantInSlot = (interview: Interview, slotId: number) => {
+  const isUserParticipantInSlot = (slot: InterviewSlot) => {
     if (!session?.user?.id) return false;
     
-    // Check if there's a participant record with this user's ID and the specified slot ID
-    return interview.participants.some(p => 
-      p.user_id === Number(session.user.id) && p.slot_id === slotId
-    );
+    // Check if there's a participant record with this user's ID
+    return slot.Participants.some(p => p.user_id === Number(session.user.id));
   };
 
-  const handleEditInterview = (interview: Interview) => {
-    const startDateTime = new Date(interview.start_time);
-    const endDateTime = new Date(interview.end_time);
+  const handleEditSlot = (slot: InterviewSlot) => {
+    const startDateTime = new Date(slot.start_time);
+    const endDateTime = new Date(slot.end_time);
     
     setFormData({
-      title: interview.title || "",
-      description: interview.description || "",
+      title: slot.title || "",
+      description: slot.description || "",
       date: format(startDateTime, "yyyy-MM-dd"),
       startTime: format(startDateTime, "HH:mm"),
       endTime: format(endDateTime, "HH:mm"),
-      maxStudents: interview.max_students
+      studentCount: 1
     });
     
-    setEditingInterviewId(interview.interview_id);
+    setEditingSlotId(slot.id);
     setIsDialogOpen(true);
     setIsDetailsDialogOpen(false);
-  };
-
-  const handleEditSingleSlot = (slot: any) => {
-    setEditingSlot({
-      id: slot.id,
-      slotNumber: slot.slot_number,
-      date: format(new Date(slot.start_time), "yyyy-MM-dd"),
-      startTime: format(new Date(slot.start_time), "HH:mm"),
-      endTime: format(new Date(slot.end_time), "HH:mm"),
-      interviewId: slot.interview.interview_id
-    });
-    setIsEditSlotDialogOpen(true);
-  };
-  
-  const saveSlotChanges = async () => {
-    if (!editingSlot) return;
-    
-    setIsLoading(true);
-    try {
-      const combinedStartTime = `${editingSlot.date}T${editingSlot.startTime}:00`;
-      const combinedEndTime = `${editingSlot.date}T${editingSlot.endTime}:00`;
-      
-      const response = await fetch(`/api/interviews/slots/${editingSlot.id}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          start_time: combinedStartTime,
-          end_time: combinedEndTime,
-        }),
-      });
-  
-      if (response.ok) {
-        toast.success("Slot updated successfully");
-        fetchInterviews();
-        setIsEditSlotDialogOpen(false);
-      } else {
-        const error = await response.json();
-        toast.error(error.error || "Failed to update slot");
-      }
-    } catch (error) {
-      console.error("Error updating slot:", error);
-      toast.error("Failed to update slot");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleDeleteSingleSlot = async (slotId: number, interviewId: number) => {
-    try {
-      // First, we need to fetch the current slots to calculate the new max_students value
-      const response = await fetch(`/api/interviews/${interviewId}`, {
-        method: "GET",
-      });
-      
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to fetch interview details");
-      }
-      
-      const interview = await response.json();
-      const currentSlots = interview.data.slots || [];
-      
-      // If this is the only slot, delete the entire interview
-      if (currentSlots.length <= 1) {
-        return handleDeleteInterview(interviewId);
-      }
-      
-      // Delete the specific slot
-      const deleteSlotResponse = await fetch(`/api/interviews/slots/${slotId}`, {
-        method: "DELETE",
-      });
-      
-      if (!deleteSlotResponse.ok) {
-        const error = await deleteSlotResponse.json();
-        throw new Error(error.error || "Failed to delete slot");
-      }
-      
-      // Update the interview's max_students value
-      const updateInterviewResponse = await fetch(`/api/interviews/${interviewId}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          max_students: currentSlots.length - 1
-        }),
-      });
-      
-      if (!updateInterviewResponse.ok) {
-        toast.warning("Slot deleted but failed to update session details");
-      }
-      
-      toast.success("Slot deleted successfully");
-      fetchInterviews();
-    } catch (error) {
-      console.error("Error deleting slot:", error);
-      toast.error("Failed to delete slot");
-    }
   };
 
   const resetForm = () => {
@@ -440,9 +352,9 @@ export default function WeeklyCalendarView() {
       date: "",
       startTime: "",
       endTime: "",
-      maxStudents: 1
+      studentCount: 1
     });
-    setEditingInterviewId(null);
+    setEditingSlotId(null);
   };
 
   const handleOpenDialog = () => {
@@ -462,45 +374,41 @@ export default function WeeklyCalendarView() {
     setCurrentWeekStart(startOfWeek(new Date(), { weekStartsOn: 1 }));
   };
 
-  // Filter interviews by selected staff and current week
-  const filteredInterviews = useMemo(() => {
-    return interviews.filter(interview => {
-      const interviewStart = new Date(interview.start_time);
-      /**
-       * Not used for now 
-       */
-      // const interviewEnd = new Date(interview.end_time);
+  // Filter slots by selected staff and current week
+  const filteredSlots = useMemo(() => {
+    return slots.filter(slot => {
+      const slotStart = new Date(slot.start_time);
       
-      // Check if interview is within the current week
-      const isInCurrentWeek = isWithinInterval(interviewStart, {
+      // Check if slot is within the current week
+      const isInCurrentWeek = isWithinInterval(slotStart, {
         start: currentWeekStart,
         end: endOfWeek(currentWeekStart, { weekStartsOn: 1 })
       });
       
       // Filter by selected staff (owner or participant)
       if (selectedStaffId) {
-        const isOwnedBySelectedStaff = interview.user_id === parseInt(selectedStaffId);
-        const isParticipant = interview.participants.some(p => p.user_id === parseInt(selectedStaffId));
+        const isOwnedBySelectedStaff = slot.user_id === parseInt(selectedStaffId);
+        const isParticipant = slot.Participants.some(p => p.user_id === parseInt(selectedStaffId));
         
         return isInCurrentWeek && (isOwnedBySelectedStaff || isParticipant);
       }
       
       return isInCurrentWeek;
     });
-  }, [interviews, selectedStaffId, currentWeekStart]);
+  }, [slots, selectedStaffId, currentWeekStart]);
 
-  // Check if current user is owner or participant of an interview
-  const isUserInvolvedInInterview = (interview: Interview) => {
+  // Check if current user is owner or participant of a slot
+  const isUserInvolvedInSlot = (slot: InterviewSlot) => {
     if (!session?.user?.id) return false;
     
     // Check if user is the owner
-    if (interview.user_id === Number(session.user.id)) return true;
+    if (slot.user_id === Number(session.user.id)) return true;
     
     // Check if user is a participant
-    return interview.participants.some(p => p.user_id === Number(session.user.id));
+    return slot.Participants.some(p => p.user_id === Number(session.user.id));
   };
 
-  // Organize all interview slots by day and time - modified to handle individual slots
+  // Organize all slots by day and time
   const slotsByDayAndTime = useMemo(() => {
     const result = new Map<string, Map<string, InterviewSlot[]>>();
     
@@ -513,46 +421,47 @@ export default function WeeklyCalendarView() {
         result.get(dayStr)?.set(timeSlot, []);
       });
     });
-    
-    // Place individual slots in appropriate day and time slot
-    filteredInterviews.forEach(interview => {
-      interview.slots.forEach(slot => {
-        const slotStartTime = new Date(slot.start_time);
-        const slotEndTime = new Date(slot.end_time);
-        const dayStr = format(slotStartTime, 'yyyy-MM-dd');
-        
-        // Get hour for initial placement
-        const slotHour = `${slotStartTime.getHours().toString().padStart(2, '0')}:00`;
-        
-        if (result.has(dayStr) && result.get(dayStr)?.has(slotHour)) {
-          // Add slot with interview reference and duration info
-          const enhancedSlot = {
-            ...slot,
-            interview: interview,
-            duration: Math.ceil((slotEndTime.getTime() - slotStartTime.getTime()) / (60 * 60 * 1000)) // Duration in hours
-          };
-          result.get(dayStr)?.get(slotHour)?.push(enhancedSlot as any);
-        }
+
+    result.forEach((dayMap) => {
+      dayMap.forEach((slots) => {
+        slots.sort((a: any, b: any) => a.exactStartTime - b.exactStartTime);
       });
     });
     
+    // Place slots in appropriate day and time slot
+    filteredSlots.forEach(slot => {
+      const slotStartTime = new Date(slot.start_time);
+      const dayStr = format(slotStartTime, 'yyyy-MM-dd');
+      
+      // Get exact position based on hour and minutes
+      const startHours = slotStartTime.getHours();
+      const startMinutes = slotStartTime.getMinutes();
+      
+      // Calculate the pixel offset based on minutes within the hour
+      const minuteOffset = (startMinutes / 60) * 80; // 80px is the height per hour cell
+      
+      // Store the slot with positioning information
+      const slotHour = `${startHours.toString().padStart(2, '0')}:00`;
+      
+      if (result.has(dayStr) && result.get(dayStr)?.has(slotHour)) {
+        // Add slot with duration and position info
+        const slotEndTime = new Date(slot.end_time);
+        const enhancedSlot = {
+          ...slot,
+          duration: Math.ceil((slotEndTime.getTime() - slotStartTime.getTime()) / (60 * 60 * 1000)), // Duration in hours
+          minuteOffset, // Add exact minute position
+          exactStartTime: slotStartTime.getTime(), // For sorting purposes
+        };
+        result.get(dayStr)?.get(slotHour)?.push(enhancedSlot as any);
+      }
+    });
+    
     return result;
-  }, [filteredInterviews, weekDays, timeSlots]);
+  }, [filteredSlots, weekDays, timeSlots]);
 
-  const showInterviewDetails = (interview: Interview) => {
-    setSelectedInterview(interview);
+  const showSlotDetails = (slot: InterviewSlot) => {
+    setSelectedSlot(slot);
     setIsDetailsDialogOpen(true);
-  };
-
-  // Helper to show slot details
-  const showSlotDetails = (slot: any) => {
-    if (slot.interview) {
-      setSelectedSlotDetails({
-        ...slot,
-        interview: slot.interview
-      });
-      setIsSlotDetailsDialogOpen(true);
-    }
   };
 
   return (
@@ -596,7 +505,7 @@ export default function WeeklyCalendarView() {
 
             <Button onClick={handleOpenDialog} className="bg-var hover:bg-var/90">
               <PlusCircle className="h-4 w-4 mr-2" />
-              Buat Jadwal Baru
+              Buat Slot Baru
             </Button>
           </div>
         </div>
@@ -657,57 +566,56 @@ export default function WeeklyCalendarView() {
                       }`}
                     >
                       {slots.map((slot: any) => {
-                      const slotStartTime = new Date(slot.start_time);
-                      const slotEndTime = new Date(slot.end_time);
-                      const interview = slot.interview;
-                      const isOwner = interview.user_id === Number(session?.user?.id);
-                      const isParticipant = interview.participants.some((p: { user_id: number; }) => p.user_id === Number(session?.user?.id));
-                      const hasStudent = !!slot.student_id;
-                      
-                      // Calculate the duration in hours (or in pixels if preferred)
-                      const durationHours = (slotEndTime.getTime() - slotStartTime.getTime()) / (60 * 60 * 1000);
-                      const heightInPixels = Math.max(durationHours * 80, 80); // Assuming each hour cell is 80px
-                      
-                      return (
-                        <div 
-                          key={slot.id}
-                          onClick={() => showSlotDetails(slot)}
-                          className={`mb-1 p-1 rounded text-xs cursor-pointer hover:opacity-90 absolute left-1 right-1 z-10 ${
-                            hasStudent ? (
-                              isOwner ? 'bg-blue-600 text-white' : 
-                              interview.participants.some((p: { user_id: number; slot_id: any; }) => p.user_id === Number(session?.user?.id) && p.slot_id === slot.id) ? 'bg-green-600 text-white' : 
-                              'bg-var text-white'
-                            ) : (
-                              isOwner ? 'bg-blue-200 text-blue-800' : 
-                              interview.participants.some((p: { user_id: number; slot_id: any; }) => p.user_id === Number(session?.user?.id) && p.slot_id === slot.id) ? 'bg-green-200 text-green-800' : 
-                              'bg-gray-200 text-gray-800'
-                            )
-                          }`}
-                          style={{ 
-                            top: '0', // Change from '1px' to '0'
-                            height: `${heightInPixels}px`, // Remove the subtraction 
-                            pointerEvents: 'auto'
-                          }}
-                        >
-                          <div className="flex items-center justify-between">
-                            <span className="font-medium truncate">{interview.title || "Wawancara"}</span>
-                            <Badge className="text-[8px] ml-1">{`Slot ${slot.slot_number}`}</Badge>
+                        const slotStartTime = new Date(slot.start_time);
+                        const slotEndTime = new Date(slot.end_time);
+                        const isOwner = slot.user_id === Number(session?.user?.id);
+                        const isParticipant = slot.Participants.some((p: { user_id: number; }) => p.user_id === Number(session?.user?.id));
+                        const hasStudent = !!slot.student_id;
+                        
+                        // Calculate exact duration in minutes
+                        const durationMinutes = (slotEndTime.getTime() - slotStartTime.getTime()) / (60 * 1000);
+                        const heightInPixels = Math.max((durationMinutes / 60) * 80, 40); // Minimum height of 40px for visibility
+                        
+                        return (
+                          <div 
+                            key={slot.id}
+                            onClick={() => showSlotDetails(slot)}
+                            className={`mb-1 p-1 rounded text-xs cursor-pointer hover:opacity-100 absolute left-1 right-1 z-10 ${
+                              hasStudent ? (
+                                isOwner ? 'bg-blue-600 text-white' : 
+                                isParticipant ? 'bg-green-600 text-white' : 
+                                'bg-var text-white'
+                              ) : (
+                                isOwner ? 'bg-blue-200 text-blue-800' : 
+                                isParticipant ? 'bg-green-200 text-green-800' : 
+                                'bg-gray-200 text-gray-800'
+                              )
+                            }`}
+                            style={{ 
+                              top: `${slot.minuteOffset || 0}px`,
+                              height: `${heightInPixels}px`,
+                              pointerEvents: 'auto',
+                              opacity: 0.6  // Add this line
+                            }}
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="font-medium truncate">{slot.title || "Wawancara"}</span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <span className="truncate">
+                                {format(slotStartTime, 'HH:mm')} - {format(slotEndTime, 'HH:mm')}
+                              </span>
+                              {hasStudent && (
+                                <Badge className="bg-yellow-500 text-[7px]">
+                                  {slot.Student?.User?.name ? 
+                                    slot.Student.User.name.split(' ')[0] : 
+                                    "Booked"}
+                                </Badge>
+                              )}
+                            </div>
                           </div>
-                          <div className="flex items-center justify-between">
-                            <span className="truncate">
-                              {format(slotStartTime, 'HH:mm')} - {format(slotEndTime, 'HH:mm')}
-                            </span>
-                            {hasStudent && (
-                              <Badge className="bg-yellow-500 text-[7px]">
-                                {slot.Student?.User?.name ? 
-                                  slot.Student.User.name.split(' ')[0] : 
-                                  "Booked"}
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
                     </div>
                   );
                 })}
@@ -727,11 +635,11 @@ export default function WeeklyCalendarView() {
         </div>
       </Card>
 
-      {/* Create/Edit Interview Dialog */}
+      {/* Create/Edit Slot Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
-            <DialogTitle>{editingInterviewId ? "Edit Jadwal Wawancara" : "Buat Jadwal Wawancara Baru"}</DialogTitle>
+            <DialogTitle>{editingSlotId ? "Edit Slot Wawancara" : "Buat Slot Wawancara Baru"}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
@@ -740,7 +648,7 @@ export default function WeeklyCalendarView() {
                 id="title"
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                placeholder="Judul Sesi Wawancara"
+                placeholder="Judul Slot Wawancara"
               />
             </div>
             <div className="space-y-2">
@@ -749,37 +657,23 @@ export default function WeeklyCalendarView() {
                 id="description"
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="Deskripsi tambahan mengenai sesi wawancara"
+                placeholder="Deskripsi tambahan mengenai slot wawancara"
                 rows={3}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="date">Tanggal</Label>
+              <Input
+                id="date"
+                type="date"
+                value={formData.date}
+                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                required
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="date">Tanggal</Label>
-                <Input
-                  id="date"
-                  type="date"
-                  value={formData.date}
-                  onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="maxStudents">Jumlah Slot</Label>
-                <Input
-                  id="maxStudents"
-                  type="number"
-                  min="1"
-                  max="10"
-                  value={formData.maxStudents}
-                  onChange={(e) => setFormData({ ...formData, maxStudents: parseInt(e.target.value) })}
-                  required
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="startTime">Waktu Mulai Slot Pertama</Label>
+                <Label htmlFor="startTime">Waktu Mulai</Label>
                 <Input
                   id="startTime"
                   type="time"
@@ -789,7 +683,7 @@ export default function WeeklyCalendarView() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="endTime">Waktu Selesai Slot Pertama</Label>
+                <Label htmlFor="endTime">Waktu Selesai</Label>
                 <Input
                   id="endTime"
                   type="time"
@@ -798,270 +692,175 @@ export default function WeeklyCalendarView() {
                   required
                 />
               </div>
-            </div>
-            
-            <div className="space-y-2">
-              <p className="text-sm text-gray-600">
-                {formData.maxStudents > 1 ? (
-                  <>
-                    <strong>Catatan:</strong> Dengan pengaturan ini, {formData.maxStudents} slot akan dibuat secara berurutan dengan durasi yang sama:
-                    {formData.date && formData.startTime && formData.endTime && (
-                      <ul className="mt-2 pl-5 list-disc">
-                        {Array.from({ length: formData.maxStudents }).map((_, index) => {
-                          if (formData.date && formData.startTime && formData.endTime) {
-                            const startDate = new Date(`${formData.date}T${formData.startTime}`);
-                            const endDate = new Date(`${formData.date}T${formData.endTime}`);
-                            const slotDuration = endDate.getTime() - startDate.getTime();
-                            
-                            const slotStart = new Date(startDate.getTime() + (index * slotDuration));
-                            const slotEnd = new Date(slotStart.getTime() + slotDuration);
-                            
-                            return (
-                              <li key={index}>
-                                Slot {index + 1}: {format(slotStart, 'HH:mm')} - {format(slotEnd, 'HH:mm')}
-                              </li>
-                            );
-                          }
-                          return null;
-                        })}
-                      </ul>
-                    )}
-                  </>
-                ) : (
-                  "Slot akan dibuat sesuai dengan waktu yang Anda tentukan."
-                )}
-              </p>
+              {!editingSlotId && (
+                <div className="space-y-2">
+                  <Label htmlFor="studentCount">Jumlah Mahasiswa</Label>
+                  <Input
+                    id="studentCount"
+                    type="number"
+                    min="1"
+                    value={formData.studentCount}
+                    onChange={(e) => setFormData({ ...formData, studentCount: e.target.value === '' ? 0 : parseInt(e.target.value) })}
+                    required
+                  />
+                  {formData.studentCount > 1 && formData.date && formData.startTime && formData.endTime && (
+                    <div className="mt-2 p-3 bg-blue-50 rounded-md text-sm">
+                      <p className="font-medium mb-1">Jadwal slot yang akan dibuat:</p>
+                      {Array.from({ length: formData.studentCount }).map((_, index) => {
+                        const startDate = new Date(`${formData.date}T${formData.startTime}`);
+                        const endDate = new Date(`${formData.date}T${formData.endTime}`);
+                        const durationMs = endDate.getTime() - startDate.getTime();
+                        
+                        const slotStartTime = new Date(startDate.getTime() + (index * durationMs));
+                        const slotEndTime = new Date(slotStartTime.getTime() + durationMs);
+                        
+                        return (
+                          <p key={index} className="text-gray-700">
+                            Slot {index + 1}: {format(slotStartTime, "HH:mm")} - {format(slotEndTime, "HH:mm")}
+                          </p>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Batal</Button>
             <Button 
-              onClick={handleCreateOrUpdateInterview} 
+              onClick={handleCreateOrUpdateSlot} 
               disabled={isLoading || !formData.date || !formData.startTime || !formData.endTime}
               className="bg-var hover:bg-var/90"
             >
-              {isLoading ? "Memproses..." : editingInterviewId ? "Update" : "Simpan"}
+              {isLoading ? "Memproses..." : editingSlotId ? "Update" : "Simpan"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-    {/* Interview Details Dialog */}
-    <Dialog open={isSlotDetailsDialogOpen} onOpenChange={setIsSlotDetailsDialogOpen}>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle>Slot Details</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-4 py-4">
-          {selectedSlotDetails && (
-            <>
-              <div className="space-y-2">
-                <p className="font-medium">{selectedSlotDetails.interview.title || "Interview Session"}</p>
-                <p className="text-sm">
-                  Slot {selectedSlotDetails.slot_number}: {format(new Date(selectedSlotDetails.start_time), "HH:mm")} - {format(new Date(selectedSlotDetails.end_time), "HH:mm")}
-                </p>
-                {selectedSlotDetails.student_id ? (
-                  <div className="flex items-center">
-                    <User className="h-4 w-4 mr-2 text-blue-500" />
-                    <span>Booked by: {selectedSlotDetails.Student?.User?.name || "Student"}</span>
-                  </div>
+      {/* Slot Details Dialog */}
+      <Dialog open={isDetailsDialogOpen} onOpenChange={setIsDetailsDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Detail Slot</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            {selectedSlot && (
+              <>
+                <div className="space-y-2">
+                  <p className="font-medium">{selectedSlot.title || "Slot Wawancara"}</p>
+                  <p className="text-sm">
+                    {format(new Date(selectedSlot.start_time), "EEEE, d MMMM yyyy", { locale: id })}
+                  </p>
+                  <p className="text-sm">
+                    {format(new Date(selectedSlot.start_time), "HH:mm")} - {format(new Date(selectedSlot.end_time), "HH:mm")}
+                  </p>
+                  {selectedSlot.student_id ? (
+                    <div className="flex items-center">
+                      <User className="h-4 w-4 mr-2 text-blue-500" />
+                      <span>Booked by: {selectedSlot.Student?.User?.name || "Student"}</span>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-500">Slot available</p>
+                  )}
+                </div>
+                
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">Slot Owner: {selectedSlot.User.name}</p>
+                  {selectedSlot.Participants.length > 0 && (
+                    <div className="flex flex-col gap-1">
+                      <p className="text-sm">Participants:</p>
+                      <ul className="text-sm ml-5 list-disc">
+                        {selectedSlot.Participants.map((p) => (
+                          <li key={p.id}>{p.User.name}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+                
+                {isUserInvolvedInSlot(selectedSlot) ? (
+                  selectedSlot.user_id !== Number(session?.user?.id) && (
+                    <Button
+                      variant="outline" 
+                      className="text-red-500"
+                      onClick={() => handleLeaveSlot(selectedSlot.id)}
+                    >
+                      <UserMinus className="h-4 w-4 mr-1" />
+                      Leave Slot
+                    </Button>
+                  )
                 ) : (
-                  <p className="text-sm text-gray-500">Slot available</p>
+                  <Button
+                    variant="outline" 
+                    className="text-green-500"
+                    onClick={() => handleJoinSlot(selectedSlot.id)}
+                  >
+                    <UserPlus className="h-4 w-4 mr-1" />
+                    Join Slot
+                  </Button>
                 )}
-              </div>
-              
-              <div className="space-y-2">
-                <p className="text-sm font-medium">Session Owner: {selectedSlotDetails.interview.User.name}</p>
-                {/* Only show participants for this specific slot */}
-                {selectedSlotDetails.interview.participants
-                  .filter((p: { slot_id: any; }) => p.slot_id === selectedSlotDetails.id)
-                  .length > 0 && (
-                  <div className="flex flex-col gap-1">
-                    <p className="text-sm">Slot Participants:</p>
-                    <ul className="text-sm ml-5 list-disc">
-                      {selectedSlotDetails?.interview.participants
-                      .filter((p: { slot_id: any; }) => p.slot_id === selectedSlotDetails.id)  // Only show participants of this specific slot
-                      .map((p: { id: Key | null | undefined; User: { name: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined; }; }) => (
-                        <li key={p.id}>{p.User.name}</li>
-                      ))
-                    }
-                    </ul>
-                  </div>
-                )}
-              </div>
-              
-              {isUserInvolvedInInterview(selectedSlotDetails.interview) ? (
-                selectedSlotDetails.interview.user_id !== Number(session?.user?.id) && (
+                
+                {isUserInvolvedInSlot(selectedSlot) && selectedSlot.student_id && (
                   <Button
                     variant="outline" 
                     className="text-red-500"
                     onClick={() => {
-                      handleLeaveInterview(
-                        selectedSlotDetails.interview.interview_id,
-                        selectedSlotDetails.id
-                      );
+                      handleCancelBooking(selectedSlot.id);
+                      setIsDetailsDialogOpen(false);
                     }}
                   >
-                    <UserMinus className="h-4 w-4 mr-1" />
-                    Leave Slot
+                    <X className="h-4 w-4 mr-1" />
+                    Cancel Booking
                   </Button>
-                )
-              ) : (
-                <Button
-                  variant="outline" 
-                  className="text-green-500"
-                  onClick={() => {
-                    handleJoinInterview(
-                      selectedSlotDetails.interview.interview_id, 
-                      selectedSlotDetails.id
-                    );
-                  }}
-                >
-                  <UserPlus className="h-4 w-4 mr-1" />
-                  Join Slot
-                </Button>
-              )}
-              
-              {isUserInvolvedInInterview(selectedSlotDetails.interview) && selectedSlotDetails.student_id && (
-                <Button
-                  variant="outline" 
-                  className="text-red-500"
-                  onClick={() => {
-                    handleCancelBooking(selectedSlotDetails.id);
-                    setIsSlotDetailsDialogOpen(false);
-                  }}
-                >
-                  <X className="h-4 w-4 mr-1" />
-                  Cancel Booking
-                </Button>
-              )}
-{selectedSlotDetails && selectedSlotDetails.interview.user_id === Number(session?.user?.id) && (
-  <div className="space-y-2 mt-4">
-    <p className="text-sm font-medium">Session Management:</p>
-    <div className="flex gap-2">
-      {/* Delete single slot option */}
-      {selectedSlotDetails.interview.max_students > 1 && (
-        <Button
-          variant="outline" 
-          className="text-amber-500"
-          onClick={() => {
-            if (confirm(`Are you sure you want to delete Slot ${selectedSlotDetails.slot_number} from this interview session?`)) {
-              // Call a new function to delete just this slot
-              handleDeleteSingleSlot(selectedSlotDetails.id, selectedSlotDetails.interview.interview_id);
-              setIsSlotDetailsDialogOpen(false);
-            }
-          }}
-        >
-          <Trash className="h-4 w-4 mr-1" />
-          Delete This Slot
-        </Button>
-      )}
+                )}
 
-      {/* Edit single slot option */}
-      {selectedSlotDetails.interview.user_id === Number(session?.user?.id) && (
-        <Button
-          variant="outline" 
-          className="text-blue-500"
-          onClick={() => {
-            setIsSlotDetailsDialogOpen(false);
-            // Open a new dialog for editing this specific slot
-            handleEditSingleSlot(selectedSlotDetails);
-          }}
-        >
-          <Edit className="h-4 w-4 mr-1" />
-          Edit This Slot
-        </Button>
-      )}
-      
-      {/* Delete entire interview option */}
-      <Button
-        variant="outline" 
-        className="text-red-500"
-        onClick={() => {
-          if (confirm("Are you sure you want to delete the entire interview session? This will delete all slots and bookings.")) {
-            handleDeleteInterview(selectedSlotDetails.interview.interview_id);
-            setIsSlotDetailsDialogOpen(false);
-          }
-        }}
-      >
-        <Trash className="h-4 w-4 mr-1" />
-        Delete Entire Session
-      </Button>
-    </div>
-  </div>
-)}
-            </>
-          )}
-        </div>
-        <DialogFooter>
-          <Button 
-            variant="outline" 
-            onClick={() => setIsSlotDetailsDialogOpen(false)}
-          >
-            Close
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-
-    {/* Edit Slot Dialog */}
-<Dialog open={isEditSlotDialogOpen} onOpenChange={setIsEditSlotDialogOpen}>
-  <DialogContent className="sm:max-w-[500px]">
-    <DialogHeader>
-      <DialogTitle>Edit Slot {editingSlot?.slotNumber}</DialogTitle>
-    </DialogHeader>
-    <div className="py-4">
-      {editingSlot && (
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="date">Date</Label>
-            <Input
-              id="date"
-              type="date"
-              value={editingSlot.date}
-              onChange={(e) => setEditingSlot({ ...editingSlot, date: e.target.value })}
-              required
-            />
+                {selectedSlot.user_id === Number(session?.user?.id) && (
+                  <div className="space-y-2 mt-4">
+                    <p className="text-sm font-medium">Slot Management:</p>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline" 
+                        className="text-blue-500"
+                        onClick={() => {
+                          setIsDetailsDialogOpen(false);
+                          handleEditSlot(selectedSlot);
+                        }}
+                      >
+                        <Edit className="h-4 w-4 mr-1" />
+                        Edit Slot
+                      </Button>
+                      
+                      <Button
+                        variant="outline" 
+                        className="text-red-500"
+                        onClick={() => {
+                          if (confirm("Are you sure you want to delete this slot? This action cannot be undone.")) {
+                            handleDeleteSlot(selectedSlot.id);
+                            setIsDetailsDialogOpen(false);
+                          }
+                        }}
+                      >
+                        <Trash className="h-4 w-4 mr-1" />
+                        Delete Slot
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="startTime">Start Time</Label>
-              <Input
-                id="startTime"
-                type="time"
-                value={editingSlot.startTime}
-                onChange={(e) => setEditingSlot({ ...editingSlot, startTime: e.target.value })}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="endTime">End Time</Label>
-              <Input
-                id="endTime"
-                type="time"
-                value={editingSlot.endTime}
-                onChange={(e) => setEditingSlot({ ...editingSlot, endTime: e.target.value })}
-                required
-              />
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-    <DialogFooter>
-      <Button variant="outline" onClick={() => setIsEditSlotDialogOpen(false)}>
-        Cancel
-      </Button>
-      <Button 
-        onClick={saveSlotChanges} 
-        disabled={isLoading}
-        className="bg-var hover:bg-var/90"
-      >
-        {isLoading ? "Saving..." : "Save Changes"}
-      </Button>
-    </DialogFooter>
-  </DialogContent>
-</Dialog>
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setIsDetailsDialogOpen(false)}
+            >
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
