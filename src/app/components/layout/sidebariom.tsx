@@ -26,7 +26,7 @@ export default function SidebarIOM({ activeTab }: SidebarIOMProps) {
   useEffect(() => {
     const fetchUserName = async () => {
       if (session?.user?.id) {
-        const response = await fetch(`/api/users/${session.user.id}`);
+        const response = await fetch(`/api/users`);
         if (response.ok) {
           const user = await response.json();
           setName(user.name);
