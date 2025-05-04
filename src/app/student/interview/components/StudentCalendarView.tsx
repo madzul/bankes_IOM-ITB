@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, User, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,8 @@ import { id } from "date-fns/locale";
 import { useSession } from "next-auth/react";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
 
 interface InterviewParticipant {
     id: number; // Add this property
@@ -44,6 +46,14 @@ interface StudentCalendarViewProps {
   handleCancelBooking: (slotId: number) => void;
 }
 
+interface IOMStaff {
+  user_id: number;
+  name: string;
+  email: string;
+}
+
+
+
 export default function StudentCalendarView({ 
   slots, 
   myBookings, 
@@ -54,6 +64,24 @@ export default function StudentCalendarView({
   const [currentWeekStart, setCurrentWeekStart] = useState<Date>(startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [selectedSlot, setSelectedSlot] = useState<InterviewSlot | null>(null);
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
+  const [iomStaff, setIomStaff] = useState<IOMStaff[]>([]);
+  const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null)
+
+  useEffect(() => {
+    fetchIOMStaff();
+  }, []);
+
+  const fetchIOMStaff = async () => {
+    try {
+      const response = await fetch("/api/iom-staff");
+      if (response.ok) {
+        const data = await response.json();
+        setIomStaff(data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching IOM staff:", error);
+    }
+  };
 
   // Calculate week days
   const weekDays = useMemo(() => {
@@ -91,18 +119,28 @@ export default function StudentCalendarView({
     setCurrentWeekStart(startOfWeek(new Date(), { weekStartsOn: 1 }));
   };
 
-  // Filter slots for current week
+  // Filter slots for current week and by selected staff
   const filteredSlots = useMemo(() => {
     return slots.filter(slot => {
       const slotStart = new Date(slot.start_time);
       
       // Check if slot is within the current week
-      return isWithinInterval(slotStart, {
+      const isInCurrentWeek = isWithinInterval(slotStart, {
         start: currentWeekStart,
         end: endOfWeek(currentWeekStart, { weekStartsOn: 1 })
       });
+      
+      // Filter by selected staff (owner or participant)
+      if (selectedStaffId) {
+        const isOwnedBySelectedStaff = slot.user_id === parseInt(selectedStaffId);
+        const isParticipant = slot.Participants.some(p => p.user_id === parseInt(selectedStaffId));
+        
+        return isInCurrentWeek && (isOwnedBySelectedStaff || isParticipant);
+      }
+      
+      return isInCurrentWeek;
     });
-  }, [slots, currentWeekStart]);
+  }, [slots, currentWeekStart, selectedStaffId]);
 
   // Organize all slots by day and time
   const slotsByDayAndTime = useMemo(() => {
@@ -176,10 +214,25 @@ export default function StudentCalendarView({
             <Button variant="outline" size="sm" onClick={goToCurrentWeek}>
               Minggu Ini
             </Button>
-          </div>
+          </div> 
+          <Select 
+            value={selectedStaffId || 'all'} 
+            onValueChange={(value) => setSelectedStaffId(value === 'all' ? null : value)}
+          >
+            <SelectTrigger className="w-[240px]">
+              <SelectValue placeholder="Pilih Pengurus IOM" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Semua Pengurus</SelectItem>
+              {iomStaff.map((staff) => (
+                <SelectItem key={staff.user_id} value={staff.user_id.toString()}>
+                  {staff.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
-
       <Card className="p-0 w-full overflow-auto shadow-sm border-none">
       <div className="min-w-[800px]">
           {/* Header with days - remove borders */}
