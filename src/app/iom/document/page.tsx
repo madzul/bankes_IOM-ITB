@@ -53,6 +53,15 @@ export default function Upload() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  const indexOfLastStudent = currentPage * itemsPerPage;
+  const indexOfFirstStudent = indexOfLastStudent - itemsPerPage;
+  const currentStudents = students.slice(indexOfFirstStudent, indexOfLastStudent);
+  const totalPages = Math.ceil(students.length / itemsPerPage);
+
+
   useEffect(() => {
     async function fetchPeriodsAndStudentFiles() {
       try {
@@ -172,6 +181,8 @@ export default function Upload() {
     }
   };
 
+
+  
   return (
     <div className="flex min-h-screen bg-gray-100">
       <Toaster position="bottom-right" richColors />
@@ -238,7 +249,7 @@ export default function Upload() {
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                      {students.map((student) => (
+                      {currentStudents.map((student) => (
                         <tr key={student.student_id}>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             {student.Student.nim}
@@ -300,6 +311,48 @@ export default function Upload() {
                   </table>
                 </div>
               )}
+              <div className="flex w-full justify-between items-center gap-2 mt-2">
+                <button
+                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="px-3 py-3 rounded border border-2 hover:bg-gray-200 text-sm disabled:opacity-50"
+                >
+                  Previous
+                </button>
+
+                <div className="flex gap-4">
+                  {Array.from({ length: 3 }, (_, i) => {
+                    let startPage = Math.max(1, currentPage - 1);
+                    if (currentPage === totalPages) startPage = totalPages - 2;
+                    if (currentPage === 1) startPage = 1;
+
+                    const page = startPage + i;
+                    if (page > totalPages) return null;
+
+                    return (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        className={`px-4 py-2 text-sm rounded ${
+                          currentPage === page
+                            ? "bg-blue-600 text-white"
+                            : "border border-2 hover:bg-gray-200 text-gray-700 hover:bg-gray-300"
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <button
+                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-3 rounded border border-2 hover:bg-gray-200 text-sm disabled:opacity-50"
+                >
+                  Next
+                </button>
+              </div>
               <button
                 className="w-[300px] mt-4 px-4 py-2 bg-[#003793] text-white rounded-md disabled:bg-gray-400"
                 onClick={handleUpdateStatuses}

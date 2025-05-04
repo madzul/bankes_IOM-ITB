@@ -61,36 +61,20 @@ CREATE TABLE "Period" (
 );
 
 -- CreateTable
-CREATE TABLE "Interview" (
-    "interview_id" SERIAL NOT NULL,
-    "title" TEXT,
-    "description" TEXT,
-    "student_id" INTEGER,
-    "user_id" INTEGER NOT NULL,
-    "period_id" INTEGER NOT NULL,
-    "start_time" TIMESTAMP(3) NOT NULL,
-    "end_time" TIMESTAMP(3) NOT NULL,
-    "max_students" INTEGER NOT NULL DEFAULT 1,
-
-    CONSTRAINT "Interview_pkey" PRIMARY KEY ("interview_id")
-);
-
--- CreateTable
 CREATE TABLE "Notes" (
-    "interview_id" INTEGER NOT NULL,
+    "slot_id" INTEGER NOT NULL,
     "student_id" INTEGER NOT NULL,
     "text" TEXT NOT NULL,
 
-    CONSTRAINT "Notes_pkey" PRIMARY KEY ("interview_id","student_id")
+    CONSTRAINT "Notes_pkey" PRIMARY KEY ("slot_id","student_id")
 );
 
 -- CreateTable
 CREATE TABLE "InterviewParticipant" (
     "id" SERIAL NOT NULL,
-    "interview_id" INTEGER NOT NULL,
+    "slot_id" INTEGER NOT NULL,
     "user_id" INTEGER NOT NULL,
     "joined_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "slot_id" INTEGER,
 
     CONSTRAINT "InterviewParticipant_pkey" PRIMARY KEY ("id")
 );
@@ -98,11 +82,13 @@ CREATE TABLE "InterviewParticipant" (
 -- CreateTable
 CREATE TABLE "InterviewSlot" (
     "id" SERIAL NOT NULL,
-    "interview_id" INTEGER NOT NULL,
-    "student_id" INTEGER,
-    "slot_number" INTEGER NOT NULL,
+    "title" TEXT,
+    "description" TEXT,
+    "user_id" INTEGER NOT NULL,
+    "period_id" INTEGER NOT NULL,
     "start_time" TIMESTAMP(3) NOT NULL,
     "end_time" TIMESTAMP(3) NOT NULL,
+    "student_id" INTEGER,
     "booked_at" TIMESTAMP(3),
 
     CONSTRAINT "InterviewSlot_pkey" PRIMARY KEY ("id")
@@ -141,10 +127,7 @@ CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 CREATE UNIQUE INDEX "Student_student_id_key" ON "Student"("student_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "InterviewParticipant_interview_id_user_id_key" ON "InterviewParticipant"("interview_id", "user_id");
-
--- CreateIndex
-CREATE UNIQUE INDEX "InterviewSlot_interview_id_slot_number_key" ON "InterviewSlot"("interview_id", "slot_number");
+CREATE UNIQUE INDEX "InterviewParticipant_slot_id_user_id_key" ON "InterviewParticipant"("slot_id", "user_id");
 
 -- CreateIndex
 CREATE INDEX "Notification_user_id_idx" ON "Notification"("user_id");
@@ -162,34 +145,25 @@ ALTER TABLE "Status" ADD CONSTRAINT "Status_student_id_fkey" FOREIGN KEY ("stude
 ALTER TABLE "Status" ADD CONSTRAINT "Status_period_id_fkey" FOREIGN KEY ("period_id") REFERENCES "Period"("period_id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Interview" ADD CONSTRAINT "Interview_student_id_fkey" FOREIGN KEY ("student_id") REFERENCES "Student"("student_id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Interview" ADD CONSTRAINT "Interview_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User"("user_id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Interview" ADD CONSTRAINT "Interview_period_id_fkey" FOREIGN KEY ("period_id") REFERENCES "Period"("period_id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Notes" ADD CONSTRAINT "Notes_interview_id_fkey" FOREIGN KEY ("interview_id") REFERENCES "Interview"("interview_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Notes" ADD CONSTRAINT "Notes_slot_id_fkey" FOREIGN KEY ("slot_id") REFERENCES "InterviewSlot"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Notes" ADD CONSTRAINT "Notes_student_id_fkey" FOREIGN KEY ("student_id") REFERENCES "Student"("student_id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "InterviewParticipant" ADD CONSTRAINT "InterviewParticipant_interview_id_fkey" FOREIGN KEY ("interview_id") REFERENCES "Interview"("interview_id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "InterviewParticipant" ADD CONSTRAINT "InterviewParticipant_slot_id_fkey" FOREIGN KEY ("slot_id") REFERENCES "InterviewSlot"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "InterviewParticipant" ADD CONSTRAINT "InterviewParticipant_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User"("user_id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "InterviewParticipant" ADD CONSTRAINT "InterviewParticipant_slot_id_fkey" FOREIGN KEY ("slot_id") REFERENCES "InterviewSlot"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "InterviewSlot" ADD CONSTRAINT "InterviewSlot_interview_id_fkey" FOREIGN KEY ("interview_id") REFERENCES "Interview"("interview_id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "InterviewSlot" ADD CONSTRAINT "InterviewSlot_student_id_fkey" FOREIGN KEY ("student_id") REFERENCES "Student"("student_id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "InterviewSlot" ADD CONSTRAINT "InterviewSlot_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User"("user_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "InterviewSlot" ADD CONSTRAINT "InterviewSlot_period_id_fkey" FOREIGN KEY ("period_id") REFERENCES "Period"("period_id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "NotificationEndpoint" ADD CONSTRAINT "NotificationEndpoint_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User"("user_id") ON DELETE RESTRICT ON UPDATE CASCADE;
