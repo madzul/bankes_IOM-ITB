@@ -1,5 +1,5 @@
 -- CreateEnum
-CREATE TYPE "FileType" AS ENUM ('KTM', 'KTP', 'CV', 'Transkrip_Nilai');
+CREATE TYPE "FileType" AS ENUM ('KTP', 'CV', 'Transkrip_Nilai');
 
 -- CreateEnum
 CREATE TYPE "Role" AS ENUM ('Admin', 'Mahasiswa', 'Guest', 'Pengurus_IOM');
