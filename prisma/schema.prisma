@@ -31,8 +31,9 @@ model Student {
   Statuses       Status[]
   InterviewSlots InterviewSlot[]
 
-  User  User    @relation(fields: [student_id], references: [user_id])
-  notes Notes[]
+  User        User          @relation(fields: [student_id], references: [user_id])
+  notes       Notes[]
+  ScoreMatrix ScoreMatrix[]
 }
 
 model File {
@@ -58,6 +59,33 @@ model Status {
   @@id([student_id, period_id])
 }
 
+enum ScoreCategory {
+  KURANG
+  CUKUP
+  BAIK
+}
+
+model Questions {
+  question_id Int    @id @default(autoincrement())
+  question    String
+
+  ScoreMatrices ScoreMatrix[]
+}
+
+model ScoreMatrix {
+  student_id     Int
+  period_id      Int
+  question_id    Int
+  score_category ScoreCategory
+  comment        String
+
+  Student  Student   @relation(fields: [student_id], references: [student_id])
+  Period   Period    @relation(fields: [period_id], references: [period_id])
+  Question Questions @relation(fields: [question_id], references: [question_id])
+
+  @@id([student_id, period_id, question_id])
+}
+
 model Period {
   period_id  Int      @id @default(autoincrement())
   period     String
@@ -68,6 +96,7 @@ model Period {
 
   Statuses      Status[]
   InterviewSlot InterviewSlot[]
+  ScoreMatrix   ScoreMatrix[]
 }
 
 model Notes {
@@ -83,7 +112,7 @@ model Notes {
 
 model InterviewParticipant {
   id        Int      @id @default(autoincrement())
-  slot_id   Int      // Only need slot_id now, not interview_id
+  slot_id   Int // Only need slot_id now, not interview_id
   user_id   Int
   joined_at DateTime @default(now())
 
@@ -97,11 +126,11 @@ model InterviewSlot {
   id          Int       @id @default(autoincrement())
   title       String?
   description String?
-  user_id     Int       // The creator
+  user_id     Int // The creator
   period_id   Int
   start_time  DateTime
   end_time    DateTime
-  student_id  Int?      // Student who booked the slot
+  student_id  Int? // Student who booked the slot
   booked_at   DateTime?
 
   // Relations

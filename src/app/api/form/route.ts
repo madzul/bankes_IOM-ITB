@@ -113,8 +113,8 @@ export async function POST(request: Request) {
 
     const notes = await prisma.notes.findMany({
       where: {
-        interview: {
-            period_id: Number(period_id),
+        slot: {
+            id: Number(period_id),
         },
       },
       select: {
@@ -122,15 +122,11 @@ export async function POST(request: Request) {
         student: {
           select: {
             nim: true,
-          },
-        },
-        interview: {
-          select: {
             User: {
               select: {
                 name: true,
-              },
-            },
+              }
+            }
           },
         },
       },
@@ -139,7 +135,7 @@ export async function POST(request: Request) {
     const formatted = notes.map(note => ({
       text: note.text,
       nim: note.student.nim,
-      userName: note.interview.User.name
+      userName: note.student.User.name
     }));
 
     return NextResponse.json({ success: true, data: formatted });
