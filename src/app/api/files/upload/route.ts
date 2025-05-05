@@ -9,6 +9,81 @@ import { v4 as uuidv4 } from "uuid";
 
 const prisma = new PrismaClient();
 
+/**
+ * @swagger
+ * /api/files/upload:
+ *   post:
+ *     tags:
+ *       - Files
+ *     summary: Upload one or more files for a student
+ *     description: Authenticated students can upload files. Existing files of the same type will be replaced.
+ *     security:
+ *       - CookieAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               files:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: binary
+ *                 description: One or more files to upload
+ *               documentTypes:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: Corresponding document types for each file (e.g., CV, TRANSKRIP)
+ *     parameters:
+ *       - in: query
+ *         name: bucket
+ *         schema:
+ *           type: string
+ *         required: false
+ *         description: Optional bucket name to upload to (defaults to `documents-bucket`)
+ *     responses:
+ *       '200':
+ *         description: Files uploaded successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 files:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       fileName:
+ *                         type: string
+ *                       fileUrl:
+ *                         type: string
+ *                       documentType:
+ *                         type: string
+ *       '400':
+ *         description: No files provided or invalid input
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       '401':
+ *         description: Unauthorized (session missing or invalid)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       '500':
+ *         description: Upload failed due to server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
 const minioClient = new Client({
   endPoint: process.env.MINIO_ENDPOINT || "localhost",
   port: 9000,

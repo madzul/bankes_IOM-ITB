@@ -14,6 +14,70 @@ const minioClient = new Client({
   secretKey: process.env.MINIO_SECRET_KEY || "",
 });
 
+/**
+ * @swagger
+ * components:
+ *   securitySchemes:
+ *     CookieAuth:
+ *       type: apiKey
+ *       in: cookie
+ *       name: next-auth.session-token
+
+ * paths:
+ *   /api/files/delete:
+ *     delete:
+ *       tags:
+ *         - Files
+ *       summary: Delete a student's uploaded file by type
+ *       security:
+ *         - CookieAuth: []
+ *       requestBody:
+ *         required: true
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 fileType:
+ *                   type: string
+ *                   description: The type of file to delete (e.g., TRANSKRIP, CV)
+ *       responses:
+ *         '200':
+ *           description: File deleted successfully
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 type: object
+ *                 properties:
+ *                   success:
+ *                     type: boolean
+ *                   message:
+ *                     type: string
+ *         '400':
+ *           description: Missing or invalid file type
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '401':
+ *           description: Unauthorized access
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '404':
+ *           description: File not found
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '500':
+ *           description: Server error during deletion
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ */
 export async function DELETE(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);

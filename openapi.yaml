@@ -1,0 +1,39 @@
+openapi: 3.0.4
+info:
+  title: Beasiswa IOM API
+  version: 1.0.0
+  description: |
+    OpenAPI spec for IOM website
+servers:
+  - url: http://localhost:3000
+    description: Local development server
+paths:
+  /api/users/{id}:
+    get:
+      summary: Fetch a user by ID
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+components:
+  schemas:
+    User:
+      type: object
+      required: [id, email]
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+          format: email
+        name:
+          type: string

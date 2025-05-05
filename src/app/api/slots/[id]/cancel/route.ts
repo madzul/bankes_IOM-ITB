@@ -4,7 +4,67 @@ import { PrismaClient } from "@prisma/client";
 import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
 
 const prisma = new PrismaClient();
-
+/**
+ * @swagger
+ * paths:
+ *   /api/slots/{id}/cancel:
+ *     post:
+ *       tags:
+ *         - Slots
+ *       summary: Cancel a booking for a specific slot
+ *       security:
+ *         - CookieAuth: []
+ *       parameters:
+ *         - name: id
+ *           in: path
+ *           description: Numeric ID of the interview slot to cancel
+ *           required: true
+ *           schema:
+ *             type: integer
+ *       responses:
+ *         '200':
+ *           description: Booking cancelled successfully
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 type: object
+ *                 properties:
+ *                   success:
+ *                     type: boolean
+ *                     const: true
+ *                   data:
+ *                     $ref: '#/components/schemas/InterviewSlot'
+ *         '400':
+ *           description: Invalid slot ID
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '401':
+ *           description: Not authenticated
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '403':
+ *           description: Unauthorized to cancel this booking
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '404':
+ *           description: Slot not found
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '500':
+ *           description: Server error
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ */
 // POST /api/slots/[id]/cancel - Cancel a booking
 export async function POST(
     request: Request,

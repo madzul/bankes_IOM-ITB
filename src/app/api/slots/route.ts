@@ -5,6 +5,172 @@ import { authOptions } from "../auth/[...nextauth]/authOptions";
 
 const prisma = new PrismaClient();
 
+/**
+ * @swagger
+ * paths:
+ *   /api/slots:
+ *     get:
+ *       tags:
+ *         - Slots
+ *       summary: Get all interview slots
+ *       security:
+ *         - CookieAuth: []
+ *       responses:
+ *         '200':
+ *           description: A list of interview slots
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 type: object
+ *                 properties:
+ *                   success:
+ *                     type: boolean
+ *                     const: true
+ *                   data:
+ *                     type: array
+ *                     items:
+ *                       type: object
+ *                       properties:
+ *                         id:
+ *                           type: integer
+ *                         title:
+ *                           type: string
+ *                         description:
+ *                           type: string
+ *                         start_time:
+ *                           type: string
+ *                           format: date-time
+ *                         end_time:
+ *                           type: string
+ *                           format: date-time
+ *                         user_id:
+ *                           type: integer
+ *                         period_id:
+ *                           type: integer
+ *                         User:
+ *                           type: object
+ *                           properties:
+ *                             name:
+ *                               type: string
+ *                             email:
+ *                               type: string
+ *                         Participants:
+ *                           type: array
+ *                           items:
+ *                             type: object
+ *                             properties:
+ *                               User:
+ *                                 type: object
+ *                                 properties:
+ *                                   name:
+ *                                     type: string
+ *                                   email:
+ *                                     type: string
+ *                         Student:
+ *                           type: object
+ *                           properties:
+ *                             User:
+ *                               type: object
+ *                               properties:
+ *                                 name:
+ *                                   type: string
+ *         '401':
+ *           description: Unauthorized access
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '403':
+ *           description: Forbidden access
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '500':
+ *           description: Server error
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *
+ *     post:
+ *       tags:
+ *         - Slots
+ *       summary: Create a new interview slot
+ *       security:
+ *         - CookieAuth: []
+ *       requestBody:
+ *         required: true
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 title:
+ *                   type: string
+ *                 description:
+ *                   type: string
+ *                 start_time:
+ *                   type: string
+ *                   format: date-time
+ *                 end_time:
+ *                   type: string
+ *                   format: date-time
+ *       responses:
+ *         '200':
+ *           description: Slot created successfully
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 type: object
+ *                 properties:
+ *                   success:
+ *                     type: boolean
+ *                     const: true
+ *                   data:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                       title:
+ *                         type: string
+ *                       description:
+ *                         type: string
+ *                       start_time:
+ *                         type: string
+ *                         format: date-time
+ *                       end_time:
+ *                         type: string
+ *                         format: date-time
+ *                       user_id:
+ *                         type: integer
+ *                       period_id:
+ *                         type: integer
+ *         '400':
+ *           description: Missing required fields
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '401':
+ *           description: Unauthorized access
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '404':
+ *           description: No active period found
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '500':
+ *           description: Failed to create slot
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ */
 // GET /api/slots - Get all slots
 export async function GET() {
   try {
