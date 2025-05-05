@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
 
 const prisma = new PrismaClient();
 
@@ -59,9 +61,20 @@ const prisma = new PrismaClient();
  */
 export async function GET(_: NextRequest, context: { params: { studentId: string } }) {
   try {
+    const session = await getServerSession(authOptions);
     const { studentId } = context.params;
     const id = parseInt(studentId, 10);
-
+  
+    if (
+      !session?.user || // If no user session
+      (
+        session.user.role !== "Pengurus_IOM" &&
+        (session.user.role === "Mahasiswa" && session.user.id != studentId)
+      )
+    ) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    }
+    
     if (isNaN(id)) {
       return NextResponse.json({ error: "Invalid student ID" }, { status: 400 });
     }

@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
 
 const prisma = new PrismaClient();
 
@@ -50,6 +52,12 @@ export async function PUT(
   context: { params: { period_id: string } }
 ) {
   try {
+    const session = await getServerSession(authOptions);
+    
+    if (!session?.user || session.user.role !== "Admin") {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    }
+    
     const { period_id } = await context.params;
     const periodId = parseInt(period_id, 10);
 
