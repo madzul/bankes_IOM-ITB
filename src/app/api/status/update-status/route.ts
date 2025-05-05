@@ -12,6 +12,176 @@ interface StudentUpdate {
   }[];
 }
 
+/**
+* @swagger 
+* components:
+*   schemas:
+*     Period:
+*       type: object
+*       properties:
+*         period_id:
+*           type: integer
+*           format: int64
+*           description: Unique period identifier
+*           example: 2023
+*         period:
+*           type: string
+*           description: Academic period name/identifier
+*           example: "2023/2024"
+*         start_date:
+*           type: string
+*           format: date-time
+*           description: Period start datetime
+*           example: "2023-07-01T00:00:00Z"
+*         end_date:
+*           type: string
+*           format: date-time
+*           description: Period end datetime
+*           example: "2024-06-30T23:59:59Z"
+*         is_current:
+*           type: boolean
+*           description: Marks if this is the current active period
+*           default: false
+*         is_open:
+*           type: boolean
+*           description: Indicates if registrations are open
+*           default: false
+*       required:
+*         - period_id
+*         - period
+*         - start_date
+*         - end_date
+*         - is_current
+*         - is_open 
+*/
+
+/**
+ * @swagger
+ * /api/status/update-status:
+ *   post:
+ *     tags:
+ *       - Registration Status
+ *     summary: Update student status
+ *     description: Update evaluation status for a student in a specific period (Admin only)
+ *     security:
+ *       - CookieAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - student_id
+ *               - period_id
+ *               - passDitmawa
+ *               - passIOM
+ *             properties:
+ *               student_id:
+ *                 type: integer
+ *                 example: 12345
+ *               period_id:
+ *                 type: integer
+ *                 example: 2023
+ *               passDitmawa:
+ *                 type: boolean
+ *                 example: true
+ *               passIOM:
+ *                 type: boolean
+ *                 example: false
+ *               amount:
+ *                 type: integer
+ *                 nullable: true
+ *                 example: 1500000
+ *     responses:
+ *       200:
+ *         description: Status updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   $ref: '#/components/schemas/Status'
+ *       400:
+ *         description: Invalid request parameters
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "Invalid student ID or period ID"
+ *       401:
+ *         description: Unauthorized access
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "Unauthorized"
+ *       404:
+ *         description: Status record not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "Status record not found"
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "Internal server error"
+ * 
+ * components:
+ *   schemas:
+ *     Status:
+ *       type: object
+ *       properties:
+ *         student_id:
+ *           type: integer
+ *         period_id:
+ *           type: integer
+ *         passDitmawa:
+ *           type: boolean
+ *         passIOM:
+ *           type: boolean
+ *         passInterview:
+ *           type: boolean
+ *         amount:
+ *           type: integer
+ *           nullable: true
+ *         Student:
+ *           $ref: '#/components/schemas/Student'
+ *         Period:A
+ *           $ref: '#/components/schemas/Period'
+ */
 export async function POST(request: Request) {
   try {
     const body = await request.json();

@@ -4,7 +4,71 @@ import { PrismaClient } from "@prisma/client";
 import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
 
 const prisma = new PrismaClient();
-
+/**
+ * @swagger
+ * paths:
+ *   /api/slots/{id}/book:
+ *     post:
+ *       tags:
+ *         - Slots
+ *       summary: Book a specific slot for a student
+ *       security:
+ *         - CookieAuth: []
+ *       parameters:
+ *         - name: id
+ *           in: path
+ *           description: Numeric ID of the interview slot to book
+ *           required: true
+ *           schema:
+ *             type: integer
+ *       responses:
+ *         '200':
+ *           description: Slot booked successfully
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 type: object
+ *                 properties:
+ *                   success:
+ *                     type: boolean
+ *                     const: true
+ *                   data:
+ *                     $ref: '#/components/schemas/InterviewSlot'
+ *         '400':
+ *           description: Invalid input or slot already booked or student already has a booking
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 oneOf:
+ *                   - $ref: '#/components/schemas/ErrorResponse'
+ *                   - type: object
+ *                     properties:
+ *                       success:
+ *                         type: boolean
+ *                         const: false
+ *                       error:
+ *                         type: string
+ *                       existingSlotId:
+ *                         type: integer
+ *         '401':
+ *           description: Unauthorized (not a student or not authenticated)
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '404':
+ *           description: Slot not found
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '500':
+ *           description: Server error
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ */
 // POST /api/slots/[id]/book - Book a slot
 export async function POST(
     request: Request,

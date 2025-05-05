@@ -5,6 +5,97 @@ import { authOptions } from "../../auth/[...nextauth]/authOptions";
 
 const prisma = new PrismaClient();
 
+/**
+ * @swagger
+ * paths:
+ *   /api/files/fetch:
+ *     post:
+ *       tags:
+ *         - Files
+ *       summary: Fetch students and their files for a specific period
+ *       security:
+ *         - cookieAuth: []
+ *       requestBody:
+ *         required: true
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               required:
+ *                 - period_id
+ *               properties:
+ *                 period_id:
+ *                   type: integer
+ *                   description: ID of the period to fetch data for
+ *       responses:
+ *         '200':
+ *           description: Successfully fetched students and files
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 type: object
+ *                 properties:
+ *                   success:
+ *                     type: boolean
+ *                   data:
+ *                     type: array
+ *                     items:
+ *                       type: object
+ *                       properties:
+ *                         student_id:
+ *                           type: integer
+ *                         period_id:
+ *                           type: integer
+ *                         passDitmawa:
+ *                           type: boolean
+ *                         passIOM:
+ *                           type: boolean
+ *                         Student:
+ *                           type: object
+ *                           properties:
+ *                             nim:
+ *                               type: string
+ *                             User:
+ *                               type: object
+ *                               properties:
+ *                                 user_id:
+ *                                   type: integer
+ *                                 name:
+ *                                   type: string
+ *                             Files:
+ *                               type: array
+ *                               items:
+ *                                 type: object
+ *                                 properties:
+ *                                   file_id:
+ *                                     type: integer
+ *                                   student_id:
+ *                                     type: integer
+ *                                   file_url:
+ *                                     type: string
+ *                                   file_name:
+ *                                     type: string
+ *                                   type:
+ *                                     type: string
+ *       '400':
+ *         description: Invalid or missing period_id
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       '403':
+ *         description: Unauthorized access (not Pengurus_IOM)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       '500':
+ *         description: Failed to fetch data due to server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
 export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);

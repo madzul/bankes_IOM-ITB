@@ -18,6 +18,85 @@ type Errors = {
   general?: string[]
 }
 
+/**
+ * @swagger
+ * /api/users/register:
+ *   post:
+ *     tags:
+ *       - Authentication
+ *     summary: Register a new user
+ *     description: Creates a new guest user account with validation checks
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - email
+ *               - password
+ *               - confirmPassword
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: John Doe
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: user@example.com
+ *               password:
+ *                 type: string
+ *                 format: password
+ *                 example: StrongPass123!
+ *               confirmPassword:
+ *                 type: string
+ *                 format: password
+ *                 example: StrongPass123!
+ *     responses:
+ *       302:
+ *         description: Redirect to login page on success
+ *         headers:
+ *           Location:
+ *             schema:
+ *               type: string
+ *               example: /auth/login
+ *       400:
+ *         description: Validation errors
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 name:
+ *                   type: string
+ *                   example: "Name is required"
+ *                 email:
+ *                   type: string
+ *                   example: "Invalid email format"
+ *                 password:
+ *                   type: string
+ *                   example: "Password must contain at least 8 characters"
+ *                 confirmPassword:
+ *                   type: string
+ *                   example: "Passwords do not match"
+ *                 general:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *                   example: ["Failed to create user"]
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Failed to create user."
+ * 
+ */
 export async function POST(req: Request) {
   try {
     const { name, email, password, confirmPassword } = await req.json();
