@@ -1,6 +1,8 @@
 // app/api/periods/new/route.ts
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
+import { getServerSession } from "next-auth";
+import { authOptions } from "../../auth/[...nextauth]/authOptions";
 
 const prisma = new PrismaClient();
 
@@ -65,6 +67,12 @@ const prisma = new PrismaClient();
 
 export async function POST(request: Request) {
   try {
+    const session = await getServerSession(authOptions);
+    
+    if (!session?.user || session.user.role !== "Admin") {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    }
+    
     const body = await request.json();
     const { period, start_date, end_date } = body;
 
