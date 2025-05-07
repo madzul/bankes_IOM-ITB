@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { periods, nim, formData } = await request.json()
+    const { period_id, nim, formData } = await request.json()
 
     if (!nim || !formData) {
       return NextResponse.json(
@@ -109,14 +109,56 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log(periods[0].period_id,);
-    console.log(nim,);
-    console.log(formData,);
+    console.log("periods : ", period_id);
+    console.log("nim : ",nim);
+    console.log("formData : ",formData);
 
-    const notes = await prisma.notes.findFirst({
+    const id = await prisma.student.findFirst({
       where: {
-        interview_id: periods[0].period_id,
-        student_id: Number(nim),
+        nim: nim,
+      },
+      select: {
+        User: true
+      }
+    })
+    console.log("id : ",id);
+
+    if (!id?.User.user_id) {
+      return NextResponse.json(
+        { success: false, error: "ID Not found" },
+        { status: 400 }
+      );
+    }
+
+    const slotid = await prisma.interviewSlot.findFirst({
+      where: {
+        period_id: period_id,
+        student_id: id?.User.user_id,
+      },
+      select: {
+        id: true,
+      }
+    })
+    console.log("slotid : ",slotid);
+    
+    if (!slotid) {
+      return NextResponse.json(
+        { success: false, error: "Slot ID Not found" },
+        { status: 400 }
+      );
+    }
+
+    console.log("Form data : ", formData)
+
+    const notes = await prisma.notes.update({
+      where: {
+        slot_id_student_id: {
+          slot_id: slotid.id,
+          student_id: id.User.user_id,
+        },
+      },
+      data: {
+        text: JSON.stringify(formData)
       }
     })
 
