@@ -50,7 +50,16 @@ export default function Upload() {
   }, [session]);
 
   const handleFileSelect = (key: string, file: File) => {
-    setSelectedFiles((prev) => [...prev.filter(f => f.key !== key), { key, file }]);
+    const validTypes = ["image/png", "image/jpeg", "application/pdf"];
+    const isValidType = validTypes.includes(file.type);
+  
+    if (!isValidType) {
+      toast.error("Invalid file type. Only PNG, JPG, and PDF are allowed.");
+      return;
+    } else {
+      setSelectedFiles((prev) => [...prev.filter((f) => f.key !== key), { key, file }]);
+    }
+  
   };
 
   const handleUpload = async () => {
@@ -117,22 +126,26 @@ export default function Upload() {
 
         <Card className="p-8 w-full">
           {fileTypes.map((type) => {
+            const selectedFile = selectedFiles.find((f) => f.key === type.key);
             const existingFile = uploadedFiles.find((file) => file.type === type.key);
 
             return (
               <div key={type.key} className="mb-4">
                 <h2 className="text-lg font-semibold mb-2">{type.title}</h2>
-                <input
-                  type="file"
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      handleFileSelect(type.key, file);
-                    }
-                  }}
-                  className="mb-2 border-2 w-[20dvw] border-gray-400 hover:border-black hover:cursor-pointer rounded-xl h-full py-2 px-2"
-                />
+                <label className="mb-2 border-2 w-[20dvw] border-gray-400 hover:border-black hover:cursor-pointer rounded-xl h-full py-2 px-2 text-center inline-block">
+                  {selectedFile ? selectedFile.file.name : "Choose file"}
+                  <input
+                    type="file"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        handleFileSelect(type.key, file);
+                      }
+                    }}
+                    className="hidden"
+                  />
+                </label>
                 {existingFile && (
                   <div className="flex gap-4 items-center">
                     <a

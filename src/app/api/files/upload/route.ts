@@ -120,6 +120,15 @@ export async function POST(request: NextRequest) {
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       const documentType = documentTypes[i] || "unknown";
+
+      const validMimeTypes = ["image/png", "image/jpeg", "application/pdf"];
+      if (!validMimeTypes.includes(file.type)) {
+        return NextResponse.json(
+          { success: false, error: `Invalid file type for ${file.name}. Only PNG, JPG, and PDF are allowed.` },
+          { status: 400 }
+        );
+      }
+      
       const fileExtension = file.name.split('.').pop();
       const newFileName = `${uuidv4()}-${studentId}-${documentType}.${fileExtension}`;
 
