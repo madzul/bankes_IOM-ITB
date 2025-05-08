@@ -9,33 +9,18 @@ const prisma = new PrismaClient();
 
 /**
  * @swagger
- * /api/periods/new:
+* /api/periods/new:
  *   post:
  *     summary: Create a new academic period
- *     tags:
- *       - Periods
+ *     tags: [Periods]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             properties:
- *               period:
- *                 type: string
- *                 description: Academic period name/identifier (e.g., "2024/2025")
- *               start_date:
- *                 type: string
- *                 format: date-time
- *                 description: ISO 8601 formatted start datetime of the period
- *               end_date:
- *                 type: string
- *                 format: date-time
- *                 description: ISO 8601 formatted end datetime of the period
- *             required:
- *               - period
- *               - start_date
- *               - end_date
+ *             $ref: '#/components/schemas/Period'
  *     responses:
  *       201:
  *         description: Newly created period
@@ -44,25 +29,29 @@ const prisma = new PrismaClient();
  *             schema:
  *               $ref: '#/components/schemas/Period'
  *       400:
- *         description: Missing required fields
+ *         description: Missing required fields or invalid date format
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
- *                 message:
+ *                 error:
  *                   type: string
- *                   example: "Missing required fields"
+ *                   examples:
+ *                     - "Missing required fields"
+ *                     - "Invalid date format"
+ *       401:
+ *         description: Unauthorized access
  *       500:
- *         description: Server error creating period
+ *         description: Internal server error
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
- *                 message:
+ *                 error:
  *                   type: string
- *                   example: "Error creating period"
+ *                   example: "Failed to create period"
  */
 
 export async function POST(request: Request) {

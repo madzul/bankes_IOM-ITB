@@ -9,25 +9,28 @@ const prisma = new PrismaClient();
  * @swagger
  * /api/periods/toggle-open/{period_id}:
  *   put:
- *     summary: Set the specified academic period as open for registration
- *     tags:
- *       - Periods
+ *     summary: Toggle open status for a period and close others
+ *     description: Sets specified period as open (true) and closes all other periods
+ *     tags: [Periods]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: period_id
  *         required: true
  *         schema:
  *           type: integer
- *         description: ID of the period to open
+ *           example: 1
+ *         description: Numeric ID of the period to open
  *     responses:
  *       200:
- *         description: Period successfully opened for registration
+ *         description: Successfully updated period open status (other periods closed)
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Period'
  *       400:
- *         description: Invalid period ID
+ *         description: Invalid request parameters
  *         content:
  *           application/json:
  *             schema:
@@ -35,9 +38,23 @@ const prisma = new PrismaClient();
  *               properties:
  *                 message:
  *                   type: string
- *                   example: "Invalid period ID"
+ *                   examples:
+ *                     - "Invalid period ID"
+ *       401:
+ *         description: Unauthorized access
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "Unauthorized"
  *       500:
- *         description: Server error toggling period open status
+ *         description: Server error updating open status
  *         content:
  *           application/json:
  *             schema:
@@ -45,7 +62,7 @@ const prisma = new PrismaClient();
  *               properties:
  *                 message:
  *                   type: string
- *                   example: "Error setting current period"
+ *                   example: "Error toggling period open status"
  */
 export async function PUT(
   request: Request,

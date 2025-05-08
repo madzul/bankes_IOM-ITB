@@ -117,6 +117,38 @@ const prisma = new PrismaClient();
  *         - student_id
  *         - period_id
  */
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Student:
+ *       type: object
+ *       properties:
+ *         student_id:
+ *           type: integer
+ *           description: Auto-generated unique identifier for the student
+ *           example: 1001
+ *         nim:
+ *           type: string
+ *           description: Student's National Identification Number
+ *           example: "202107001"
+ *         faculty:
+ *           type: string
+ *           description: Faculty where the student is enrolled
+ *           example: "Computer Science"
+ *         major:
+ *           type: string
+ *           description: Student's academic major
+ *           example: "Software Engineering"
+ *       required:
+ *         - student_id
+ *         - nim
+ *         - faculty
+ *         - major
+ */
+
+
 export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);

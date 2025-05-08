@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
+import { getServerSession } from "next-auth";
+import { authOptions } from "../../auth/[...nextauth]/authOptions";
 
 const prisma = new PrismaClient();
 
 interface IOM_Notification {
   notification_id: number;
-  user_id: number;
   header: string;
   body: string;
   url: string | null;
@@ -21,13 +22,8 @@ interface IOM_Notification {
  *       tags:
  *         - Notifications
  *       summary: Get notifications for a user
- *       parameters:
- *         - name: userId
- *           in: query
- *           description: ID of the user to fetch notifications for
- *           required: true
- *           schema:
- *             type: integer
+ *       security: 
+ *         - CookieAuth: []
  *       responses:
  *         '200':
  *           description: List of notifications retrieved successfully
@@ -40,8 +36,8 @@ interface IOM_Notification {
  *                     type: array
  *                     items:
  *                       $ref: '#/components/schemas/Notification'
- *         '400':
- *           description: Missing userId
+ *         '401':
+ *           description: Unauthorized (session missing)
  *           content:
  *             application/json:
  *               schema:
@@ -53,17 +49,26 @@ interface IOM_Notification {
  *               schema:
  *                 $ref: '#/components/schemas/ErrorResponse'
  */
-export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url);
-  const userId = searchParams.get("userId");
-
-  if (!userId) {
-    return NextResponse.json({ error: "Missing userId" }, { status: 400 });
+export async function GET() {
+  const session = await getServerSession(authOptions);
+  
+  if (!session?.user?.id) {
+    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
   }
 
+  const studentId = Number(session.user.id);
+
   const notifications = await prisma.notification.findMany({
-    where: { user_id: Number(userId) },
+    where: { user_id: studentId },
     orderBy: { created_at: "desc" },
+    select: {
+      notification_id: true,
+      header: true,
+      body: true,
+      url: true,
+      has_read: true,
+      created_at: true,
+    },
   }) as IOM_Notification[];
 
   return NextResponse.json({ notifications });
