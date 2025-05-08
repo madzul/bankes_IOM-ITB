@@ -65,7 +65,8 @@ export async function PATCH(
   if (!session?.user?.id) {
     return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
   }
-  const notificationId = Number(params.id);
+  const { id } = await params
+  const notificationId = Number(id);
 
   if (isNaN(notificationId)) {
     return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
