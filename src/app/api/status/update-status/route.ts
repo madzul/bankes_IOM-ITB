@@ -179,7 +179,7 @@ interface StudentUpdate {
  *           nullable: true
  *         Student:
  *           $ref: '#/components/schemas/Student'
- *         Period:A
+ *         Period:
  *           $ref: '#/components/schemas/Period'
  */
 export async function POST(request: Request) {
