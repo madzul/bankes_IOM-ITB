@@ -1,5 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
 
 const prisma = new PrismaClient();
 
@@ -35,6 +37,18 @@ const prisma = new PrismaClient();
  *             application/json:
  *               schema:
  *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '401':
+ *           description: Unauthorized (session missing)
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '403':
+ *           description: Notification not found
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
  *         '500':
  *           description: Server error while updating notification
  *           content:
@@ -46,17 +60,31 @@ export async function PATCH(
   req: Request,
   { params }: { params: { id: string } }
 ) {
+  const session = await getServerSession(authOptions);
+  
+  if (!session?.user?.id) {
+    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+  }
   const notificationId = Number(params.id);
 
   if (isNaN(notificationId)) {
     return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
   }
 
+  const studentId = Number(session.user.id);
 
-  await prisma.notification.update({
-    where: { notification_id: notificationId },
+  // Perform update only if the user owns the notification
+  const updatedNotification = await prisma.notification.updateMany({
+    where: {
+      notification_id: notificationId,
+      user_id: studentId,
+    },
     data: { has_read: true },
   });
+
+  if (updatedNotification.count === 0) {
+    return NextResponse.json({ error: "Notification not found" }, { status: 403 });
+  }
 
   return NextResponse.json({ success: true });
 }

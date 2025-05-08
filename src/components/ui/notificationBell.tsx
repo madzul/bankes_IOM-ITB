@@ -4,7 +4,6 @@ import Link from "next/link";
 
 interface IOM_Notification {
   notification_id: number;
-  user_id: number;
   header: string;
   body: string;
   url: string | null;
@@ -19,9 +18,14 @@ export default function NotificationBell() {
 
   useEffect(() => {
     async function fetchNotifications() {
-      const res = await fetch("/api/notification/get?userId=1");
-      const data = (await res.json()) as { notifications: IOM_Notification[] };
-      setNotifications(data.notifications); 
+      try {
+        const res = await fetch("/api/notification/get");
+        if (!res.ok) throw new Error("Failed to fetch notifications");
+        const data = (await res.json()) as { notifications: IOM_Notification[] };
+        setNotifications(data.notifications);
+      } catch (error) {
+        console.error("Error fetching notifications:", error);
+      }
     }
     fetchNotifications();
   }, []);

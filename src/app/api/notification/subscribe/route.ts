@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
+import { getServerSession } from "next-auth";
+import { authOptions } from "../../auth/[...nextauth]/authOptions";
 
 const prisma = new PrismaClient();
 
@@ -18,12 +20,8 @@ const prisma = new PrismaClient();
  *             schema:
  *               type: object
  *               required:
- *                 - userId
  *                 - subscription
  *               properties:
- *                 userId:
- *                   type: integer
- *                   description: ID of the user
  *                 subscription:
  *                   type: object
  *                   properties:
@@ -47,7 +45,13 @@ const prisma = new PrismaClient();
  *                   success:
  *                     type: boolean
  *         '400':
- *           description: Missing required fields
+ *           description: Missing subscription object
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '401':
+ *           description: Unauthorized
  *           content:
  *             application/json:
  *               schema:
@@ -61,26 +65,27 @@ const prisma = new PrismaClient();
  */
 export async function POST(req: Request) {
   try {
-    const { userId, subscription } = await req.json();
+    const session = await getServerSession(authOptions);
+  
+    if (!session?.user?.id) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    }
 
-    if (!userId || !subscription) {
+    const { subscription } = await req.json();
+
+    if (!subscription) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    const existingSubscription = await prisma.notificationEndpoint.findFirst({
-      where: { user_id: userId, endpoint: subscription.endpoint },
+    const studentId = Number(session.user.id)
+
+    await prisma.notificationEndpoint.create({
+      data: {
+        user_id: studentId,
+        endpoint: subscription.endpoint,
+        keys: subscription.keys,
+      },
     });
-
-    if (!existingSubscription){
-      await prisma.notificationEndpoint.create({
-        data: {
-          user_id: userId,
-          endpoint: subscription.endpoint,
-          keys: subscription.keys,
-        },
-      });
-    }
-
 
     return NextResponse.json({ success: true });
   } catch (error) {
