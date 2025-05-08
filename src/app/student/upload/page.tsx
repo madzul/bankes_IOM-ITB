@@ -22,17 +22,13 @@ interface FileData {
   type: string;
 }
 
-const fileTypes = [
-  { title: "KTP", key: "KTP" },
-  { title: "CV", key: "CV" },
-  { title: "Transkrip Nilai", key: "Transkrip_Nilai" },
-];
-
 export default function Upload() {
   const { data: session } = useSession();
-  
+
   const [selectedFiles, setSelectedFiles] = useState<{ key: string; file: File }[]>([]);
   const [uploadedFiles, setUploadedFiles] = useState<FileData[]>([]);
+
+  const [fileTypes, setFileTypes] = useState<{ title: string; key: string }[]>([]);
 
   useEffect(() => {
     const fetchFiles = async () => {
@@ -48,6 +44,24 @@ export default function Upload() {
 
     fetchFiles();
   }, [session]);
+
+  useEffect(() => {
+    const fetchFileTypes = async () => {
+      try {
+        const response = await axios.get("/api/files/file-types");
+        if (response.data.success) {
+          setFileTypes(response.data.data);
+        } else {
+          toast.error(response.data.error || "Failed to load file types.");
+        }
+      } catch (error) {
+        console.error("Error fetching file types:", error);
+        toast.error("An error occurred while loading file types.");
+      }
+    };
+  
+    fetchFileTypes();
+  }, []);
 
   const handleFileSelect = (key: string, file: File) => {
     const validTypes = ["image/png", "image/jpeg", "application/pdf"];

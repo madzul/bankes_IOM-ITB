@@ -170,6 +170,9 @@ enum FileType {
   KTP
   CV
   Transkrip_Nilai
+  Essay
+  STNK
+  SIM
 }
 
 enum Role {
