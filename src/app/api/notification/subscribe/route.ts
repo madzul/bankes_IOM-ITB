@@ -13,6 +13,8 @@ const prisma = new PrismaClient();
  *       tags:
  *         - Notifications
  *       summary: Subscribe a user to push notifications
+ *       security: 
+ *         - CookieAuth: []
  *       requestBody:
  *         required: true
  *         content:

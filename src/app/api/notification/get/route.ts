@@ -22,6 +22,8 @@ interface IOM_Notification {
  *       tags:
  *         - Notifications
  *       summary: Get notifications for a user
+ *       security: 
+ *         - CookieAuth: []
  *       responses:
  *         '200':
  *           description: List of notifications retrieved successfully
