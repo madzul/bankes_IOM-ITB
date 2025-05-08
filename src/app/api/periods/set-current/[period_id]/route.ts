@@ -9,25 +9,27 @@ const prisma = new PrismaClient();
  * @swagger
  * /api/periods/set-current/{period_id}:
  *   put:
- *     summary: Set the specified academic period as current
- *     tags:
- *       - Periods
+ *     summary: Set the specified academic period as current and update other periods
+ *     tags: [Periods]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: period_id
  *         required: true
  *         schema:
  *           type: integer
- *         description: ID of the period to set as current
+ *           example: 1
+ *         description: Numeric ID of the period to set as current
  *     responses:
  *       200:
- *         description: Period successfully set as current
+ *         description: Successfully updated period status
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Period'
  *       400:
- *         description: Invalid period ID
+ *         description: Invalid request parameters
  *         content:
  *           application/json:
  *             schema:
@@ -35,9 +37,23 @@ const prisma = new PrismaClient();
  *               properties:
  *                 message:
  *                   type: string
- *                   example: "Invalid period ID"
+ *                   examples:
+ *                     - "Invalid period ID"
+ *       401:
+ *         description: Unauthorized access
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "Unauthorized"
  *       500:
- *         description: Server error setting current period
+ *         description: Server error
  *         content:
  *           application/json:
  *             schema:
