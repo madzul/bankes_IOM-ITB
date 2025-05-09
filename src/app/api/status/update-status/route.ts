@@ -9,8 +9,10 @@ interface StudentUpdate {
   Statuses: {
     passDitmawa: boolean;
     passIOM: boolean;
+    amount?: number; // Add this field
   }[];
 }
+
 
 /**
 * @swagger 
@@ -182,6 +184,7 @@ interface StudentUpdate {
  *         Period:
  *           $ref: '#/components/schemas/Period'
  */
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -204,6 +207,7 @@ export async function POST(request: Request) {
           data: {
             passDitmawa: Statuses[0].passDitmawa,
             passIOM: Statuses[0].passIOM,
+            amount: Statuses[0].amount !== undefined ? Statuses[0].amount : null, // Set amount from the request
           },
         });
 
@@ -211,10 +215,11 @@ export async function POST(request: Request) {
         // Asumsi dalam notification body: jika sudah "Finalisasi", sudah disiapkan jadwal untuk wawancara
         if (updatedStatus) {
           const notificationTitle = updatedStatus.passIOM ? "Selamat, kamu lanjut untuk tahap berikutnya" : "Mohon maaf, anda belum berhak untuk lanjut ke tahap berikutnya";
+          const amountInfo = updatedStatus.amount ? `Anda akan menerima bantuan sebesar Rp${updatedStatus.amount}.` : "";
           const notificationBody = `Telah diupdate status beasiswa kamu untuk periode sekarang. ${
             updatedStatus.passDitmawa 
               ? (updatedStatus.passIOM 
-                  ? "Silahkan pilih jadwal wawancara yang sesuai waktu Anda." 
+                  ? `Silahkan pilih jadwal wawancara yang sesuai waktu Anda. ${amountInfo}` 
                   : "Silahkan coba lagi di periode berikutnya.") 
               : "Terdapat kemungkinan kamu sudah punya beasiswa lain."
           }`;

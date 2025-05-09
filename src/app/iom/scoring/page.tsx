@@ -166,42 +166,48 @@ export default function Scoring() {
     const fetchData = async () => {
       setLoading(true);
       
-      // 1 - Mengambil semua periode
-      const fetchedPeriods = await fetchPeriods();
-      if (fetchedPeriods) {
-        console.log("STEP 1 DONE");
-        // 2 - Mengambil periode sekarang
-        const currentPeriod = fetchedPeriods.find((period) => period.is_current);
-        setSelectedPeriod(currentPeriod || null);
-        if (currentPeriod) {
-          console.log("STEP 2 DONE");
-          // 3 - Mengambil semua mahasiswa pada periode tersebut
-          const fetchedStudents = await fetchStudentsByPeriod(currentPeriod.period_id);
-          if (fetchedStudents) {
-            console.log("STEP 3 DONE");
-            // 4 - Mengambil mahasiswa pertama sebagai default
-            const defaultStudent : Student = fetchedStudents[0];
-            setCurrentStudent(defaultStudent.student_id);
-            if (defaultStudent) {
-              console.log("STEP 4 DONE");
-              // 5 - Mengambil pertanyaan
+      try {
+        // Existing code for fetching periods, students, etc.
+        const fetchedPeriods = await fetchPeriods();
+        if (fetchedPeriods) {
+          const currentPeriod = fetchedPeriods.find((period) => period.is_current);
+          setSelectedPeriod(currentPeriod || null);
+          if (currentPeriod) {
+            const fetchedStudents = await fetchStudentsByPeriod(currentPeriod.period_id);
+            if (fetchedStudents && fetchedStudents.length > 0) {
+              const defaultStudent = fetchedStudents[0];
+              setCurrentStudent(defaultStudent.student_id);
+              
+              // Fetch questions
               const questions = await fetchQuestions();
-              setQuestions(questions)
-              if (questions) {
-                console.log("STEP 5 DONE");
-                // 6 - Mengambil score matrix mahasiswa default
-                const defaultStudentScoreMatrix = await fetchScoreMatrix(defaultStudent);
-                setScoreMatrix(defaultStudentScoreMatrix);
-                if (defaultStudentScoreMatrix) {
-                  console.log("STEP 6 DONE");
+              setQuestions(questions);
+              
+              // Fetch score matrix
+              const defaultStudentScoreMatrix = await fetchScoreMatrix(defaultStudent);
+              setScoreMatrix(defaultStudentScoreMatrix);
+              
+              // Fetch status to get amount
+              try {
+                const statusResponse = await fetch(`/api/status/${defaultStudent.student_id}/${currentPeriod.period_id}`);
+                if (statusResponse.ok) {
+                  const statusData = await statusResponse.json();
+                  setAidAmount(statusData.amount !== null ? statusData.amount.toString() : "0");
+                } else {
+                  setAidAmount("0");
                 }
+              } catch (error) {
+                console.error("Error fetching status:", error);
+                setAidAmount("0");
               }
             }
           }
         }
+      } catch (error) {
+        console.error("Error loading page data:", error);
+        toast.error("Error loading data");
+      } finally {
+        setLoading(false);
       }
-
-      setLoading(false);
     };
   
     fetchData();
@@ -251,14 +257,34 @@ export default function Scoring() {
     }
   };
   
+  // Update the handleStudentClick function to fetch the status record as well
   const handleStudentClick = async (student: Student) => {
     const studentId = student.student_id;
     setCurrentStudent(studentId);
     setLoading(true);
-    // Mengambil score matrix mahasiswa tersebut
-    const defaultStudentScoreMatrix = await fetchScoreMatrix(student);
-    setScoreMatrix(defaultStudentScoreMatrix);
-    setLoading(false);
+    
+    try {
+      // Fetch score matrix
+      const scoreMatrixResponse = await fetchScoreMatrix(student);
+      setScoreMatrix(scoreMatrixResponse);
+      
+      // Fetch the student's status to get the amount
+      const statusResponse = await fetch(`/api/status/${studentId}/${selectedPeriod?.period_id}`);
+      if (statusResponse.ok) {
+        const statusData = await statusResponse.json();
+        // Set the amount from the status record, defaulting to "0" if it's null
+        setAidAmount(statusData.amount !== null ? statusData.amount.toString() : "0");
+      } else {
+        // If there's an error or no status record, default to "0"
+        setAidAmount("0");
+      }
+    } catch (error) {
+      console.error("Error fetching student data:", error);
+      toast.error("Failed to fetch student data");
+      setAidAmount("0");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleScoreChange = (
@@ -304,29 +330,53 @@ export default function Scoring() {
       }
     });
   };
+  
+  const [aidAmount, setAidAmount] = useState<string>("0");
 
+  // Update the handleSubmit function to include the amount field:
   const handleSubmit = async () => {
     if (!currentStudent || !selectedPeriod) {
       alert("Pilih mahasiswa dan periode terlebih dahulu.");
       return;
     }
-  
+
     try {
-      const res = await fetch("/api/score-matrix/update", {
+      // First save the score matrix
+      const scoreRes = await fetch("/api/score-matrix/update", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(scoreMatrix),
       });
-  
-      if (!res.ok) {
-        const errorData = await res.json();
+
+      if (!scoreRes.ok) {
+        const errorData = await scoreRes.json();
         throw new Error(errorData.message || "Gagal menyimpan penilaian");
       }
-  
-      const result = await res.json();
-      toast.success(result.message || "Penilaian berhasil disimpan!");
+
+      // Then update the student's status including the aid amount
+      const statusRes = await fetch("/api/status/update-status", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify([{
+          student_id: currentStudent,
+          period_id: selectedPeriod.period_id,
+          Statuses: [{ 
+            passDitmawa: true, 
+            passIOM: true,
+            amount: parseInt(aidAmount) || 0 
+          }],
+        }]),
+      });
+
+      if (!statusRes.ok) {
+        throw new Error("Gagal memperbarui status mahasiswa");
+      }
+
+      toast.success("Penilaian dan jumlah bantuan berhasil disimpan!");
     } catch (error) {
       console.error("Error submitting scores:", error);
       toast.error("Terjadi kesalahan saat menyimpan penilaian.");
@@ -544,7 +594,22 @@ export default function Scoring() {
                               );
                             })}
                           </div>
-
+                          <div className="mt-4 border-t pt-4">
+                            <h3 className="text-lg font-semibold mb-2">Jumlah Bantuan</h3>
+                            <div className="flex items-center">
+                              <span className="mr-2 font-medium">Rp</span>
+                              <input
+                                type="number"
+                                value={aidAmount}
+                                onChange={(e) => setAidAmount(e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                placeholder="Masukkan jumlah bantuan (0 jika tidak ada)"
+                              />
+                            </div>
+                            <p className="text-sm text-gray-500 mt-1">
+                              Masukkan 0 jika mahasiswa tidak menerima bantuan.
+                            </p>
+                          </div>
                           <div className="mt-6 flex justify-end">
                             <button
                               onClick={handleSubmit}
