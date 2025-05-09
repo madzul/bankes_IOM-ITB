@@ -12,6 +12,8 @@ const prisma = new PrismaClient();
  *     summary: Retrieve saved interview form notes for a specific period
  *     tags:
  *       - Forms
+ *     security:
+ *       - CookieAuth: []
  *     requestBody:
  *       required: true
  *       content:
