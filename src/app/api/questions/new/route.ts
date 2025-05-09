@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 
 /**
  * @swagger
- * /api/questions/add:
+ * /api/questions/new:
  *   post:
  *     summary: Add a new scoring question
  *     tags:

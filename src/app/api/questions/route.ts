@@ -30,6 +30,24 @@ const prisma = new PrismaClient();
  *                   type: string
  *                   example: "Error fetching questions"
  */
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Question:
+ *       type: object
+ *       properties:
+ *         question_id:
+ *           type: integer
+ *           description: Unique identifier of the question
+ *           example: 1
+ *         question:
+ *           type: string
+ *           description: The content of the question
+ *           example: "Jelaskan kenapa kamu berhak mendapatkan beasiswa ini?"
+ */
+
 export async function GET() {
   try {
     const questions = await prisma.questions.findMany();
@@ -39,3 +57,4 @@ export async function GET() {
     return NextResponse.json({ message: "Error fetching questions" }, { status: 500 });
   }
 }
+
