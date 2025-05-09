@@ -51,12 +51,19 @@ export default function Upload() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
+  const [searchTerm, setSearchTerm] = useState("");
   const indexOfLastStudent = currentPage * itemsPerPage;
   const indexOfFirstStudent = indexOfLastStudent - itemsPerPage;
-  const currentStudents = students.slice(indexOfFirstStudent, indexOfLastStudent);
-  const totalPages = Math.ceil(students.length / itemsPerPage);
+  const filteredStudents = students.filter((student) =>
+    student.Student.nim.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    student.Student.User.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+  
+  const totalPages = Math.ceil(filteredStudents.length / itemsPerPage);
+  const currentStudents = filteredStudents.slice(indexOfFirstStudent, indexOfLastStudent);  
 
   const [fileTypes, setFileTypes] = useState<{ title: string; key: string }[]>([]);
+
 
   useEffect(() => {
     const fetchFileTypes = async () => {
@@ -222,8 +229,24 @@ export default function Upload() {
                   </option>
                 ))}
               </select>
+              <div className="mt-4 w-[300px]">
+                <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-1">
+                  Cari Nama/NIM Mahasiswa:
+                </label>
+                <input
+                  id="search"
+                  type="text"
+                  placeholder="Masukkan Nama atau NIM"
+                  className="px-4 py-2 border border-gray-300 rounded-md w-full max-w-md"
+                  value={searchTerm}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                />
+              </div>
               {selectedPeriod && (
-                <div className="mt-6 max-w-full overflow-x-auto border border-gray-300 rounded-md">
+                <div className="max-w-full overflow-x-auto border border-gray-300 rounded-md">
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                       <tr>

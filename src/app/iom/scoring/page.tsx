@@ -64,10 +64,14 @@ export default function Scoring() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filteredStudents, setFilteredStudents] = useState<Student[]>([]);
+
   const indexOfLastStudent = currentPage * itemsPerPage;
   const indexOfFirstStudent = indexOfLastStudent - itemsPerPage;
-  const currentStudents = students.slice(indexOfFirstStudent, indexOfLastStudent);
-  const totalPages = Math.ceil(students.length / itemsPerPage);
+  const currentStudents = filteredStudents.slice(indexOfFirstStudent, indexOfLastStudent);
+  const totalPages = Math.ceil(filteredStudents.length / itemsPerPage);
+
 
   const [currentStudent, setCurrentStudent] = useState<number | null>(null);
   const [scoreMatrix, setScoreMatrix] = useState<ScoreMatrixEntry[]>([]);
@@ -202,6 +206,17 @@ export default function Scoring() {
   
     fetchData();
   }, []);
+
+  useEffect(() => {
+    const term = searchTerm.toLowerCase();
+    const filtered = students.filter(
+      (student) =>
+        student.Student.User.name.toLowerCase().includes(term) ||
+        student.Student.nim.toLowerCase().includes(term)
+    );
+    setFilteredStudents(filtered);
+    setCurrentPage(1); 
+  }, [searchTerm, students]);  
 
   const handlePeriodChange = async (event: React.ChangeEvent<HTMLSelectElement>) => {
     try {
@@ -348,6 +363,20 @@ export default function Scoring() {
                     <ScoringQuestionDialog />
                   </div>
 
+                  <div className="mt-4 w-[300px]">
+                    <label htmlFor="search" className="text-sm font-medium mb-1">
+                      Cari Nama/NIM Mahasiswa:
+                    </label>
+                    <input
+                      id="search"
+                      type="text"
+                      placeholder="Masukkan Nama atau NIM"
+                      className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 w-[300px]"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                  </div>
+
                   <div className="flex w-full gap-6 justify-between mt-6">
                     {selectedPeriod && (
                       <div className="flex flex-col gap-4 w-[450px]">
@@ -453,75 +482,83 @@ export default function Scoring() {
                     )}
 
                     <div className="w-full p-2 border border-gray-300 rounded-md">
-                      <div className="flex flex-col gap-4 p-4 max-h-[550px] overflow-y-auto">
-                        <h2 className="text-xl font-bold">Lembar Penilaian</h2>
-                        {questions.map((q) => {
-                          const entry = scoreMatrix.find((sm) => sm.question_id === q.question_id);
-                          return (
-                            <div key={q.question_id}>
-                              <p className="mb-2 font-medium">{q.question}</p>
-                              <div className="flex justify-between items-center mb-3">
-                                <label className="flex items-center cursor-pointer">
-                                  <input
-                                    type="radio"
-                                    name={`question-${q.question_id}`}
-                                    value="KURANG"
-                                    checked={entry?.score_category === 'KURANG'}
-                                    onChange={() => handleScoreChange(q.question_id, "score_category", "KURANG")}
-                                    className="mr-2"
-                                  />
-                                  <span>Kurang</span>
-                                </label>
-                                <label className="flex items-center cursor-pointer">
-                                  <input
-                                    type="radio"
-                                    name={`question-${q.question_id}`}
-                                    value="CUKUP"
-                                    checked={entry?.score_category === 'CUKUP'}
-                                    onChange={() => handleScoreChange(q.question_id, "score_category", "CUKUP")}
-                                    className="mr-2"
-                                  />
-                                  <span>Cukup</span>
-                                </label>
-                                <label className="flex items-center cursor-pointer">
-                                  <input
-                                    type="radio"
-                                    name={`question-${q.question_id}`}
-                                    value="BAIK"
-                                    checked={entry?.score_category === 'BAIK'}
-                                    onChange={() => handleScoreChange(q.question_id, "score_category", "BAIK")}
-                                    className="mr-2"
-                                  />
-                                  <span>Baik</span>
-                                </label>
-                              </div>
-                              <div>
-                                <label htmlFor={`comment-${q.question_id}`} className="block text-sm font-medium mb-1">
-                                  Keterangan
-                                </label>
-                                <textarea
-                                  id={`comment-${q.question_id}`}
-                                  rows={2}
-                                  defaultValue={entry?.comment || ''}
-                                  onChange={(e) => handleScoreChange(q.question_id, "comment", e.target.value)}
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                                  placeholder="Masukkan keterangan..."
-                                ></textarea>
-                              </div>
-                              <hr className="mt-4" />
-                            </div>
-                          );
-                        })}
-                      </div>
+                      {questions.length > 0 ? (
+                        <>
+                          <div className="flex flex-col gap-4 p-4 max-h-[550px] overflow-y-auto">
+                            <h2 className="text-xl font-bold">Lembar Penilaian</h2>
+                            {questions.map((q) => {
+                              const entry = scoreMatrix.find((sm) => sm.question_id === q.question_id);
+                              return (
+                                <div key={q.question_id}>
+                                  <p className="mb-2 font-medium">{q.question}</p>
+                                  <div className="flex justify-between items-center mb-3">
+                                    <label className="flex items-center cursor-pointer">
+                                      <input
+                                        type="radio"
+                                        name={`question-${q.question_id}`}
+                                        value="KURANG"
+                                        checked={entry?.score_category === 'KURANG'}
+                                        onChange={() => handleScoreChange(q.question_id, "score_category", "KURANG")}
+                                        className="mr-2"
+                                      />
+                                      <span>Kurang</span>
+                                    </label>
+                                    <label className="flex items-center cursor-pointer">
+                                      <input
+                                        type="radio"
+                                        name={`question-${q.question_id}`}
+                                        value="CUKUP"
+                                        checked={entry?.score_category === 'CUKUP'}
+                                        onChange={() => handleScoreChange(q.question_id, "score_category", "CUKUP")}
+                                        className="mr-2"
+                                      />
+                                      <span>Cukup</span>
+                                    </label>
+                                    <label className="flex items-center cursor-pointer">
+                                      <input
+                                        type="radio"
+                                        name={`question-${q.question_id}`}
+                                        value="BAIK"
+                                        checked={entry?.score_category === 'BAIK'}
+                                        onChange={() => handleScoreChange(q.question_id, "score_category", "BAIK")}
+                                        className="mr-2"
+                                      />
+                                      <span>Baik</span>
+                                    </label>
+                                  </div>
+                                  <div>
+                                    <label htmlFor={`comment-${q.question_id}`} className="block text-sm font-medium mb-1">
+                                      Keterangan
+                                    </label>
+                                    <textarea
+                                      id={`comment-${q.question_id}`}
+                                      rows={2}
+                                      defaultValue={entry?.comment || ''}
+                                      onChange={(e) => handleScoreChange(q.question_id, "comment", e.target.value)}
+                                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                      placeholder="Masukkan keterangan..."
+                                    ></textarea>
+                                  </div>
+                                  <hr className="mt-4" />
+                                </div>
+                              );
+                            })}
+                          </div>
 
-                      <div className="mt-6 flex justify-end">
-                        <button
-                          onClick={handleSubmit}
-                          className="px-4 py-2 bg-[#003793] text-white rounded-md hover:bg-blue-700 focus:outline-none"
-                        >
-                          Simpan Penilaian
-                        </button>
-                      </div>
+                          <div className="mt-6 flex justify-end">
+                            <button
+                              onClick={handleSubmit}
+                              className="px-4 py-2 bg-[#003793] text-white rounded-md hover:bg-blue-700 focus:outline-none"
+                            >
+                              Simpan Penilaian
+                            </button>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-center mt-2">Mohon tambahkan pertanyaan penilaian terlebih dahulu.</p>
+                        </>
+                      )}
                     </div>
                   </div>
                 </>

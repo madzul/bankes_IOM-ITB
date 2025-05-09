@@ -39,6 +39,7 @@ export default function Form() {
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null)
   const [formFields, setFormFields] = useState<FormField[]>([])
   const [isSaving, setIsSaving] = useState(false)
+  const [searchTerm, setSearchTerm] = useState("")
 
   useEffect(() => {
     async function fetchPeriodsAndFormInterview() {
@@ -200,6 +201,12 @@ export default function Form() {
       setIsSaving(false)
     }
   }
+  
+  const filteredStudents = students.filter(
+    (student) =>
+      student.nim.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      student.userName.toLowerCase().includes(searchTerm.toLowerCase())
+  )  
 
   return (
     <div className="flex min-h-screen bg-gray-100">
@@ -225,8 +232,25 @@ export default function Form() {
                   </option>
                 ))}
               </select>
+
+              <div className="mt-4 w-[300px]">
+                <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-1">
+                  Cari Nama/NIM Mahasiswa:
+                </label>
+                <input
+                  id="search"
+                  type="text"
+                  placeholder="Masukkan Nama atau NIM"
+                  className="px-4 py-2 border border-gray-300 rounded-md w-full max-w-md"
+                  value={searchTerm}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                  }}
+                />
+              </div>
+
               {selectedPeriod && (
-                <div className="mt-6 max-w-full flex overflow-x-auto">
+                <div className="max-w-full flex overflow-x-auto">
                   <div className="border border-gray-300 rounded-md overflow-x-auto w-1/3">
                     <table className="w-full divide-y divide-gray-200">
                       <thead className="bg-gray-50">
@@ -246,7 +270,7 @@ export default function Form() {
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
-                        {students.map((student) => (
+                        {filteredStudents.map((student) => (
                           <tr
                             key={student.nim}
                             onClick={() => handleStudentSelect(student)}
