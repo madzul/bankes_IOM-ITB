@@ -8,9 +8,11 @@ const prisma = new PrismaClient();
  * @swagger
  * /api/form/save:
  *   post:
- *     summary: Retrieve saved interview form notes for a specific period
+ *     summary: Save or update interview form notes for a specific student and period
  *     tags:
  *       - Forms
+ *     security:
+ *       - CookieAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -21,11 +23,23 @@ const prisma = new PrismaClient();
  *               period_id:
  *                 type: integer
  *                 description: ID of the academic period
+ *                 example: 1
+ *               nim:
+ *                 type: string
+ *                 description: Student NIM (identifier)
+ *                 example: "13522119"
+ *               formData:
+ *                 type: object
+ *                 description: Key-value pairs of interview notes fields
+ *                 example:
+ *                   value: "value1"
  *             required:
  *               - period_id
+ *               - nim
+ *               - formData
  *     responses:
  *       200:
- *         description: Successfully fetched form notes
+ *         description: Successfully saved form notes
  *         content:
  *           application/json:
  *             schema:
@@ -35,21 +49,22 @@ const prisma = new PrismaClient();
  *                   type: boolean
  *                   example: true
  *                 data:
- *                   type: array
- *                   items:
- *                     type: object
- *                     properties:
- *                       text:
- *                         type: string
- *                         description: JSON string of interview notes fields
- *                       nim:
- *                         type: string
- *                         description: Student NIM (identifier)
- *                       userName:
- *                         type: string
- *                         description: Name of the interviewer
+ *                   type: object
+ *                   properties:
+ *                     slot_id:
+ *                       type: integer
+ *                       description: Interview slot ID
+ *                       example: 1
+ *                     student_id:
+ *                       type: integer
+ *                       description: Student user ID
+ *                       example: 101
+ *                     text:
+ *                       type: string
+ *                       description: JSON-encoded interview notes
+ *                       example: "{\"value\":\"value1\"}"
  *       400:
- *         description: Invalid or missing period_id
+ *         description: Invalid or missing fields, or related record not found
  *         content:
  *           application/json:
  *             schema:
@@ -60,7 +75,12 @@ const prisma = new PrismaClient();
  *                   example: false
  *                 error:
  *                   type: string
- *                   example: "Invalid or missing period_id"
+ *                   description: One of the possible error messages
+ *                   enum:
+ *                     - Missing required fields
+ *                     - ID Not found
+ *                     - Slot ID Not found
+ *                   example: Missing required fields
  *       403:
  *         description: Forbidden (insufficient permissions)
  *         content:
@@ -73,9 +93,9 @@ const prisma = new PrismaClient();
  *                   example: false
  *                 error:
  *                   type: string
- *                   example: "Unauthorized"
+ *                   example: Unauthorized
  *       500:
- *         description: Server error fetching data
+ *         description: Server error saving data
  *         content:
  *           application/json:
  *             schema:
@@ -86,9 +106,8 @@ const prisma = new PrismaClient();
  *                   example: false
  *                 error:
  *                   type: string
- *                   example: "Failed to fetch data"
+ *                   example: Failed to save form data
  */
-
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
