@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import SidebarIOM from "@/app/components/layout/sidebariom";
 import { Toaster, toast } from "sonner";
+import axios from "axios";
 
 export interface Period {
   period_id: number;
@@ -40,12 +41,6 @@ interface Student {
   };
 }
 
-const fileTypes = [
-  { title: "KTP", key: "KTP" },
-  { title: "CV", key: "CV" },
-  { title: "Transkrip Nilai", key: "Transkrip_Nilai" },
-];
-
 export default function Upload() {
   const [periods, setPeriods] = useState<Period[]>([]);
   const [selectedPeriod, setSelectedPeriod] = useState<Period | null>(null);
@@ -60,6 +55,26 @@ export default function Upload() {
   const indexOfFirstStudent = indexOfLastStudent - itemsPerPage;
   const currentStudents = students.slice(indexOfFirstStudent, indexOfLastStudent);
   const totalPages = Math.ceil(students.length / itemsPerPage);
+
+  const [fileTypes, setFileTypes] = useState<{ title: string; key: string }[]>([]);
+
+  useEffect(() => {
+    const fetchFileTypes = async () => {
+      try {
+        const response = await axios.get("/api/files/file-types");
+        if (response.data.success) {
+          setFileTypes(response.data.data);
+        } else {
+          toast.error(response.data.error || "Failed to load file types.");
+        }
+      } catch (error) {
+        console.error("Error fetching file types:", error);
+        toast.error("An error occurred while loading file types.");
+      }
+    };
+  
+    fetchFileTypes();
+  }, []);
 
   useEffect(() => {
     async function fetchPeriodsAndStudentFiles() {
