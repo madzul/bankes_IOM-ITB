@@ -53,7 +53,7 @@ export default function LoginPage() {
 
     const redirect = async () => {
         if (session?.user?.id) {
-            const response = await fetch(`/api/users/${session.user.id}`);
+            const response = await fetch(`/api/users`);
             if (response.ok) {
                 const user = await response.json();
                 const userrole : string = user.role;

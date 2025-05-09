@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import SidebarIOM from "@/app/components/layout/sidebariom";
 import { Toaster, toast } from "sonner";
+import axios from "axios";
 
 export interface Period {
   period_id: number;
@@ -40,18 +41,47 @@ interface Student {
   };
 }
 
-const fileTypes = [
-  { title: "KTP", key: "KTP" },
-  { title: "CV", key: "CV" },
-  { title: "Transkrip Nilai", key: "Transkrip_Nilai" },
-];
-
 export default function Upload() {
   const [periods, setPeriods] = useState<Period[]>([]);
   const [selectedPeriod, setSelectedPeriod] = useState<Period | null>(null);
   const [students, setStudents] = useState<Student[]>([]);
   const [isUpdating, setIsUpdating] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  const [searchTerm, setSearchTerm] = useState("");
+  const indexOfLastStudent = currentPage * itemsPerPage;
+  const indexOfFirstStudent = indexOfLastStudent - itemsPerPage;
+  const filteredStudents = students.filter((student) =>
+    student.Student.nim.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    student.Student.User.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+  
+  const totalPages = Math.ceil(filteredStudents.length / itemsPerPage);
+  const currentStudents = filteredStudents.slice(indexOfFirstStudent, indexOfLastStudent);  
+
+  const [fileTypes, setFileTypes] = useState<{ title: string; key: string }[]>([]);
+
+
+  useEffect(() => {
+    const fetchFileTypes = async () => {
+      try {
+        const response = await axios.get("/api/files/file-types");
+        if (response.data.success) {
+          setFileTypes(response.data.data);
+        } else {
+          toast.error(response.data.error || "Failed to load file types.");
+        }
+      } catch (error) {
+        console.error("Error fetching file types:", error);
+        toast.error("An error occurred while loading file types.");
+      }
+    };
+  
+    fetchFileTypes();
+  }, []);
 
   useEffect(() => {
     async function fetchPeriodsAndStudentFiles() {
@@ -96,7 +126,7 @@ export default function Upload() {
 
   const handlePeriodChange = async (event: React.ChangeEvent<HTMLSelectElement>) => {
     try {
-      // setLoading(true);
+      setLoading(true);
       const selectedId = event.target.value;
       const selected = periods.find((period) => period.period_id === parseInt(selectedId, 10));
       setSelectedPeriod(selected || null);
@@ -123,7 +153,7 @@ export default function Upload() {
     } catch (error) {
       console.error("Error:", error);
     } finally {
-      // setLoading(false);
+      setLoading(false);
     }
   };
 
@@ -172,6 +202,8 @@ export default function Upload() {
     }
   };
 
+
+  
   return (
     <div className="flex min-h-screen bg-gray-100">
       <Toaster position="bottom-right" richColors />
@@ -197,8 +229,24 @@ export default function Upload() {
                   </option>
                 ))}
               </select>
+              <div className="mt-4 w-[300px]">
+                <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-1">
+                  Cari Nama/NIM Mahasiswa:
+                </label>
+                <input
+                  id="search"
+                  type="text"
+                  placeholder="Masukkan Nama atau NIM"
+                  className="px-4 py-2 border border-gray-300 rounded-md w-full max-w-md"
+                  value={searchTerm}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                />
+              </div>
               {selectedPeriod && (
-                <div className="mt-6 max-w-full overflow-x-auto border border-gray-300 rounded-md">
+                <div className="max-w-full overflow-x-auto border border-gray-300 rounded-md">
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                       <tr>
@@ -238,7 +286,7 @@ export default function Upload() {
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                      {students.map((student) => (
+                      {currentStudents.map((student) => (
                         <tr key={student.student_id}>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             {student.Student.nim}
@@ -300,6 +348,48 @@ export default function Upload() {
                   </table>
                 </div>
               )}
+              <div className="flex w-full justify-between items-center gap-2 mt-2">
+                <button
+                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="px-3 py-3 rounded border border-2 hover:bg-gray-200 text-sm disabled:opacity-50"
+                >
+                  Previous
+                </button>
+
+                <div className="flex gap-4">
+                  {Array.from({ length: 3 }, (_, i) => {
+                    let startPage = Math.max(1, currentPage - 1);
+                    if (currentPage === totalPages) startPage = totalPages - 2;
+                    if (currentPage === 1) startPage = 1;
+
+                    const page = startPage + i;
+                    if (page > totalPages) return null;
+
+                    return (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        className={`px-4 py-2 text-sm rounded ${
+                          currentPage === page
+                            ? "bg-blue-600 text-white"
+                            : "border border-2 hover:bg-gray-200 text-gray-700 hover:bg-gray-300"
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <button
+                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-3 rounded border border-2 hover:bg-gray-200 text-sm disabled:opacity-50"
+                >
+                  Next
+                </button>
+              </div>
               <button
                 className="w-[300px] mt-4 px-4 py-2 bg-[#003793] text-white rounded-md disabled:bg-gray-400"
                 onClick={handleUpdateStatuses}

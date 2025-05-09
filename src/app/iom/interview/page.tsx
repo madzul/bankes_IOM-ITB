@@ -13,7 +13,7 @@ const WeeklyCalendarView = dynamic(() => import("./components/WeeklyCalendarView
   loading: () => <div className="w-full text-center py-10">Loading calendar view...</div>,
 });
 
-const ListView = dynamic(() => import("./components/ListView"), {
+const SlotListView = dynamic(() => import("./components/SlotListView"), {
   loading: () => <div className="w-full text-center py-10">Loading list view...</div>,
 });
 
@@ -52,7 +52,7 @@ export default function InterviewPage() {
           </Card>
         </div>
 
-        {viewMode === "calendar" ? <WeeklyCalendarView /> : <ListView />}
+        {viewMode === "calendar" ? <WeeklyCalendarView /> : <SlotListView />}
       </div>
     </div>
   );

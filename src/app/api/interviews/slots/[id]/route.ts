@@ -5,6 +5,135 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
 
 const prisma = new PrismaClient();
 
+/**
+ * @swagger
+ * paths:
+ *   /api/interviews/slots/{id}:
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         description: Numeric ID of the interview slot
+ *         required: true
+ *         schema:
+ *           type: integer
+ *
+ *     delete:
+ *       tags:
+ *         - InterviewSlots
+ *       summary: Delete a single interview slot
+ *       security:
+ *         - CookieAuth: []
+ *       responses:
+ *         '200':
+ *           description: Slot deleted successfully
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 type: object
+ *                 properties:
+ *                   success:
+ *                     type: boolean
+ *                     const: true
+ *                   message:
+ *                     type: string
+ *         '400':
+ *           description: Invalid slot ID
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '401':
+ *           description: Not authenticated or wrong role
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '403':
+ *           description: Unauthorized—only the interview owner can delete slots
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '404':
+ *           description: Slot not found
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '500':
+ *           description: Server error
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *
+ *     patch:
+ *       tags:
+ *         - InterviewSlots
+ *       summary: Update a single interview slot’s start and end time
+ *       security:
+ *         - CookieAuth: []
+ *       requestBody:
+ *         required: true
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 start_time:
+ *                   type: string
+ *                   format: date-time
+ *                 end_time:
+ *                   type: string
+ *                   format: date-time
+ *               required:
+ *                 - start_time
+ *                 - end_time
+ *       responses:
+ *         '200':
+ *           description: Updated slot returned
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 type: object
+ *                 properties:
+ *                   success:
+ *                     type: boolean
+ *                     const: true
+ *                   data:
+ *                     $ref: '#/components/schemas/InterviewSlot'
+ *         '400':
+ *           description: Missing or invalid fields
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '401':
+ *           description: Not authenticated or wrong role
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '403':
+ *           description: Unauthorized—only the interview owner can update slots
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '404':
+ *           description: Slot not found
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ *         '500':
+ *           description: Server error
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/ErrorResponse'
+ */
+
 // DELETE /api/interviews/slots/[id] - Delete a single slot
 export async function DELETE(
   request: Request,
