@@ -126,7 +126,7 @@ export default function LoginPage() {
     }
 
     return (
-        <div className="flex items-center justify-center">
+        <div className="flex items-center justify-center bg-cover bg-center" style={{ backgroundImage: "url('/bg.png')" }}>
             <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-md my-[5%]">
                 <h1 className="text-2xl font-bold mb-2 text-center text-var">
                     Masuk ke Akun Anda
