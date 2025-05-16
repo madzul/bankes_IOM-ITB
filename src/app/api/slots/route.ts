@@ -186,7 +186,8 @@ export async function GET() {
     const userRole = session.user.role;
 
     // Different views based on role
-    if (userRole === "Pengurus_IOM" || userRole === "Pewawancara") {
+    const allowedRoles = ["Pengurus_IOM", "Pewawancara"];
+    if (allowedRoles.includes(userRole)) {
       // IOM staff can see all slots
       const slots = await prisma.interviewSlot.findMany({
         include: {

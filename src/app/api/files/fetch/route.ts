@@ -96,6 +96,9 @@ const prisma = new PrismaClient();
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
+
+
+
 // export async function POST(request: Request) {
 //   try {
 //     const session = await getServerSession(authOptions);
@@ -162,7 +165,6 @@ const prisma = new PrismaClient();
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
 
-  // Allow both Pengurus_IOM and Pewawancara
   const allowedRoles = ["Pengurus_IOM", "Pewawancara"];
   if (!session?.user?.id || !allowedRoles.includes(session.user.role)) {
     return NextResponse.json(
@@ -181,18 +183,24 @@ export async function POST(request: Request) {
   }
 
   try {
-    const studentData = await prisma.status.findMany({
-      where: {
-        period_id: pid,
-        Student: {
-          InterviewSlots: {
-            some: {
-              period_id: pid,
-              student_id: { not: null },
-            },
+    const whereClause: any = {
+      period_id: pid,
+    };
+
+    // Apply additional filtering for Pewawancara
+    if (session.user.role === "Pewawancara") {
+      whereClause.Student = {
+        InterviewSlots: {
+          some: {
+            period_id: pid,
+            student_id: { not: null },
           },
         },
-      },
+      };
+    }
+
+    const studentData = await prisma.status.findMany({
+      where: whereClause,
       select: {
         student_id: true,
         period_id: true,

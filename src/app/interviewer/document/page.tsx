@@ -28,8 +28,6 @@ interface Status {
 interface Student {
   student_id: number;
   period_id: number;
-  passDitmawa: boolean;
-  passIOM: boolean;
   Student: {
     nim: string;
     User: {
@@ -45,7 +43,6 @@ export default function Upload() {
   const [periods, setPeriods] = useState<Period[]>([]);
   const [selectedPeriod, setSelectedPeriod] = useState<Period | null>(null);
   const [students, setStudents] = useState<Student[]>([]);
-  const [isUpdating, setIsUpdating] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -60,150 +57,74 @@ export default function Upload() {
   );
   
   const totalPages = Math.ceil(filteredStudents.length / itemsPerPage);
-  const currentStudents = filteredStudents.slice(indexOfFirstStudent, indexOfLastStudent);  
+  const currentStudents = filteredStudents.slice(indexOfFirstStudent, indexOfLastStudent);
 
   const [fileTypes, setFileTypes] = useState<{ title: string; key: string }[]>([]);
 
-
   useEffect(() => {
-    const fetchFileTypes = async () => {
+    async function fetchFileTypes() {
       try {
         const response = await axios.get("/api/files/file-types");
-        if (response.data.success) {
-          setFileTypes(response.data.data);
-        } else {
-          toast.error(response.data.error || "Failed to load file types.");
-        }
-      } catch (error) {
-        console.error("Error fetching file types:", error);
+        if (response.data.success) setFileTypes(response.data.data);
+        else toast.error(response.data.error || "Failed to load file types.");
+      } catch {
         toast.error("An error occurred while loading file types.");
       }
-    };
-  
+    }
     fetchFileTypes();
   }, []);
 
   useEffect(() => {
-    async function fetchPeriodsAndStudentFiles() {
+    async function fetchData() {
       try {
         setLoading(true);
-        const periodResponse = await fetch("/api/periods");
-        if (!periodResponse.ok) {
-          throw new Error("Failed to fetch periods");
-        }
-        const periodsData: Period[] = await periodResponse.json();
+        const periodsRes = await fetch("/api/periods");
+        if (!periodsRes.ok) throw new Error();
+        const periodsData: Period[] = await periodsRes.json();
         setPeriods(periodsData);
-        const currentPeriod = periodsData.find((period: Period) => period.is_current);
-        setSelectedPeriod(currentPeriod || null);
-        if (!currentPeriod?.period_id) {
+
+        const current = periodsData.find((p) => p.is_current);
+        setSelectedPeriod(current || null);
+        if (!current?.period_id) {
           setStudents([]);
           return;
         }
-        const fileResponse = await fetch("/api/files/fetch", {
+
+        const filesRes = await fetch("/api/files/fetch", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ period_id: currentPeriod.period_id }),
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ period_id: current.period_id }),
         });
-        if (!fileResponse.ok) {
-          throw new Error("Failed to fetch student files");
-        }
-        const fileData = await fileResponse.json();
-        if (fileData.success) {
-          setStudents(fileData.data);
-        } else {
-          console.error("Error fetching student files:", fileData.error);
-        }
-      } catch (error) {
-        console.error("Error:", error);
+        if (!filesRes.ok) throw new Error();
+        const filesData = await filesRes.json();
+        if (filesData.success) setStudents(filesData.data);
+      } catch {
+        console.error("Error fetching data");
       } finally {
         setLoading(false);
       }
     }
-    fetchPeriodsAndStudentFiles();
+    fetchData();
   }, []);
 
-  const handlePeriodChange = async (event: React.ChangeEvent<HTMLSelectElement>) => {
-    try {
+  const handlePeriodChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const pid = parseInt(e.target.value, 10);
+    setSelectedPeriod(periods.find((p) => p.period_id === pid) || null);
+    if (pid) {
       setLoading(true);
-      const selectedId = event.target.value;
-      const selected = periods.find((period) => period.period_id === parseInt(selectedId, 10));
-      setSelectedPeriod(selected || null);
-      if (selected) {
-        const fileResponse = await fetch("/api/files/fetch", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ period_id: selected?.period_id }),
-        });
-        if (!fileResponse.ok) {
-          throw new Error("Failed to fetch student files");
-        }
-        const fileData = await fileResponse.json();
-        if (fileData.success) {
-          setStudents(fileData.data);
-        } else {
-          console.error("Error fetching student files:", fileData.error);
-        }
-      } else {
-        setStudents([]);
-      }
-    } catch (error) {
-      console.error("Error:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleCheckboxChange = (
-    studentId: number,
-    field: "passDitmawa" | "passIOM",
-    value: boolean
-  ) => {
-    setStudents((prevStudents) =>
-      prevStudents.map((student) =>
-        student.student_id === studentId
-          ? { ...student, [field]: value }
-          : student
-      )
-    );
-  };
-
-  const handleUpdateStatuses = async () => {
-    setIsUpdating(true);
-    try {
-      const studentsToUpdate = students.map((student) => ({
-        student_id: student.student_id,
-        period_id: selectedPeriod?.period_id || 0,
-        Statuses: [{ passDitmawa: student.passDitmawa, passIOM: student.passIOM }],
-      }));
-
-      const response = await fetch("/api/status/update-status", {
+      const res = await fetch("/api/files/fetch", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(studentsToUpdate),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ period_id: pid }),
       });
-
-      const result = await response.json();
-      if (result.success) {
-        toast.success("Student statuses updated successfully!");
-      } else {
-        toast.error("Failed to update student statuses.");
-      }
-    } catch (error) {
-      console.error("Error updating student statuses:", error);
-      toast.error("An error occurred while updating student statuses.");
-    } finally {
-      setIsUpdating(false);
+      const data = await res.json();
+      if (data.success) setStudents(data.data);
+      setLoading(false);
+    } else {
+      setStudents([]);
     }
   };
 
-
-  
   return (
     <div className="flex min-h-screen bg-gray-100">
       <Toaster position="bottom-right" richColors />
@@ -218,97 +139,54 @@ export default function Upload() {
           ) : (
             <>
               <select
-                className="block w-[300px] px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                className="block w-[300px] px-3 py-2 bg-white border rounded-md"
                 value={selectedPeriod?.period_id || ""}
                 onChange={handlePeriodChange}
               >
                 <option value="">Pilih Periode</option>
-                {periods.map((period) => (
-                  <option key={period.period_id} value={period.period_id}>
-                    {period.period} {period.is_current ? "(Current)" : ""}
+                {periods.map((p) => (
+                  <option key={p.period_id} value={p.period_id}>
+                    {p.period} {p.is_current ? "(Current)" : ""}
                   </option>
                 ))}
               </select>
+
               <div className="mt-4 w-[300px]">
-                <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-1">
-                  Cari Nama/NIM Mahasiswa:
-                </label>
+                <label htmlFor="search" className="block text-sm font-medium mb-1">Cari Nama/NIM:</label>
                 <input
                   id="search"
                   type="text"
                   placeholder="Masukkan Nama atau NIM"
-                  className="px-4 py-2 border border-gray-300 rounded-md w-full max-w-md"
+                  className="px-4 py-2 border rounded-md w-full"
                   value={searchTerm}
-                  onChange={(e) => {
-                    setSearchTerm(e.target.value);
-                    setCurrentPage(1);
-                  }}
+                  onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
                 />
               </div>
+
               {selectedPeriod && (
-                <div className="max-w-full overflow-x-auto border border-gray-300 rounded-md">
-                  <table className="min-w-full divide-y divide-gray-200">
+                <div className="overflow-x-auto border rounded-md mt-4">
+                  <table className="min-w-full divide-y">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th
-                          scope="col"
-                          className="px-6 py-3 text-left text-xs font-medium min-w-52 uppercase tracking-wider"
-                        >
-                          NIM
-                        </th>
-                        <th
-                          scope="col"
-                          className="px-6 py-3 text-left text-xs font-medium min-w-52 uppercase tracking-wider"
-                        >
-                          Nama
-                        </th>
+                        <th className="px-6 py-3 text-left uppercase">NIM</th>
+                        <th className="px-6 py-3 text-left uppercase">Nama</th>
                         {fileTypes.map(({ title, key }) => (
-                          <th
-                            key={key}
-                            scope="col"
-                            className="px-6 py-3 text-left text-xs font-medium min-w-52 uppercase tracking-wider"
-                          >
-                            {title}
-                          </th>
+                          <th key={key} className="px-6 py-3 text-left uppercase">{title}</th>
                         ))}
-                        <th
-                          scope="col"
-                          className="px-6 py-3 text-left text-xs font-medium min-w-52 uppercase tracking-wider"
-                        >
-                          Lolos Seleksi Berkas Ditmawa?
-                        </th>
-                        <th
-                          scope="col"
-                          className="px-6 py-3 text-left text-xs font-medium min-w-52 uppercase tracking-wider"
-                        >
-                          Lolos Seleksi Berkas IOM?
-                        </th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {currentStudents.map((student) => (
-                        <tr key={student.student_id}>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {student.Student.nim}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {student.Student.User.name}
-                          </td>
-                          {fileTypes.map(({ key, title }) => {
-                            const file = student.Student.Files.find((f) => f.type === key);
+                    <tbody className="bg-white divide-y">
+                      {currentStudents.map((st) => (
+                        <tr key={st.student_id}>
+                          <td className="px-6 py-4">{st.Student.nim}</td>
+                          <td className="px-6 py-4">{st.Student.User.name}</td>
+                          {fileTypes.map(({ key }) => {
+                            const file = st.Student.Files.find((f) => f.type === key);
                             return (
-                              <td
-                                key={key}
-                                className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
-                              >
+                              <td key={key} className="px-6 py-4">
                                 {file ? (
-                                  <a
-                                    href={file.file_url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-blue-600 hover:underline"
-                                  >
-                                    {title}
+                                  <a href={file.file_url} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                                    {file.file_name}
                                   </a>
                                 ) : (
                                   <span className="text-gray-500">Not Uploaded</span>
@@ -316,87 +194,37 @@ export default function Upload() {
                               </td>
                             );
                           })}
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            <input
-                              type="checkbox"
-                              checked={student.passDitmawa}
-                              onChange={(e) =>
-                                handleCheckboxChange(
-                                  student.student_id,
-                                  "passDitmawa",
-                                  e.target.checked
-                                )
-                              }
-                            />
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            <input
-                              type="checkbox"
-                              checked={student.passIOM}
-                              onChange={(e) =>
-                                handleCheckboxChange(
-                                  student.student_id,
-                                  "passIOM",
-                                  e.target.checked
-                                )
-                              }
-                            />
-                          </td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
               )}
-              <div className="flex w-full justify-between items-center gap-2 mt-2">
+
+              <div className="flex justify-between items-center gap-2 mt-4">
                 <button
-                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                  onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
                   disabled={currentPage === 1}
-                  className="px-3 py-3 rounded border border-2 hover:bg-gray-200 text-sm disabled:opacity-50"
-                >
-                  Previous
-                </button>
+                  className="px-3 py-2 border rounded hover:bg-gray-200 disabled:opacity-50"
+                >Previous</button>
 
-                <div className="flex gap-4">
-                  {Array.from({ length: 3 }, (_, i) => {
-                    let startPage = Math.max(1, currentPage - 1);
-                    if (currentPage === totalPages) startPage = totalPages - 2;
-                    if (currentPage === 1) startPage = 1;
-
-                    const page = startPage + i;
-                    if (page > totalPages) return null;
-
-                    return (
-                      <button
-                        key={page}
-                        onClick={() => setCurrentPage(page)}
-                        className={`px-4 py-2 text-sm rounded ${
-                          currentPage === page
-                            ? "bg-blue-600 text-white"
-                            : "border border-2 hover:bg-gray-200 text-gray-700 hover:bg-gray-300"
-                        }`}
-                      >
-                        {page}
-                      </button>
-                    );
-                  })}
+                <div className="flex gap-2">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`px-4 py-2 rounded ${currentPage === page ? "bg-blue-600 text-white" : "border hover:bg-gray-200"}`}>
+                      {page}
+                    </button>
+                  ))}
                 </div>
 
                 <button
-                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                  onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
                   disabled={currentPage === totalPages}
-                  className="px-3 py-3 rounded border border-2 hover:bg-gray-200 text-sm disabled:opacity-50"
-                >
-                  Next
-                </button>
+                  className="px-3 py-2 border rounded hover:bg-gray-200 disabled:opacity-50"
+                >Next</button>
               </div>
-              <button
-                className="w-[300px] mt-4 px-4 py-2 bg-[#003793] text-white rounded-md disabled:bg-gray-400"
-                onClick={handleUpdateStatuses}
-                disabled={isUpdating}
-              >
-                {isUpdating ? "Updating..." : "Finalize Changes"}
-              </button>
             </>
           )}
         </Card>
