@@ -309,6 +309,26 @@ export async function POST(request: Request) {
       );
     }
 
+    const now = new Date();
+    const startDate = new Date(start_time);
+    const endDate = new Date(end_time);
+
+    // Check that start_time is in the future (or today)
+    if (startDate < now) {
+      return NextResponse.json(
+        { success: false, error: "Start time must be today or later" },
+        { status: 400 }
+      );
+    }
+
+     // Validate that start_time is before end_time
+    if (startDate >= endDate) {
+      return NextResponse.json(
+        { success: false, error: "Start time must before the End time" },
+        { status: 400 }
+      );
+    }
+
     // Get the current period
     const currentPeriod = await prisma.period.findFirst({
       where: { is_current: true },
