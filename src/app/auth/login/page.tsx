@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { signIn } from "next-auth/react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation"
+import { toast, Toaster } from "sonner";
 
 type Errors = {
     email?: string
@@ -101,11 +102,11 @@ export default function LoginPage() {
                 });
 
                 if (result?.error) {
-                    alert(result.error);
+                    setErrors({generalError: "Email or password incorrect"})
                 }
             } catch (error) {
-                console.error("Error during signIn:", error);
-                console.log("Error during signIn:", error);
+                // console.error("Error during signIn:", error);
+                // console.log("Error during signIn:", error);
             } finally {
                 setIsLoading(false)
             }
@@ -141,13 +142,6 @@ export default function LoginPage() {
                         Daftar
                     </Link>
                 </div>
-                
-                {/* Error Summary */}
-                {errors.generalError && (
-                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 text-center" role="alert">
-                    {errors.generalError}
-                </div>
-                )}
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     {/* Email Field */}
@@ -197,10 +191,16 @@ export default function LoginPage() {
                     </div>
                     
                     <div className="">
+                        {errors.generalError && (
+                            <p id="email-error" className="text-red-500 text-sm my-2">
+                                {errors.generalError}
+                            </p>
+                        )}
                         <Link href="#" className="text-sm text-var font-bold hover:underline">
                             Lupa password?
                         </Link>
                     </div>
+
                     
                     <div className="flex">
                         <button 
