@@ -50,6 +50,12 @@ export default function SidebarInterviewer({ activeTab }: SidebarInterviewerProp
       link: "/interviewer/interview",
       icon: <Calendar className="h-5 w-5" />,
     },
+    {
+      id: "form",
+      label: "Form Interview",
+      link: "/interviewer/form",
+      icon: <BookText className="h-5 w-5" />,
+    },
   ]
 
   const handleNavigation = (link: string) => {

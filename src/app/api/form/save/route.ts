@@ -112,7 +112,8 @@ export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session?.user?.id || session.user.role !== "Pengurus_IOM") {
+    const allowedRoles = ["Pengurus_IOM", "Pewawancara"]
+    if (!session?.user?.id || !allowedRoles.includes(session?.user?.role)) {
       return NextResponse.json(
         { success: false, error: "Unauthorized" },
         { status: 403 }
