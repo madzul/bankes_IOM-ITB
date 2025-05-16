@@ -62,6 +62,7 @@ export default function LoginPage() {
                     "Admin" : "/admin/account/",
                     "Pengurus_IOM" : "/iom/document/",
                     "Guest" : "/guest/",
+                    "Pewawancara": "/interviewer/interview/"
                 };
                 const callbackUrl : string = roleBasedCallbackUrls[userrole];
 

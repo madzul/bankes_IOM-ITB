@@ -186,7 +186,7 @@ export async function GET() {
     const userRole = session.user.role;
 
     // Different views based on role
-    if (userRole === "Pengurus_IOM") {
+    if (userRole === "Pengurus_IOM" || userRole === "Pewawancara") {
       // IOM staff can see all slots
       const slots = await prisma.interviewSlot.findMany({
         include: {
@@ -284,7 +284,8 @@ export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session?.user?.id || session.user.role !== "Pengurus_IOM") {
+    const allowedRoles = ["Pengurus_IOM", "Pewawancara"];
+    if (!session?.user?.id || !allowedRoles.includes(session.user.role)) {
       return NextResponse.json(
         { success: false, error: "Unauthorized" },
         { status: 401 }
