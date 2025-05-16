@@ -1,6 +1,8 @@
 import { PrismaClient } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { sendPushNotification } from "@/services/sendNotification";
+import { FileType } from "@prisma/client";
+
 const prisma = new PrismaClient();
 
 interface StudentUpdate {
@@ -200,6 +202,29 @@ export async function POST(request: Request) {
 
         if (!existingStudent) {
           return { success: false, error: `Student with ID ${student_id} not found` };
+        }
+
+        const fileTypes = Object.values(FileType).map((key) => ({
+          title: key.replace(/_/g, " "),
+          key,
+        }));
+
+        const uploadedFiles = await prisma.file.findMany({
+          where: { student_id },
+        });
+
+        const uploadedFileTypes = new Set(uploadedFiles.map((file) => file.type));
+        const requiredFileTypes = new Set(Object.values(FileType));
+
+        const allFilesUploaded = [...requiredFileTypes].every((type) =>
+          uploadedFileTypes.has(type as FileType)
+        );
+
+        if (!allFilesUploaded) {
+          return NextResponse.json({
+            success: false,
+            error: `Cannot update passIOM: All required files are not uploaded for student ID ${student_id}`,
+          });
         }
 
         const updatedStatus = await prisma.status.update({

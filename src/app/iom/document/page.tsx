@@ -63,6 +63,13 @@ export default function Upload() {
   const currentStudents = filteredStudents.slice(indexOfFirstStudent, indexOfLastStudent);  
 
   const [fileTypes, setFileTypes] = useState<{ title: string; key: string }[]>([]);
+  
+  const areAllFilesUploaded = (studentFiles: File[]) => {
+    const requiredTypes = new Set(fileTypes.map((type) => type.key));
+    const uploadedTypes = new Set(studentFiles.map((file) => file.type));
+    
+    return [...requiredTypes].every((type) => uploadedTypes.has(type));
+  };
 
 
   useEffect(() => {
@@ -189,10 +196,10 @@ export default function Upload() {
       });
 
       const result = await response.json();
-      if (result.success) {
-        toast.success("Student statuses updated successfully!");
+      if (result.error) {
+        toast.error("Pembaharuan mengalami error.");
       } else {
-        toast.error("Failed to update student statuses.");
+        toast.info("Pembaharuan telah dilakukan.");
       }
     } catch (error) {
       console.error("Error updating student statuses:", error);
@@ -329,7 +336,7 @@ export default function Upload() {
                               }
                             />
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 flex items-center gap-2">
                             <input
                               type="checkbox"
                               checked={student.passIOM}
@@ -340,7 +347,11 @@ export default function Upload() {
                                   e.target.checked
                                 )
                               }
+                              disabled={!areAllFilesUploaded(student.Student.Files)}
                             />
+                            {!areAllFilesUploaded(student.Student.Files) && (
+                              <span className="text-xs text-red-500">Belum semua berkas terunggah</span>
+                            )}
                           </td>
                         </tr>
                       ))}
