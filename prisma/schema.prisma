@@ -180,4 +180,5 @@ enum Role {
   Mahasiswa
   Guest
   Pengurus_IOM
+  Pewawancara
 }
