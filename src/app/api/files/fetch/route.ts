@@ -164,14 +164,16 @@ const prisma = new PrismaClient();
 
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
-
   const allowedRoles = ["Pengurus_IOM", "Pewawancara"];
+
   if (!session?.user?.id || !allowedRoles.includes(session.user.role)) {
     return NextResponse.json(
       { success: false, error: "Unauthorized" },
       { status: 403 }
     );
   }
+
+  const user_id = parseInt(session.user.id);
 
   const { period_id } = await request.json();
   const pid = Number(period_id);
@@ -183,21 +185,23 @@ export async function POST(request: Request) {
   }
 
   try {
-    const whereClause: any = {
-      period_id: pid,
-    };
+    const baseWhere = { period_id: pid };
 
-    // Apply additional filtering for Pewawancara
-    if (session.user.role === "Pewawancara") {
-      whereClause.Student = {
-        InterviewSlots: {
-          some: {
-            period_id: pid,
-            student_id: { not: null },
-          },
-        },
-      };
-    }
+    const whereClause =
+      session.user.role === "Pewawancara"
+        ? {
+            ...baseWhere,
+            Student: {
+              InterviewSlots: {
+                some: {
+                  period_id: pid,
+                  user_id: user_id,
+                  student_id: { not: null },
+                },
+              },
+            },
+          }
+        : baseWhere;
 
     const studentData = await prisma.status.findMany({
       where: whereClause,
