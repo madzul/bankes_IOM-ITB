@@ -186,7 +186,8 @@ export async function GET() {
     const userRole = session.user.role;
 
     // Different views based on role
-    if (userRole === "Pengurus_IOM") {
+    const allowedRoles = ["Pengurus_IOM", "Pewawancara"];
+    if (allowedRoles.includes(userRole)) {
       // IOM staff can see all slots
       const slots = await prisma.interviewSlot.findMany({
         include: {
@@ -284,7 +285,8 @@ export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session?.user?.id || session.user.role !== "Pengurus_IOM") {
+    const allowedRoles = ["Pengurus_IOM", "Pewawancara"];
+    if (!session?.user?.id || !allowedRoles.includes(session.user.role)) {
       return NextResponse.json(
         { success: false, error: "Unauthorized" },
         { status: 401 }
@@ -303,6 +305,26 @@ export async function POST(request: Request) {
     if (!start_time || !end_time) {
       return NextResponse.json(
         { success: false, error: "Missing required fields" },
+        { status: 400 }
+      );
+    }
+
+    const now = new Date();
+    const startDate = new Date(start_time);
+    const endDate = new Date(end_time);
+
+    // Check that start_time is in the future (or today)
+    if (startDate < now) {
+      return NextResponse.json(
+        { success: false, error: "Start time must be today or later" },
+        { status: 400 }
+      );
+    }
+
+     // Validate that start_time is before end_time
+    if (startDate >= endDate) {
+      return NextResponse.json(
+        { success: false, error: "Start time must before the End time" },
         { status: 400 }
       );
     }
