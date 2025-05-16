@@ -28,6 +28,8 @@ const Navbar: React.FC = () => {
 			? <Link href="/iom/document" className="py-2 px-5 rounded-full bg-var hover:bg-var/90 text-white flex"><LayoutDashboard className="h-fit mr-2" /><span>Dashboard</span></Link>
 			: session?.user?.role === "Admin"
 			? <Link href="/admin/account" className="py-2 px-5 rounded-full bg-var hover:bg-var/90 text-white flex"><LayoutDashboard className="h-fit mr-2" /><span>Dashboard</span></Link>
+			: session?.user?.role === "Pewawancara" 
+			? <Link href="/interviewer/interview" className="py-2 px-5 rounded-full bg-var hover:bg-var/90 text-white flex"><LayoutDashboard className="h-fit mr-2" /><span>Dashboard</span></Link>
 			: session?.user?.role === "Guest"
 			? <Link href="/login" className="py-2 px-5 rounded-full bg-var hover:bg-var/90 text-white">Masuk</Link>
 			: <Link href="/login" className="py-2 px-5 rounded-full bg-var hover:bg-var/90 text-white">Masuk</Link>}
