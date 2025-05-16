@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Toaster, toast } from "sonner";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 interface Question {
   question_id: number;
@@ -24,6 +25,14 @@ export default function ScoringQuestionDialog() {
   const [isLoading, setLoading] = useState(false);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [newQuestion, setNewQuestion] = useState("");
+
+  const [showDeleteAlert, setShowDeleteAlert] = useState(false);
+  const [questionToDelete, setQuestionToDelete] = useState<number | null>(null);
+
+  const handleDeleteQuestion = (question_id: number) => {
+    setQuestionToDelete(question_id);
+    setShowDeleteAlert(true);
+  };
 
   const handleOpenDialog = () => {
     setOpen(true);
@@ -70,29 +79,6 @@ export default function ScoringQuestionDialog() {
     } catch (error) {
       console.error("Error adding question:", error);
       toast.error("Gagal menambahkan pertanyaan.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDeleteQuestion = async (question_id: number) => {
-    if (!confirm("Apakah Anda yakin ingin menghapus pertanyaan ini?")) return;
-
-    try {
-      setLoading(true);
-      const res = await fetch("/api/questions/delete", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question_id }),
-      });
-
-      if (!res.ok) throw new Error("Failed to delete question");
-
-      setQuestions(questions.filter((q) => q.question_id !== question_id));
-      toast.success("Pertanyaan berhasil dihapus.");
-    } catch (error) {
-      console.error("Error deleting question:", error);
-      toast.error("Gagal menghapus pertanyaan.");
     } finally {
       setLoading(false);
     }
@@ -170,6 +156,49 @@ export default function ScoringQuestionDialog() {
             </Button>
           </DialogFooter>
         </DialogContent>
+
+        <AlertDialog open={showDeleteAlert} onOpenChange={setShowDeleteAlert}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Apakah Anda yakin?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Pertanyaan ini akan dihapus secara permanen. Tindakan ini tidak dapat dibatalkan.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={isLoading}>Batal</AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-red-500 hover:bg-red-600"
+                onClick={async () => {
+                  if (!questionToDelete) return;
+                  try {
+                    setLoading(true);
+                    const res = await fetch("/api/questions/delete", {
+                      method: "DELETE",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ question_id: questionToDelete }),
+                    });
+
+                    if (!res.ok) throw new Error("Failed to delete question");
+
+                    setQuestions(questions.filter((q) => q.question_id !== questionToDelete));
+                    toast.success("Pertanyaan berhasil dihapus.");
+                  } catch (error) {
+                    console.error("Error deleting question:", error);
+                    toast.error("Gagal menghapus pertanyaan.");
+                  } finally {
+                    setLoading(false);
+                    setQuestionToDelete(null);
+                    setShowDeleteAlert(false);
+                  }
+                }}
+                disabled={isLoading}
+              >
+                {isLoading ? "Menghapus..." : "Hapus"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </Dialog>
     </>
   );
