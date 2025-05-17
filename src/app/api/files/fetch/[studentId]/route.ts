@@ -62,7 +62,7 @@ const prisma = new PrismaClient();
 export async function GET(_: NextRequest, context: { params: { studentId: string } }) {
   try {
     const session = await getServerSession(authOptions);
-    const { studentId } = context.params;
+    const { studentId } = await context.params;
     const id = parseInt(studentId, 10);
 
     if (isNaN(id)) {
