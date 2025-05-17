@@ -64,7 +64,6 @@ export default function ReportPage() {
           return;
         }
         const data = await res.json();
-        console.log("Fetched students:", data); // <-- Debug output
         setStudents(data);
       } catch {
         setStudents([]);
