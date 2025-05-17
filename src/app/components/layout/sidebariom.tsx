@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { Calendar, ChartColumn, File, LogOut, BookText, Star } from "lucide-react"
+import { Calendar, ChartColumn, File, LogOut, BookText, Star, Newspaper } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useRouter } from "next/navigation"
 import { signOut, useSession } from "next-auth/react";
@@ -67,6 +67,12 @@ export default function SidebarIOM({ activeTab }: SidebarIOMProps) {
       label: "Penilaian Mahasiswa",
       link: "/iom/scoring",
       icon: <Star className="h-5 w-5" />,
+    },
+    {
+      id: "report",
+      label: "Berita Acara",
+      link: "/iom/report",
+      icon: <Newspaper className="h-5 w-5" />,
     },
   ]
 
