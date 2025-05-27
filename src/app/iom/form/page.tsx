@@ -724,7 +724,9 @@ export default function Form() {
                                 name="kegiatansosial"
                                 value="1"
                                 checked={kegiatanSosial === '1'}
-                                onChange={() => setKegiatanSosial('1')}
+                                onChange={() => {setKegiatanSosial('1');
+                                  setForm({ ...form, kegiatanEkstrakulikuler: '1'})
+                                }}
                               />
                               <span>1</span>
                             </label>
@@ -734,7 +736,9 @@ export default function Form() {
                                 name="kegiatansosial"
                                 value="2"
                                 checked={kegiatanSosial === '2'}
-                                onChange={() => setKegiatanSosial('2')}
+                                onChange={() => {setKegiatanSosial('2');
+                                  setForm({ ...form, kegiatanEkstrakulikuler: '2'})
+                                }}
                               />
                               <span>2</span>
                             </label>
@@ -744,7 +748,9 @@ export default function Form() {
                                 name="kegiatansosial"
                                 value="3"
                                 checked={kegiatanSosial === '3'}
-                                onChange={() => setKegiatanSosial('3')}
+                                onChange={() => {setKegiatanSosial('3');
+                                  setForm({ ...form, kegiatanEkstrakulikuler: '3'})
+                                }}
                               />
                               <span>3</span>
                             </label>
@@ -754,7 +760,9 @@ export default function Form() {
                                 name="kegiatansosial"
                                 value="4"
                                 checked={kegiatanSosial === '4'}
-                                onChange={() => setKegiatanSosial('4')}
+                                onChange={() => {setKegiatanSosial('4');
+                                  setForm({ ...form, kegiatanEkstrakulikuler: '4'})
+                                }}
                               />
                               <span>4</span>
                             </label>
@@ -764,7 +772,9 @@ export default function Form() {
                                 name="kegiatansosial"
                                 value="5"
                                 checked={kegiatanSosial === '5'}
-                                onChange={() => setKegiatanSosial('5')}
+                                onChange={() => {setKegiatanSosial('5');
+                                  setForm({ ...form, kegiatanEkstrakulikuler: '5'})
+                                }}
                               />
                               <span>5</span>
                             </label>
@@ -813,7 +823,9 @@ export default function Form() {
                                 name="tempattinggal"
                                 value="Kost"
                                 checked={statusTempat === 'Kost'}
-                                onChange={() => setStatusTempat('Kost')}
+                                onChange={() => {setStatusTempat('Kost');
+                                  setForm({ ...form, statusTempatTinggalDiBandung: 'Kost'})
+                                }}
                               />
                               <span>Kost</span>
                             </label>
@@ -823,7 +835,8 @@ export default function Form() {
                                 name="tempattinggal"
                                 value="Menumpang Saudara"
                                 checked={statusTempat === 'Menumpang Saudara'}
-                                onChange={() => setStatusTempat('Menumpang Saudara')}
+                                onChange={() => {setStatusTempat('Menumpang Saudara');
+                                  setForm({ ...form, statusTempatTinggalDiBandung: 'Menumpang Saudara'})}}
                               />
                               <span>Menumpang Saudara</span>
                             </label>
@@ -833,7 +846,8 @@ export default function Form() {
                                 name="tempattinggal"
                                 value="Di rumah orangtua"
                                 checked={statusTempat === 'Di rumah orangtua'}
-                                onChange={() => setStatusTempat('Di rumah orangtua')}
+                                onChange={() => {setStatusTempat('Di rumah orangtua');
+                                  setForm({ ...form, statusTempatTinggalDiBandung: 'Di rumah orangtua'})}}
                               />
                               <span>Di rumah orangtua</span>
                             </label>
@@ -853,7 +867,8 @@ export default function Form() {
                                 className="ml-6 border rounded p-2 w-full"
                                 placeholder="Tulis jawaban lain..."
                                 value={otherStatusTempat}
-                                onChange={(e) => setOtherStatusTempat(e.target.value)}
+                                onChange={(e) => {setOtherStatusTempat(e.target.value);
+                                  setForm({ ...form, statusTempatTinggalDiBandung: e.target.value})}}
                               />
                             )}
                           </div>
@@ -879,7 +894,9 @@ export default function Form() {
                                 name="jaraktempat"
                                 value="Dibawah 1 Km"
                                 checked={jarakTempat === 'Dibawah 1 Km'}
-                                onChange={() => setJarakTempat('Dibawah 1 Km')}
+                                onChange={() => {setJarakTempat('Dibawah 1 Km');
+                                  setForm({ ...form, jarakTempatTinggal: 'Dibawah 1 Km'})
+                                }}
                               />
                               <span>Dibawah 1 Km</span>
                             </label>
@@ -889,7 +906,8 @@ export default function Form() {
                                 name="jaraktempat"
                                 value="Antara 1 KM - 3 KM"
                                 checked={jarakTempat === 'Antara 1 KM - 3 KM'}
-                                onChange={() => setJarakTempat('Antara 1 KM - 3 KM')}
+                                onChange={() => {setJarakTempat('Antara 1 KM - 3 KM');
+                                  setForm({ ...form, jarakTempatTinggal: 'Antara 1 KM - 3 KM'})}}
                               />
                               <span>Antara 1 KM - 3 KM</span>
                             </label>
@@ -899,7 +917,8 @@ export default function Form() {
                                 name="jaraktempat"
                                 value="Antara 3 KM - 5 KM"
                                 checked={jarakTempat === 'Antara 3 KM - 5 KM'}
-                                onChange={() => setJarakTempat('Antara 3 KM - 5 KM')}
+                                onChange={() => {setJarakTempat('Antara 3 KM - 5 KM');
+                                  setForm({ ...form, jarakTempatTinggal: 'Antara 3 KM - 5 KM'})}}
                               />
                               <span>Antara 3 KM - 5 KM</span>
                             </label>
@@ -909,7 +928,8 @@ export default function Form() {
                                 name="jaraktempat"
                                 value="Diatas 5 KM"
                                 checked={jarakTempat === 'Diatas 5 KM'}
-                                onChange={() => setJarakTempat('Diatas 5 KM')}
+                                onChange={() => {setJarakTempat('Diatas 5 KM');
+                                  setForm({ ...form, jarakTempatTinggal: 'Diatas 5 KM'})}}
                               />
                               <span>Diatas 5 KM</span>
                             </label>
@@ -957,7 +977,9 @@ export default function Form() {
                                 name="kirimanuang"
                                 value="Dibawah Rp.300.000"
                                 checked={kirimanUang === 'Dibawah Rp.300.000'}
-                                onChange={() => setKirimanUang('Dibawah Rp.300.000')}
+                                onChange={() => {setKirimanUang('Dibawah Rp.300.000');
+                                  setForm({ ...form, kirimanUang: 'Dibawah Rp.300.000'})
+                                }}
                               />
                               <span>Dibawah Rp.300.000</span>
                             </label>
@@ -967,7 +989,8 @@ export default function Form() {
                                 name="kirimanuang"
                                 value="Antara Rp.300.001 - Rp.500.000"
                                 checked={kirimanUang === 'Antara Rp.300.001 - Rp.500.000'}
-                                onChange={() => setKirimanUang('Antara Rp.300.001 - Rp.500.000')}
+                                onChange={() => {setKirimanUang('Antara Rp.300.001 - Rp.500.000');
+                                  setForm({ ...form, kirimanUang: 'Antara Rp.300.001 - Rp.500.000'})}}
                               />
                               <span>Antara Rp.300.001 - Rp.500.000</span>
                             </label>
@@ -977,7 +1000,8 @@ export default function Form() {
                                 name="kirimanuang"
                                 value="Antara Rp.500.001 - Rp.750.000"
                                 checked={kirimanUang === 'Antara Rp.500.001 - Rp.750.000'}
-                                onChange={() => setKirimanUang('Antara Rp.500.001 - Rp.750.000')}
+                                onChange={() => {setKirimanUang('Antara Rp.500.001 - Rp.750.000');
+                                  setForm({ ...form, kirimanUang: 'Antara Rp.500.001 - Rp.750.000'})}}
                               />
                               <span>Antara Rp.500.001 - Rp.750.000</span>
                             </label>
@@ -987,7 +1011,8 @@ export default function Form() {
                                 name="kirimanuang"
                                 value="Antara Rp.750.001 - Rp.1.000.000"
                                 checked={kirimanUang === 'Antara Rp.750.001 - Rp.1.000.000'}
-                                onChange={() => setKirimanUang('Antara Rp.750.001 - Rp.1.000.000')}
+                                onChange={() => {setKirimanUang('Antara Rp.750.001 - Rp.1.000.000');
+                                  setForm({ ...form, kirimanUang: 'Antara Rp.750.001 - Rp.1.000.000'})}}
                               />
                               <span>Antara Rp.750.001 - Rp.1.000.000</span>
                             </label>
@@ -997,7 +1022,8 @@ export default function Form() {
                                 name="kirimanuang"
                                 value="Antara Rp.1.000.001 - Rp.1.250.000"
                                 checked={kirimanUang === 'Antara Rp.1.000.001 - Rp.1.250.000'}
-                                onChange={() => setKirimanUang('Antara Rp.1.000.001 - Rp.1.250.000')}
+                                onChange={() => {setKirimanUang('Antara Rp.1.000.001 - Rp.1.250.000');
+                                  setForm({ ...form, kirimanUang: 'Antara Rp.1.000.001 - Rp.1.250.000'})}}
                               />
                               <span>Antara Rp.1.000.001 - Rp.1.250.000</span>
                             </label>
@@ -1007,7 +1033,8 @@ export default function Form() {
                                 name="kirimanuang"
                                 value="Diatas Rp.1.250.000"
                                 checked={kirimanUang === 'Diatas Rp.1.250.000'}
-                                onChange={() => setKirimanUang('Diatas Rp.1.250.000')}
+                                onChange={() => {setKirimanUang('Diatas Rp.1.250.000');
+                                  setForm({ ...form, kirimanUang: 'Diatas Rp.1.250.000'})}}
                               />
                               <span>Diatas Rp.1.250.000</span>
                             </label>
@@ -1017,7 +1044,8 @@ export default function Form() {
                                 name="kirimanuang"
                                 value="Tidak tentu"
                                 checked={kirimanUang === 'Tidak tentu'}
-                                onChange={() => setKirimanUang('Tidak tentu')}
+                                onChange={() => {setKirimanUang('Tidak tentu');
+                                  setForm({ ...form, kirimanUang: 'Tidak tentu'})}}
                               />
                               <span>Tidak tentu</span>
                             </label>
@@ -1027,7 +1055,8 @@ export default function Form() {
                                 name="kirimanuang"
                                 value="Tidak mendapat kiriman"
                                 checked={kirimanUang === 'Tidak mendapat kiriman'}
-                                onChange={() => setKirimanUang('Tidak mendapat kiriman')}
+                                onChange={() => {setKirimanUang('Tidak mendapat kiriman');
+                                  setForm({ ...form, kirimanUang: 'Tidak mendapat kiriman'})}}
                               />
                               <span>Tidak mendapat kiriman</span>
                             </label>
@@ -1047,7 +1076,8 @@ export default function Form() {
                                 className="ml-6 border rounded p-2 w-full"
                                 placeholder="Tulis jawaban lain..."
                                 value={otherKirimanUang}
-                                onChange={(e) => setOtherKirimanUang(e.target.value)}
+                                onChange={(e) => {setOtherKirimanUang(e.target.value);
+                                  setForm({ ...form, kirimanUang: e.target.value})}}
                               />
                             )}
                           </div>
@@ -1085,7 +1115,9 @@ export default function Form() {
                                 name="apakahMendapatBeasiswa"
                                 value="Ya"
                                 checked={mendapatBeasiswa === 'Ya'}
-                                onChange={() => setMendapatBeasiswa('Ya')}
+                                onChange={() => {setMendapatBeasiswa('Ya');
+                                  setForm({ ...form, apakahMendapatBeasiswa: 'Ya'})
+                                }}
                               />
                               <span>Ya</span>
                             </label>
@@ -1095,7 +1127,9 @@ export default function Form() {
                                 name="apakahMendapatBeasiswa"
                                 value="Tidak"
                                 checked={mendapatBeasiswa === 'Tidak'}
-                                onChange={() => setMendapatBeasiswa('Tidak')}
+                                onChange={() => {setMendapatBeasiswa('Tidak');
+                                  setForm({ ...form, apakahMendapatBeasiswa: 'Tidak'})
+                                }}
                               />
                               <span>Tidak</span>
                             </label>
@@ -1115,7 +1149,8 @@ export default function Form() {
                                 className="ml-6 border rounded p-2 w-full"
                                 placeholder="Tulis jawaban lain..."
                                 value={otherMendapatBeasiswa}
-                                onChange={(e) => setOtherMendapatBeasiswa(e.target.value)}
+                                onChange={(e) => {setOtherMendapatBeasiswa(e.target.value)
+                                  setForm({ ...form, apakahMendapatBeasiswa: e.target.value})}}
                               />
                             )}
                           </div>
@@ -1207,7 +1242,9 @@ export default function Form() {
                                 name="statusrumah"
                                 value="Rumah sendiri di atas tanah bersertifikat resmi"
                                 checked={statusRumah === 'Rumah sendiri di atas tanah bersertifikat resmi'}
-                                onChange={() => setStatusRumah('Rumah sendiri di atas tanah bersertifikat resmi')}
+                                onChange={() => {setStatusRumah('Rumah sendiri di atas tanah bersertifikat resmi');
+                                  setForm({ ...form, statusRumahOrangTua: 'Rumah sendiri di atas tanah bersertifikat resmi'})
+                                }}
                               />
                               <span>Rumah sendiri di atas tanah bersertifikat resmi</span>
                             </label>
@@ -1217,7 +1254,8 @@ export default function Form() {
                                 name="statusrumah"
                                 value="Rumah sendiri di atas tanah sewaan negara/sewaan orang lain"
                                 checked={statusRumah === 'Rumah sendiri di atas tanah sewaan negara/sewaan orang lain'}
-                                onChange={() => setStatusRumah('Rumah sendiri di atas tanah sewaan negara/sewaan orang lain')}
+                                onChange={() => {setStatusRumah('Rumah sendiri di atas tanah sewaan negara/sewaan orang lain');
+                                  setForm({ ...form, statusRumahOrangTua: 'Rumah sendiri di atas tanah sewaan negara/sewaan orang lain'})}}
                               />
                               <span>Rumah sendiri di atas tanah sewaan negara/sewaan orang lain</span>
                             </label>
@@ -1227,7 +1265,8 @@ export default function Form() {
                                 name="statusrumah"
                                 value="Rumah pinjaman keluarga"
                                 checked={statusRumah === 'Rumah pinjaman keluarga'}
-                                onChange={() => setStatusRumah('Rumah pinjaman keluarga')}
+                                onChange={() =>{ setStatusRumah('Rumah pinjaman keluarga');
+                                  setForm({ ...form, statusRumahOrangTua: 'Rumah pinjaman keluarga'})}}
                               />
                               <span>Rumah pinjaman keluarga</span>
                             </label>
@@ -1237,7 +1276,8 @@ export default function Form() {
                                 name="statusrumah"
                                 value="Rumah menumpang kepada saudara /kerabat/teman"
                                 checked={statusRumah === 'Rumah menumpang kepada saudara /kerabat/teman'}
-                                onChange={() => setStatusRumah('Rumah menumpang kepada saudara /kerabat/teman')}
+                                onChange={() => {setStatusRumah('Rumah menumpang kepada saudara /kerabat/teman');
+                                  setForm({ ...form, statusRumahOrangTua: 'Rumah menumpang kepada saudara /kerabat/teman'})}}
                               />
                               <span>Rumah menumpang kepada saudara /kerabat/teman</span>
                             </label>
@@ -1247,7 +1287,8 @@ export default function Form() {
                                 name="statusrumah"
                                 value="Rumah sewaan (kontrakan)"
                                 checked={statusRumah === 'Rumah sewaan (kontrakan)'}
-                                onChange={() => setStatusRumah('Rumah sewaan (kontrakan)')}
+                                onChange={() => {setStatusRumah('Rumah sewaan (kontrakan)');
+                                  setForm({ ...form, statusRumahOrangTua: 'Rumah sewaan (kontrakan)'})}}
                               />
                               <span>Rumah sewaan (kontrakan)</span>
                             </label>
@@ -1263,7 +1304,9 @@ export default function Form() {
                                 name="sumberpenghasilan"
                                 value="Ayah ibu bekerja"
                                 checked={sumberPenghasilan === 'Ayah ibu bekerja'}
-                                onChange={() => setSumberPenghasilan('Ayah ibu bekerja')}
+                                onChange={() => {setSumberPenghasilan('Ayah ibu bekerja');
+                                  setForm({ ...form, sumberPenghasilanOrangTua: 'Ayah ibu bekerja'})
+                                }}
                               />
                               <span>Ayah ibu bekerja</span>
                             </label>
@@ -1273,7 +1316,8 @@ export default function Form() {
                                 name="sumberpenghasilan"
                                 value="Ayah ibu tidak bekerja"
                                 checked={sumberPenghasilan === 'Ayah ibu tidak bekerja'}
-                                onChange={() => setSumberPenghasilan('Ayah ibu tidak bekerja')}
+                                onChange={() => {setSumberPenghasilan('Ayah ibu tidak bekerja');
+                                  setForm({ ...form, sumberPenghasilanOrangTua: 'Ayah ibu tidak bekerja'})}}
                               />
                               <span>Ayah ibu tidak bekerja</span>
                             </label>
@@ -1283,7 +1327,8 @@ export default function Form() {
                                 name="sumberpenghasilan"
                                 value="Ayah bekerja, ibu tidak bekerja"
                                 checked={sumberPenghasilan === 'Ayah bekerja, ibu tidak bekerja'}
-                                onChange={() => setSumberPenghasilan('Ayah bekerja, ibu tidak bekerja')}
+                                onChange={() => {setSumberPenghasilan('Ayah bekerja, ibu tidak bekerja');
+                                  setForm({ ...form, sumberPenghasilanOrangTua: 'Ayah bekerja, ibu tidak bekerja'})}}
                               />
                               <span>Ayah bekerja, ibu tidak bekerja</span>
                             </label>
@@ -1293,7 +1338,8 @@ export default function Form() {
                                 name="sumberpenghasilan"
                                 value="Ayah tidak bekerja, ibu bekerja"
                                 checked={sumberPenghasilan === 'Ayah tidak bekerja, ibu bekerja'}
-                                onChange={() => setSumberPenghasilan('Ayah tidak bekerja, ibu bekerja')}
+                                onChange={() => {setSumberPenghasilan('Ayah tidak bekerja, ibu bekerja');
+                                  setForm({ ...form, sumberPenghasilanOrangTua: 'Ayah tidak bekerja, ibu bekerja'})}}
                               />
                               <span>Ayah tidak bekerja, ibu bekerja</span>
                             </label>
@@ -1320,7 +1366,9 @@ export default function Form() {
                                 name="slipgaji"
                                 value="Ya"
                                 checked={slipGaji === 'Ya'}
-                                onChange={() => setSlipGaji('Ya')}
+                                onChange={() => {setSlipGaji('Ya');
+                                  setForm({ ...form, apakahMahasiswaDapat: 'Ya' })
+                                }}
                               />
                               <span>Ya</span>
                             </label>
@@ -1330,7 +1378,8 @@ export default function Form() {
                                 name="slipgaji"
                                 value="Tidak"
                                 checked={slipGaji === 'Tidak'}
-                                onChange={() => setSlipGaji('Tidak')}
+                                onChange={() => {setSlipGaji('Tidak');
+                                  setForm({ ...form, apakahMahasiswaDapat: 'Tidak' })}}
                               />
                               <span>Tidak</span>
                             </label>
@@ -1390,7 +1439,9 @@ export default function Form() {
                                 name="prt"
                                 value="Ya"
                                 checked={memilikiPRT === 'Ya'}
-                                onChange={() => setMemilikiPRT('Ya')}
+                                onChange={() => {setMemilikiPRT('Ya');
+                                  setForm({ ...form, apakahDiRumah: 'Ya'})
+                                }}
                               />
                               <span>Ya</span>
                             </label>
@@ -1400,7 +1451,8 @@ export default function Form() {
                                 name="prt"
                                 value="Tidak"
                                 checked={memilikiPRT === 'Tidak'}
-                                onChange={() => setMemilikiPRT('Tidak')}
+                                onChange={() => {setMemilikiPRT('Tidak');
+                                  setForm({ ...form, apakahDiRumah: 'Tidak'})}}
                               />
                               <span>Tidak</span>
                             </label>
@@ -1410,7 +1462,8 @@ export default function Form() {
                                 name="prt"
                                 value="Dipanggil sewaktu waktu saja"
                                 checked={memilikiPRT === 'Dipanggil sewaktu waktu saja'}
-                                onChange={() => setMemilikiPRT('Dipanggil sewaktu waktu saja')}
+                                onChange={() => {setMemilikiPRT('Dipanggil sewaktu waktu saja');
+                                  setForm({ ...form, apakahDiRumah: 'Dipanggil sewaktu waktu saja'})}}
                               />
                               <span>Dipanggil sewaktu waktu saja</span>
                             </label>
@@ -1426,7 +1479,9 @@ export default function Form() {
                                 name="kesimpulanekonomi"
                                 value="1"
                                 checked={kesimpulanEkonomi === '1'}
-                                onChange={() => setKesimpulanEkonomi('1')}
+                                onChange={() => {setKesimpulanEkonomi('1');
+                                  setForm({ ...form, kesimpulanKemampuanEkonomi: '1'})
+                                }}
                               />
                               <span>1</span>
                             </label>
@@ -1436,7 +1491,9 @@ export default function Form() {
                                 name="kesimpulanekonomi"
                                 value="2"
                                 checked={kesimpulanEkonomi === '2'}
-                                onChange={() => setKesimpulanEkonomi('2')}
+                                onChange={() => {setKesimpulanEkonomi('2');
+                                  setForm({ ...form, kesimpulanKemampuanEkonomi: '2'})
+                                }}
                               />
                               <span>2</span>
                             </label>
@@ -1446,7 +1503,9 @@ export default function Form() {
                                 name="kesimpulanekonomi"
                                 value="3"
                                 checked={kesimpulanEkonomi === '3'}
-                                onChange={() => setKesimpulanEkonomi('3')}
+                                onChange={() => {setKesimpulanEkonomi('3');
+                                  setForm({ ...form, kesimpulanKemampuanEkonomi: '3'})
+                                }}
                               />
                               <span>3</span>
                             </label>
@@ -1456,7 +1515,9 @@ export default function Form() {
                                 name="kesimpulanekonomi"
                                 value="4"
                                 checked={kesimpulanEkonomi === '4'}
-                                onChange={() => setKesimpulanEkonomi('4')}
+                                onChange={() => {setKesimpulanEkonomi('4');
+                                  setForm({ ...form, kesimpulanKemampuanEkonomi: '4'})
+                                }}
                               />
                               <span>4</span>
                             </label>
@@ -1466,7 +1527,9 @@ export default function Form() {
                                 name="kesimpulanekonomi"
                                 value="5"
                                 checked={kesimpulanEkonomi === '5'}
-                                onChange={() => setKesimpulanEkonomi('5')}
+                                onChange={() => {setKesimpulanEkonomi('5');
+                                  setForm({ ...form, kesimpulanKemampuanEkonomi: '5'})
+                                }}
                               />
                               <span>5</span>
                             </label>
@@ -1482,7 +1545,9 @@ export default function Form() {
                                 name="kesimpulankecukupan"
                                 value="1"
                                 checked={kesimpulanKecukupan === '1'}
-                                onChange={() => setKesimpulanKecukupan('1')}
+                                onChange={() => {setKesimpulanKecukupan('1');
+                                  setForm({...form, kesimpulanKecukupanBiayaHidup: '1'})
+                                }}
                               />
                               <span>1</span>
                             </label>
@@ -1492,7 +1557,9 @@ export default function Form() {
                                 name="kesimpulankecukupan"
                                 value="2"
                                 checked={kesimpulanKecukupan === '2'}
-                                onChange={() => setKesimpulanKecukupan('2')}
+                                onChange={() => {setKesimpulanKecukupan('2');
+                                  setForm({...form, kesimpulanKecukupanBiayaHidup: '2'})
+                                }}
                               />
                               <span>2</span>
                             </label>
@@ -1502,7 +1569,9 @@ export default function Form() {
                                 name="kesimpulankecukupan"
                                 value="3"
                                 checked={kesimpulanKecukupan === '3'}
-                                onChange={() => setKesimpulanKecukupan('3')}
+                                onChange={() => {setKesimpulanKecukupan('3');
+                                  setForm({...form, kesimpulanKecukupanBiayaHidup: '3'})
+                                }}
                               />
                               <span>3</span>
                             </label>
@@ -1512,7 +1581,9 @@ export default function Form() {
                                 name="kesimpulankecukupan"
                                 value="4"
                                 checked={kesimpulanKecukupan === '4'}
-                                onChange={() => setKesimpulanKecukupan('4')}
+                                onChange={() => {setKesimpulanKecukupan('4');
+                                  setForm({...form, kesimpulanKecukupanBiayaHidup: '4'})
+                                }}
                               />
                               <span>4</span>
                             </label>
@@ -1522,7 +1593,9 @@ export default function Form() {
                                 name="kesimpulankecukupan"
                                 value="5"
                                 checked={kesimpulanKecukupan === '5'}
-                                onChange={() => setKesimpulanKecukupan('5')}
+                                onChange={() => {setKesimpulanKecukupan('5');
+                                  setForm({...form, kesimpulanKecukupanBiayaHidup: '5'})
+                                }}
                               />
                               <span>5</span>
                             </label>
@@ -1538,7 +1611,9 @@ export default function Form() {
                                 name="kesimpulanpenggunaan"
                                 value="Beasiswa sepenuhnya akan digunakan untuk biaya kuliah dan biaya hidup"
                                 checked={kesimpulanPenggunaan === 'Beasiswa sepenuhnya akan digunakan untuk biaya kuliah dan biaya hidup'}
-                                onChange={() => setKesimpulanPenggunaan('Beasiswa sepenuhnya akan digunakan untuk biaya kuliah dan biaya hidup')}
+                                onChange={() => {setKesimpulanPenggunaan('Beasiswa sepenuhnya akan digunakan untuk biaya kuliah dan biaya hidup');
+                                  setForm({...form, kesimpulanPenggunaanDana: 'Beasiswa sepenuhnya akan digunakan untuk biaya kuliah dan biaya hidup'})
+                                }}
                               />
                               <span>Beasiswa sepenuhnya akan digunakan untuk biaya kuliah dan biaya hidup</span>
                             </label>
@@ -1548,7 +1623,8 @@ export default function Form() {
                                 name="kesimpulanpenggunaan"
                                 value="Beasiswa dibutuhkan untuk biaya kuliah"
                                 checked={kesimpulanPenggunaan === 'Beasiswa dibutuhkan untuk biaya kuliah'}
-                                onChange={() => setKesimpulanPenggunaan('Beasiswa dibutuhkan untuk biaya kuliah')}
+                                onChange={() => {setKesimpulanPenggunaan('Beasiswa dibutuhkan untuk biaya kuliah');
+                                  setForm({...form, kesimpulanPenggunaanDana: 'Beasiswa dibutuhkan untuk biaya kuliah'})}}
                               />
                               <span>Beasiswa dibutuhkan untuk biaya kuliah</span>
                             </label>
@@ -1558,7 +1634,8 @@ export default function Form() {
                                 name="kesimpulanpenggunaan"
                                 value="Beasiswa dibutuhkan untuk biaya hidup"
                                 checked={kesimpulanPenggunaan === 'Beasiswa dibutuhkan untuk biaya hidup'}
-                                onChange={() => setKesimpulanPenggunaan('Beasiswa dibutuhkan untuk biaya hidup')}
+                                onChange={() => {setKesimpulanPenggunaan('Beasiswa dibutuhkan untuk biaya hidup');
+                                  setForm({...form, kesimpulanPenggunaanDana: 'Beasiswa dibutuhkan untuk biaya hidup'})}}
                               />
                               <span>Beasiswa dibutuhkan untuk biaya hidup</span>
                             </label>
@@ -1568,7 +1645,8 @@ export default function Form() {
                                 name="kesimpulanpenggunaan"
                                 value="Beasiswa lebih banyak digunakan untuk kebutuhan lain yang tidak mendesak"
                                 checked={kesimpulanPenggunaan === 'Beasiswa lebih banyak digunakan untuk kebutuhan lain yang tidak mendesak'}
-                                onChange={() => setKesimpulanPenggunaan('Beasiswa lebih banyak digunakan untuk kebutuhan lain yang tidak mendesak')}
+                                onChange={() => {setKesimpulanPenggunaan('Beasiswa lebih banyak digunakan untuk kebutuhan lain yang tidak mendesak');
+                                  setForm({...form, kesimpulanPenggunaanDana: 'Beasiswa lebih banyak digunakan untuk kebutuhan lain yang tidak mendesak'})}}
                               />
                               <span>Beasiswa lebih banyak digunakan untuk kebutuhan lain yang tidak mendesak</span>
                             </label>
@@ -1584,7 +1662,9 @@ export default function Form() {
                                 name="kesimpulanmotivasi"
                                 value="Motivasi dan tujuan jangka panjang sangat jelas, realistis dan penuh determinasi"
                                 checked={kesimpulanMotivasi === 'Motivasi dan tujuan jangka panjang sangat jelas, realistis dan penuh determinasi'}
-                                onChange={() => setKesimpulanMotivasi('Motivasi dan tujuan jangka panjang sangat jelas, realistis dan penuh determinasi')}
+                                onChange={() => {setKesimpulanMotivasi('Motivasi dan tujuan jangka panjang sangat jelas, realistis dan penuh determinasi');
+                                  setForm({ ...form, kesimpulanMotivasiPribadi: 'Motivasi dan tujuan jangka panjang sangat jelas, realistis dan penuh determinasi'})
+                                }}
                               />
                               <span>Motivasi dan tujuan jangka panjang sangat jelas, realistis dan penuh determinasi</span>
                             </label>
@@ -1594,7 +1674,8 @@ export default function Form() {
                                 name="kesimpulanmotivasi"
                                 value="Motivasi tinggi namun kurang terlihat penjelasan tujuan jangka panjang"
                                 checked={kesimpulanMotivasi === 'Motivasi tinggi namun kurang terlihat penjelasan tujuan jangka panjang'}
-                                onChange={() => setKesimpulanMotivasi('Motivasi tinggi namun kurang terlihat penjelasan tujuan jangka panjang')}
+                                onChange={() => {setKesimpulanMotivasi('Motivasi tinggi namun kurang terlihat penjelasan tujuan jangka panjang');
+                                  setForm({ ...form, kesimpulanMotivasiPribadi: 'Motivasi tinggi namun kurang terlihat penjelasan tujuan jangka panjang'})}}
                               />
                               <span>Motivasi tinggi namun kurang terlihat penjelasan tujuan jangka panjang</span>
                             </label>
@@ -1604,7 +1685,8 @@ export default function Form() {
                                 name="kesimpulanmotivasi"
                                 value="Tujuan jangka panjang baik namun motivasi rendah"
                                 checked={kesimpulanMotivasi === 'Tujuan jangka panjang baik namun motivasi rendah'}
-                                onChange={() => setKesimpulanMotivasi('Tujuan jangka panjang baik namun motivasi rendah')}
+                                onChange={() => {setKesimpulanMotivasi('Tujuan jangka panjang baik namun motivasi rendah');
+                                  setForm({ ...form, kesimpulanMotivasiPribadi: 'Tujuan jangka panjang baik namun motivasi rendah'})}}
                               />
                               <span>Tujuan jangka panjang baik namun motivasi rendah</span>
                             </label>
@@ -1614,7 +1696,8 @@ export default function Form() {
                                 name="kesimpulanmotivasi"
                                 value="Tidak memiliki tujuan jangka panjang atau motivasi yang rendah"
                                 checked={kesimpulanMotivasi === 'Tidak memiliki tujuan jangka panjang atau motivasi yang rendah'}
-                                onChange={() => setKesimpulanMotivasi('Tidak memiliki tujuan jangka panjang atau motivasi yang rendah')}
+                                onChange={() => {setKesimpulanMotivasi('Tidak memiliki tujuan jangka panjang atau motivasi yang rendah');
+                                  setForm({ ...form, kesimpulanMotivasiPribadi: 'Tidak memiliki tujuan jangka panjang atau motivasi yang rendah'})}}
                               />
                               <span>Tidak memiliki tujuan jangka panjang atau motivasi yang rendah</span>
                             </label>
