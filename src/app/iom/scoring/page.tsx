@@ -490,7 +490,7 @@ export default function Scoring() {
                           <button
                             onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                             disabled={currentPage === 1}
-                            className="px-2 py-2 rounded border border-2 hover:bg-gray-200 text-sm disabled:opacity-50"
+                            className="px-2 py-2 rounded border-2 hover:bg-gray-200 text-sm disabled:opacity-50"
                           >
                             Previous
                           </button>
@@ -511,7 +511,7 @@ export default function Scoring() {
                                   className={`px-2 py-2 text-sm rounded ${
                                     currentPage === page
                                       ? "bg-[#003793] text-white"
-                                      : "border border-2 hover:bg-gray-200 text-gray-700 hover:bg-gray-300"
+                                      : "border-2 hover:bg-gray-200 text-gray-700"
                                   }`}
                                 >
                                   {page}
@@ -523,7 +523,7 @@ export default function Scoring() {
                           <button
                             onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
                             disabled={currentPage === totalPages}
-                            className="px-2 py-2 rounded border border-2 hover:bg-gray-200 text-sm disabled:opacity-50"
+                            className="px-2 py-2 rounded border-2 hover:bg-gray-200 text-sm disabled:opacity-50"
                           >
                             Next
                           </button>

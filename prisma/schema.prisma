@@ -101,13 +101,13 @@ model Period {
 
 model Notes {
   slot_id    Int
-  student_id Int
+  user_id    Int
   text       String
 
   slot    InterviewSlot @relation(fields: [slot_id], references: [id], onDelete: Cascade)
-  student Student       @relation(fields: [student_id], references: [student_id], onDelete: Cascade)
+  student Student       @relation(fields: [user_id], references: [student_id], onDelete: Cascade)
 
-  @@id([slot_id, student_id])
+  @@id([slot_id, user_id])
 }
 
 model InterviewParticipant {
