@@ -1713,7 +1713,9 @@ export default function Form() {
                                 name="dukungan"
                                 value="1"
                                 checked={dukungan === '1'}
-                                onChange={() => setDukungan('1')}
+                                onChange={() => {setDukungan('1');
+                                  setForm({ ...form, dukunganDariLingkungan: '1'})
+                                }}
                               />
                               <span>1</span>
                             </label>
@@ -1723,7 +1725,9 @@ export default function Form() {
                                 name="dukungan"
                                 value="2"
                                 checked={dukungan === '2'}
-                                onChange={() => setDukungan('2')}
+                                onChange={() => {setDukungan('2');
+                                  setForm({ ...form, dukunganDariLingkungan: '2'})
+                                }}
                               />
                               <span>2</span>
                             </label>
@@ -1733,7 +1737,9 @@ export default function Form() {
                                 name="dukungan"
                                 value="3"
                                 checked={dukungan === '3'}
-                                onChange={() => setDukungan('3')}
+                                onChange={() => {setDukungan('3');
+                                  setForm({ ...form, dukunganDariLingkungan: '3'})
+                                }}
                               />
                               <span>3</span>
                             </label>
@@ -1743,7 +1749,9 @@ export default function Form() {
                                 name="dukungan"
                                 value="4"
                                 checked={dukungan === '4'}
-                                onChange={() => setDukungan('4')}
+                                onChange={() => {setDukungan('4');
+                                  setForm({ ...form, dukunganDariLingkungan: '4'})
+                                }}
                               />
                               <span>4</span>
                             </label>
@@ -1753,7 +1761,9 @@ export default function Form() {
                                 name="dukungan"
                                 value="5"
                                 checked={dukungan === '5'}
-                                onChange={() => setDukungan('5')}
+                                onChange={() => {setDukungan('5');
+                                  setForm({ ...form, dukunganDariLingkungan: '5'})
+                                }}
                               />
                               <span>5</span>
                             </label>
@@ -1769,7 +1779,9 @@ export default function Form() {
                                 name="keinginanmembantu"
                                 value="1"
                                 checked={keinginanMembantu === '1'}
-                                onChange={() => setKeinginanMembantu('1')}
+                                onChange={() => {setKeinginanMembantu('1');
+                                  setForm({ ...form, keinginanUntukMembantu: '1'})
+                                }}
                               />
                               <span>1</span>
                             </label>
@@ -1779,7 +1791,9 @@ export default function Form() {
                                 name="keinginanmembantu"
                                 value="2"
                                 checked={keinginanMembantu === '2'}
-                                onChange={() => setKeinginanMembantu('2')}
+                                onChange={() => {setKeinginanMembantu('2');
+                                  setForm({ ...form, keinginanUntukMembantu: '2'})
+                                }}
                               />
                               <span>2</span>
                             </label>
@@ -1789,7 +1803,9 @@ export default function Form() {
                                 name="keinginanmembantu"
                                 value="3"
                                 checked={keinginanMembantu === '3'}
-                                onChange={() => setKeinginanMembantu('3')}
+                                onChange={() => {setKeinginanMembantu('3');
+                                  setForm({ ...form, keinginanUntukMembantu: '3'})
+                                }}
                               />
                               <span>3</span>
                             </label>
@@ -1799,7 +1815,9 @@ export default function Form() {
                                 name="keinginanmembantu"
                                 value="4"
                                 checked={keinginanMembantu === '4'}
-                                onChange={() => setKeinginanMembantu('4')}
+                                onChange={() => {setKeinginanMembantu('4');
+                                  setForm({ ...form, keinginanUntukMembantu: '4'})
+                                }}
                               />
                               <span>4</span>
                             </label>
@@ -1809,7 +1827,9 @@ export default function Form() {
                                 name="keinginanmembantu"
                                 value="5"
                                 checked={keinginanMembantu === '5'}
-                                onChange={() => setKeinginanMembantu('5')}
+                                onChange={() => {setKeinginanMembantu('5');
+                                  setForm({ ...form, keinginanUntukMembantu: '5'})
+                                }}
                               />
                               <span>5</span>
                             </label>
@@ -1825,7 +1845,9 @@ export default function Form() {
                                 name="keinginankontribusi"
                                 value="1"
                                 checked={keinginanKontribusi === '1'}
-                                onChange={() => setKeinginanKontribusi('1')}
+                                onChange={() => {setKeinginanKontribusi('1');
+                                  setForm({ ...form, keinginanUntukBerkontribusi: '1'})
+                                }}
                               />
                               <span>1</span>
                             </label>
@@ -1835,7 +1857,9 @@ export default function Form() {
                                 name="keinginankontribusi"
                                 value="2"
                                 checked={keinginanKontribusi === '2'}
-                                onChange={() => setKeinginanKontribusi('2')}
+                                onChange={() => {setKeinginanKontribusi('2');
+                                  setForm({ ...form, keinginanUntukBerkontribusi: '2'})
+                                }}
                               />
                               <span>2</span>
                             </label>
@@ -1845,7 +1869,9 @@ export default function Form() {
                                 name="keinginankontribusi"
                                 value="3"
                                 checked={keinginanKontribusi === '3'}
-                                onChange={() => setKeinginanKontribusi('3')}
+                                onChange={() => {setKeinginanKontribusi('3');
+                                  setForm({ ...form, keinginanUntukBerkontribusi: '3'})
+                                }}
                               />
                               <span>3</span>
                             </label>
@@ -1855,7 +1881,9 @@ export default function Form() {
                                 name="keinginankontribusi"
                                 value="4"
                                 checked={keinginanKontribusi === '4'}
-                                onChange={() => setKeinginanKontribusi('4')}
+                                onChange={() => {setKeinginanKontribusi('4');
+                                  setForm({ ...form, keinginanUntukBerkontribusi: '4'})
+                                }}
                               />
                               <span>4</span>
                             </label>
@@ -1865,7 +1893,9 @@ export default function Form() {
                                 name="keinginankontribusi"
                                 value="5"
                                 checked={keinginanKontribusi === '5'}
-                                onChange={() => setKeinginanKontribusi('5')}
+                                onChange={() => {setKeinginanKontribusi('5');
+                                  setForm({ ...form, keinginanUntukBerkontribusi: '5'})
+                                }}
                               />
                               <span>5</span>
                             </label>
@@ -1892,7 +1922,9 @@ export default function Form() {
                                 name="rekomendasi"
                                 value="Ya"
                                 checked={rekomendasi === 'Ya'}
-                                onChange={() => setRekomendasi('Ya')}
+                                onChange={() => {setRekomendasi('Ya');
+                                  setForm({ ...form, rekomendasiUntukMendapat: 'Ya'})
+                                }}
                               />
                               <span>Ya</span>
                             </label>
@@ -1902,7 +1934,8 @@ export default function Form() {
                                 name="rekomendasi"
                                 value="Tidak"
                                 checked={rekomendasi === 'Tidak'}
-                                onChange={() => setRekomendasi('Tidak')}
+                                onChange={() => {setRekomendasi('Tidak');
+                                  setForm({ ...form, rekomendasiUntukMendapat: 'Tidak'})}}
                               />
                               <span>Tidak</span>
                             </label>
