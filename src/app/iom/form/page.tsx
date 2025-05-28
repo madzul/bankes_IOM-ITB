@@ -37,11 +37,8 @@ export default function Form() {
 
   const indexOfLastStudent = currentPage * itemsPerPage;
   const indexOfFirstStudent = indexOfLastStudent - itemsPerPage;
-  const currentStudents = filteredStudents.slice(indexOfFirstStudent, indexOfLastStudent);
+  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null)
   const totalPages = Math.ceil(filteredStudents.length / itemsPerPage);
-
-
-  const [currentStudent, setCurrentStudent] = useState<number | null>(null);
 
   const fetchPeriods = async () => {
     try {
@@ -105,7 +102,7 @@ export default function Form() {
             const fetchedStudents = await fetchStudentsByPeriod(currentPeriod.period_id);
             if (fetchedStudents && fetchedStudents.length > 0) {
               const defaultStudent = fetchedStudents[0];
-              setCurrentStudent(defaultStudent.student_id);
+              setSelectedStudent(defaultStudent);
               
               
             }
@@ -232,8 +229,34 @@ export default function Form() {
     const body = JSON.stringify({
     ...form,
     })
-    console.log(body,);
-    alert('Form submitted!');
+    // console.log(body,);
+    try {
+      // Send to API
+      const response = await fetch("/api/form/save", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          period_id: selectedPeriod?.period_id,
+          nim: selectedStudent?.student.nim,
+          formData: body,
+        }),
+      })
+
+      if (response.ok) {
+        // Update the student in the local state
+
+        toast.success("Form data saved successfully")
+      } else {
+        throw new Error("Failed to save form data")
+      }
+    } catch (error) {
+      console.error("Error saving form:", error);
+      toast.error("Failed to save form data");
+    } finally {
+
+    }
   };
 
   const handlePeriodChange = async (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -274,22 +297,64 @@ export default function Form() {
   
   // Update the handleStudentClick function to fetch the status record as well
   const handleStudentClick = async (student: Student) => {
-    const studentId = student.user_id;
-    setCurrentStudent(studentId);
+    setSelectedStudent(student);
     setLoading(true);
-    
     try {
-      // Fetch score matrix
-      // const scoreMatrixResponse = await fetchScoreMatrix(student);
-      // setScoreMatrix(scoreMatrixResponse);
-      
-      // Fetch the student's status to get the amount
-      const statusResponse = await fetch(`/api/status/${studentId}/${selectedPeriod?.period_id}`);
-      if (statusResponse.ok) {
-        const statusData = await statusResponse.json();
-        // Set the amount from the status record, defaulting to "0" if it's null
+      const fileResponse = await fetch("/api/form/get", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          period_id: selectedPeriod?.period_id ,
+          user_id: student.user_id
+        }),
+      });
+
+      if (!fileResponse.ok) {
+        throw new Error("Failed to fetch student files");
+      }
+      const fileData = await fileResponse.json();
+      if (fileData.success) {
+        const parsedData = JSON.parse(fileData.data.text);
+        setForm(parsedData);
+        setJenisKelamin(parsedData.jenisKelamin);
+        setjalurMasuk(parsedData.jalurMasukITB);
+        setPrestasiAkademik(parsedData.prestasiAkademik);
+        setKegiatanSosial(parsedData.kegiatanEkstrakulikuler);
+        if(['Kost','Menumpang Saudara','Di rumah orangtua'].includes(parsedData.statusTempatTinggalDiBandung)){
+          setStatusTempat(parsedData.statusTempatTinggalDiBandung);
+        } else {
+          setStatusTempat("Lainnya :");
+          setOtherStatusTempat(parsedData.statusTempatTinggalDiBandung);
+        }
+        setJarakTempat(parsedData.jarakTempatTinggal);
+        if(['Tidak mendapat kiriman','Tidak tentu','Diatas Rp.1.250.000','Antara Rp.1.000.001 - Rp.1.250.000','Antara Rp.750.001 - Rp.1.000.000','Antara Rp.500.001 - Rp.750.000','Antara Rp.300.001 - Rp.500.000','Dibawah Rp.300.000'].includes(parsedData.kirimanUang)){
+          setKirimanUang(parsedData.kirimanUang);
+        } else {
+          setKirimanUang('Lainnya :');
+          setOtherKirimanUang(parsedData.kirimanUang);
+        }
+        if(['Ya','Tidak'].includes(parsedData.apakahMendapatBeasiswa)){
+          setMendapatBeasiswa(parsedData.apakahMendapatBeasiswa);
+        } else {
+          setMendapatBeasiswa('Lainnya :');
+          setOtherMendapatBeasiswa(parsedData.apakahMendapatBeasiswa);
+        }
+        setStatusRumah(parsedData.statusRumahOrangTua);
+        setSumberPenghasilan(parsedData.sumberPenghasilanOrangTua);
+        setSlipGaji(parsedData.apakahMahasiswaDapat);
+        setMemilikiPRT(parsedData.apakahDiRumah);
+        setKesimpulanEkonomi(parsedData.kesimpulanKemampuanEkonomi);
+        setKesimpulanKecukupan(parsedData.kesimpulanKecukupanBiayaHidup);
+        setKesimpulanPenggunaan(parsedData.kesimpulanPenggunaanDana);
+        setKesimpulanMotivasi(parsedData.kesimpulanMotivasiPribadi);
+        setDukungan(parsedData.dukunganDariLingkungan);
+        setKeinginanMembantu(parsedData.keinginanUntukMembantu);
+        setKeinginanKontribusi(parsedData.keinginanUntukBerkontribusi);
+        setRekomendasi(parsedData.rekomendasiUntukMendapat)
       } else {
-        // If there's an error or no status record, default to "0"
+        console.error("Error fetching student files:", fileData.error);
       }
     } catch (error) {
       console.error("Error fetching student data:", error);
@@ -365,7 +430,7 @@ export default function Form() {
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-200">
                               {students.map((student, index) => {
-                                const isSelected = student.user_id === currentStudent;
+                                const isSelected = student.user_id === selectedStudent?.user_id;
 
                                 return (
                                   <tr
