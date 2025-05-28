@@ -25,7 +25,7 @@ interface Status {
   passIOM: boolean;
 }
 
-interface Student {
+export interface Student {
   student_id: number;
   period_id: number;
   passDitmawa: boolean;
