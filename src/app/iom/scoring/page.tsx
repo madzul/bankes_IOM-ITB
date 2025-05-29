@@ -13,13 +13,6 @@ interface Period {
   is_current: boolean;
 }
 
-interface File {
-  file_id: number;
-  file_url: string;
-  file_name: string;
-  type: string;
-}
-
 interface Status {
   passDitmawa: boolean;
   passIOM: boolean;
@@ -36,7 +29,6 @@ interface Student {
       user_id: number;
       name: string;
     };
-    Files: File[];
     Statuses: Status[];
   };
 }
@@ -95,11 +87,7 @@ export default function Scoring() {
 
   const fetchStudentsByPeriod = async (periodId: number) => {
     try {
-      const response = await fetch("/api/files/fetch", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ period_id: periodId }),
-      });
+      const response = await fetch(`/api/student/scoring?period_id=${ periodId }`);
   
       if (!response.ok) {
         throw new Error("Failed to fetch students");
@@ -230,26 +218,7 @@ export default function Scoring() {
       const selectedId = event.target.value;
       const selected = periods.find((period) => period.period_id === parseInt(selectedId, 10));
       setSelectedPeriod(selected || null);
-      if (selected) {
-        const fileResponse = await fetch("/api/files/fetch", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ period_id: selected?.period_id }),
-        });
-        if (!fileResponse.ok) {
-          throw new Error("Failed to fetch student files");
-        }
-        const fileData = await fileResponse.json();
-        if (fileData.success) {
-          setStudents(fileData.data);
-        } else {
-          console.error("Error fetching student files:", fileData.error);
-        }
-      } else {
-        setStudents([]);
-      }
+      fetchStudentsByPeriod(Number(selected?.period_id));
     } catch (error) {
       console.error("Error:", error);
     } finally {
