@@ -22,4 +22,10 @@ echo "🚀 Running Prisma migrations…"
 npx prisma migrate deploy
 
 echo "🎉 Starting app…"
-exec "$@"
+
+# If no arguments passed, default to npm start
+if [ $# -eq 0 ]; then
+    exec npm start
+else
+    exec "$@"
+fi
