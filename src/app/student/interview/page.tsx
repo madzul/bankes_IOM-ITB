@@ -14,12 +14,8 @@ import { toast, Toaster } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import dynamic from "next/dynamic";
+import StudentCalendarView from "./components/StudentCalendarView";
 
-// Dynamically import calendar view component
-const StudentCalendarView = dynamic(() => import("./components/StudentCalendarView"), {
-  loading: () => <div className="w-full text-center py-10">Loading calendar view...</div>,
-});
 
 // Types
 interface InterviewParticipant {

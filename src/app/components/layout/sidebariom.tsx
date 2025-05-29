@@ -5,7 +5,7 @@ import { Calendar, ChartColumn, File, LogOut, BookText, Star, Newspaper, Menu, X
 import { cn } from "@/lib/utils"
 import { useRouter } from "next/navigation"
 import { signOut, useSession } from "next-auth/react";
-import { useEffect, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import Image from "next/image";
 
 type NavItem = {
@@ -19,7 +19,7 @@ type SidebarIOMProps = {
   activeTab: string
 }
 
-export default function SidebarIOM({ activeTab }: SidebarIOMProps) {
+function SidebarIOM({ activeTab }: SidebarIOMProps) {
   const router = useRouter()
   const { data: session } = useSession();
   const [name, setName] = useState<string | null>(null);
@@ -173,3 +173,5 @@ export default function SidebarIOM({ activeTab }: SidebarIOMProps) {
     </div>
   )
 }
+
+export default memo(SidebarIOM);

@@ -5,7 +5,7 @@ import type React from "react"
 import { User, FileUp, GraduationCap, Calendar, LogOut, Menu, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import Image from "next/image";
 import NotificationBell from '@/components/ui/notificationBell';
 
@@ -21,7 +21,7 @@ type SidebarMahasiswaProps = {
   activeTab: string
 }
 
-export default function SidebarMahasiswa({ activeTab }: SidebarMahasiswaProps) {
+function SidebarMahasiswa({ activeTab }: SidebarMahasiswaProps) {
   const { data: session } = useSession();
   const [name, setName] = useState<string | null>(null);
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -73,14 +73,16 @@ export default function SidebarMahasiswa({ activeTab }: SidebarMahasiswaProps) {
   }
 
   return (
-    <div className={cn(
-      "fixed left-0 top-0 h-screen bg-white shadow-lg transition-all duration-300 z-50 border-r",
+    <div className={cn("fixed left-0 top-0 h-screen bg-white shadow-lg transition-all duration-300 z-40 border-r",
       isCollapsed ? "w-16" : "w-64"
     )}>
       {/* Toggle Button */}
       <button
         onClick={() => setIsCollapsed(!isCollapsed)}
-        className="absolute -right-3 top-6 bg-white border rounded-full p-1.5 shadow-md hover:shadow-lg transition-shadow"
+        className={cn(
+          "absolute top-6 bg-white border rounded-full p-1.5 shadow-md hover:shadow-lg transition-shadow z-20",
+          isCollapsed ? "-right-2" : "-right-3"
+        )}
       >
         {isCollapsed ? <Menu className="h-4 w-4" /> : <X className="h-4 w-4" />}
       </button>
@@ -102,18 +104,18 @@ export default function SidebarMahasiswa({ activeTab }: SidebarMahasiswaProps) {
               </div>
             )}
             {isCollapsed && (
-              <div className="absolute -right-3 top-12 bg-white border rounded-full p-1 shadow-md">
+              <div className="absolute left-1/2 transform -translate-x-1/2 top-16 bg-white border rounded-full p-1 shadow-md z-10">
                 <NotificationBell />
               </div>
             )}
           </div>
           {!isCollapsed && (
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-lg font-semibold text-gray-800 truncate">{name || "Mahasiswa"}</h2>
-                  <p className="text-sm text-gray-600">Mahasiswa</p>
-                </div>
+            <div className="min-w-0 flex-1 flex items-start justify-between">
+              <div className="min-w-0 flex-1 pr-2">
+                <h2 className="text-lg font-semibold text-gray-800 break-words leading-tight">{name || "Mahasiswa"}</h2>
+                <p className="text-sm text-gray-600">Mahasiswa</p>
+              </div>
+              <div className="flex-shrink-0">
                 <NotificationBell />
               </div>
             </div>
@@ -173,3 +175,5 @@ export default function SidebarMahasiswa({ activeTab }: SidebarMahasiswaProps) {
     </div>
   )
 }
+
+export default memo(SidebarMahasiswa);

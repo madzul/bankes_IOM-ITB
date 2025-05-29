@@ -5,7 +5,7 @@ import { Calendar, File, LogOut, BookText, Menu, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useRouter } from "next/navigation"
 import { signOut, useSession } from "next-auth/react";
-import { useEffect, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import Image from "next/image";
 
 type NavItem = {
@@ -19,7 +19,7 @@ type SidebarInterviewerProps = {
   activeTab: string
 }
 
-export default function SidebarInterviewer({ activeTab }: SidebarInterviewerProps) {
+function SidebarInterviewer({ activeTab }: SidebarInterviewerProps) {
   const router = useRouter()
   const { data: session } = useSession();
   const [name, setName] = useState<string | null>(null);
@@ -155,3 +155,5 @@ export default function SidebarInterviewer({ activeTab }: SidebarInterviewerProp
     </div>
   )
 }
+
+export default memo(SidebarInterviewer);

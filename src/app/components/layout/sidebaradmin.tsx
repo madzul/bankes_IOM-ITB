@@ -5,7 +5,7 @@ import { User, Calendar, LogOut, UserRoundPen, Menu, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useRouter } from "next/navigation"
 import { signOut, useSession } from "next-auth/react";
-import { useEffect, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import Image from "next/image";
 
 type NavItem = {
@@ -19,7 +19,7 @@ type SidebarAdminProps = {
   activeTab: string
 }
 
-export default function SidebarAdmin({ activeTab }: SidebarAdminProps) {
+function SidebarAdmin({ activeTab }: SidebarAdminProps) {
   const router = useRouter()
   const { data: session } = useSession();
   const [name, setName] = useState<string | null>(null);
@@ -155,3 +155,6 @@ export default function SidebarAdmin({ activeTab }: SidebarAdminProps) {
     </div>
   )
 }
+
+
+export default memo(SidebarAdmin);
