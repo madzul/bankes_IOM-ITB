@@ -23,16 +23,16 @@ const Navbar: React.FC = () => {
 					</div>
 			</Link>
 			{session?.user?.role === "Mahasiswa"
-			? <div className='flex flex-row gap-1'><NotificationBell /><Link href="/student/profile" className="py-2 px-5 rounded-full bg-var hover:bg-var/90 text-white flex"><User className="h-fit mr-2" /><span>Profil</span></Link></div>
+			? <Link prefetch={true} href="/student/profile" className="py-2 px-5 rounded-full bg-var hover:bg-var/90 text-white flex"><User className="h-fit mr-2" /><span>Profil</span></Link>
 			: session?.user?.role === "Pengurus_IOM"
-			? <Link href="/iom/document" className="py-2 px-5 rounded-full bg-var hover:bg-var/90 text-white flex"><LayoutDashboard className="h-fit mr-2" /><span>Dashboard</span></Link>
+			? <Link prefetch={true} href="/iom/document" className="py-2 px-5 rounded-full bg-var hover:bg-var/90 text-white flex"><LayoutDashboard className="h-fit mr-2" /><span>Dashboard</span></Link>
 			: session?.user?.role === "Admin"
-			? <Link href="/admin/account" className="py-2 px-5 rounded-full bg-var hover:bg-var/90 text-white flex"><LayoutDashboard className="h-fit mr-2" /><span>Dashboard</span></Link>
+			? <Link prefetch={true} href="/admin/account" className="py-2 px-5 rounded-full bg-var hover:bg-var/90 text-white flex"><LayoutDashboard className="h-fit mr-2" /><span>Dashboard</span></Link>
 			: session?.user?.role === "Pewawancara" 
-			? <Link href="/interviewer/interview" className="py-2 px-5 rounded-full bg-var hover:bg-var/90 text-white flex"><LayoutDashboard className="h-fit mr-2" /><span>Dashboard</span></Link>
+			? <Link prefetch={true} href="/interviewer/interview" className="py-2 px-5 rounded-full bg-var hover:bg-var/90 text-white flex"><LayoutDashboard className="h-fit mr-2" /><span>Dashboard</span></Link>
 			: session?.user?.role === "Guest"
-			? <Link href="/login" className="py-2 px-5 rounded-full bg-var hover:bg-var/90 text-white">Masuk</Link>
-			: <Link href="/login" className="py-2 px-5 rounded-full bg-var hover:bg-var/90 text-white">Masuk</Link>}
+			? <Link prefetch={true} href="/login" className="py-2 px-5 rounded-full bg-var hover:bg-var/90 text-white">Masuk</Link>
+			: <Link prefetch={true} href="/login" className="py-2 px-5 rounded-full bg-var hover:bg-var/90 text-white">Masuk</Link>}
 		</nav>
 	);
 };

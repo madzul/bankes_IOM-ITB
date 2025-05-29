@@ -353,121 +353,155 @@ export default function Scoring() {
   };
 
   return (
-      <div className="flex min-h-screen bg-gray-100">
+      <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/40">
         <Toaster position="bottom-right" richColors />
+        
+        {/* Sidebar */}
         <div className="w-1/4 m-8">
           <SidebarIOM activeTab="scoring" />
         </div>
+        
+        {/* Main Content */}
         <div className="my-8 mr-8 w-full">
-          <h1 className="text-2xl font-bold mb-6">Penilaian Mahasiswa</h1>
-          <Card className="p-8 w-[70dvw]">
-            {loading ? (
-                <p className="text-lg">Loading...</p>
-            ) : (
+          {/* Header */}
+          <div className="mb-8">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent mb-2">
+              Penilaian Mahasiswa
+            </h1>
+            <p className="text-slate-600 text-lg">
+              Kelola dan berikan penilaian untuk mahasiswa berdasarkan periode yang dipilih
+            </p>
+          </div>
+          
+          <Card className="backdrop-blur-sm bg-white/80 border-0 shadow-xl shadow-slate-200/50 rounded-2xl overflow-hidden">
+            <div className="p-8">
+              {loading ? (
+                <div className="flex items-center justify-center py-16">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-6 h-6 border-3 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                    <p className="text-lg font-medium text-slate-600">Memuat data...</p>
+                  </div>
+                </div>
+              ) : (
                 <>
-                  <div className="w-full flex gap-3">
-                    <select
-                      className="block w-[300px] px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                      value={selectedPeriod?.period_id || ""}
-                      onChange={handlePeriodChange}
-                    >
-                      <option value="">Pilih Periode</option>
-                      {periods.map((period) => (
-                        <option key={period.period_id} value={period.period_id}>
-                          {period.period} {period.is_current ? "(Current)" : ""}
-                        </option>
-                      ))}
-                    </select>
-
-                    <ScoringQuestionDialog />
+                  {/* Controls Section */}
+                  <div className="flex items-center gap-4 mb-8 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
+                    <div className="flex-1">
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">
+                        Periode Akademik
+                      </label>
+                      <select
+                        className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-slate-700 font-medium"
+                        value={selectedPeriod?.period_id || ""}
+                        onChange={handlePeriodChange}
+                      >
+                        <option value="">Pilih Periode</option>
+                        {periods.map((period) => (
+                          <option key={period.period_id} value={period.period_id}>
+                            {period.period} {period.is_current ? "(Aktif)" : ""}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    
+                    <div className="flex items-end">
+                      <ScoringQuestionDialog />
+                    </div>
                   </div>
 
-                  <div className="mt-4 w-[300px]">
-                    <label htmlFor="search" className="text-sm font-medium mb-1">
-                      Cari Nama/NIM Mahasiswa:
+                  {/* Search Section */}
+                  <div className="mb-8">
+                    <label htmlFor="search" className="block text-sm font-semibold text-slate-700 mb-2">
+                      Cari Mahasiswa
                     </label>
-                    <input
-                      id="search"
-                      type="text"
-                      placeholder="Masukkan Nama atau NIM"
-                      className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 w-[300px]"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                    />
+                    <div className="relative">
+                      <input
+                        id="search"
+                        type="text"
+                        placeholder="Masukkan nama atau NIM mahasiswa..."
+                        className="w-full max-w-md px-4 py-3 pl-11 bg-white border border-slate-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                      />
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="flex w-full gap-6 justify-between mt-6">
+                  {/* Main Content Grid */}
+                  <div className="grid lg:grid-cols-5 gap-8">
+                    {/* Student List */}
                     {selectedPeriod && (
-                      <div className="flex flex-col gap-4 w-[450px]">
-                        <div className="max-w-full border border-gray-300 rounded-md">
-                          <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-50">
-                              <tr>
-                                <th
-                                  scope="col"
-                                  className="px-2 py-4 text-left text-xs font-medium uppercase tracking-wider"
-                                >
-                                  NIM
-                                </th>
-                                <th
-                                  scope="col"
-                                  className="px-2 py-4 text-left text-xs font-medium uppercase tracking-wider"
-                                >
-                                  Nama
-                                </th>
-                              </tr>
-                            </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
-                              {currentStudents.map((student, index) => {
-                                const isSelected = student.Student.User.user_id === currentStudent;
+                      <div className="lg:col-span-2 space-y-4">
+                        <h3 className="text-lg font-semibold text-slate-800 mb-4">Daftar Mahasiswa</h3>
+                        
+                        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                          <div className="overflow-x-auto">
+                            <table className="w-full">
+                              <thead>
+                                <tr className="bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200">
+                                  <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-600">
+                                    NIM
+                                  </th>
+                                  <th className="px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-600">
+                                    Nama
+                                  </th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-slate-100">
+                                {currentStudents.map((student, index) => {
+                                  const isSelected = student.Student.User.user_id === currentStudent;
 
-                                return (
-                                  <tr
-                                    key={index}
-                                    role="button"
-                                    tabIndex={0}
-                                    onClick={() => handleStudentClick(student)}
-                                    className={`cursor-pointer ${
-                                      isSelected ? "bg-[#003793]" : "bg-white hover:bg-gray-100"
-                                    }`}
-                                  >
-                                    <td className="px-2 py-4 text-sm text-gray-900">
-                                      <div className="line-clamp-2 overflow-hidden">
-                                        {isSelected ? (
-                                          <span className="text-white">{student.Student.nim}</span>
-                                        ) : (
-                                          student.Student.nim
-                                        )}
-                                      </div>
-                                    </td>
-                                    <td className="px-2 py-4 text-sm text-gray-900">
-                                      <div className="line-clamp-2 overflow-hidden">
-                                        {isSelected ? (
-                                          <span className="text-white">{student.Student.User.name}</span>
-                                        ) : (
-                                          student.Student.User.name
-                                        )}
-                                      </div>
-                                    </td>
-                                  </tr>
-                                );
-                              })}
-                          </tbody>
-                          </table>
+                                  return (
+                                    <tr
+                                      key={index}
+                                      role="button"
+                                      tabIndex={0}
+                                      onClick={() => handleStudentClick(student)}
+                                      className={`cursor-pointer transition-all duration-200 ${
+                                        isSelected 
+                                          ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md" 
+                                          : "hover:bg-slate-50"
+                                      }`}
+                                    >
+                                      <td className="px-4 py-4 text-sm font-medium">
+                                        <div className="truncate">
+                                          {student.Student.nim}
+                                        </div>
+                                      </td>
+                                      <td className="px-4 py-4 text-sm">
+                                        <div className="truncate">
+                                          {student.Student.User.name}
+                                        </div>
+                                      </td>
+                                    </tr>
+                                  );
+                                })}
+                              </tbody>
+                            </table>
+                          </div>
                         </div>
-                        <div className="flex w-full justify-between items-center gap-2 mt-2">
+                        
+                        {/* Pagination */}
+                        <div className="flex items-center justify-between">
                           <button
                             onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                             disabled={currentPage === 1}
-                            className="px-2 py-2 rounded border-2 hover:bg-gray-200 text-sm disabled:opacity-50"
+                            className="flex items-center px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
                           >
+                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                            </svg>
                             Previous
                           </button>
 
-                          <div className="flex gap-1">
-                            {Array.from({ length: 3 }, (_, i) => {
+                          <div className="flex space-x-1">
+                            {Array.from({ length: Math.min(3, totalPages) }, (_, i) => {
                               let startPage = Math.max(1, currentPage - 1);
-                              if (currentPage === totalPages) startPage = totalPages - 2;
+                              if (currentPage === totalPages) startPage = Math.max(1, totalPages - 2);
                               if (currentPage === 1) startPage = 1;
 
                               const page = startPage + i;
@@ -477,10 +511,10 @@ export default function Scoring() {
                                 <button
                                   key={page}
                                   onClick={() => setCurrentPage(page)}
-                                  className={`px-2 py-2 text-sm rounded ${
+                                  className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200 ${
                                     currentPage === page
-                                      ? "bg-[#003793] text-white"
-                                      : "border-2 hover:bg-gray-200 text-gray-700"
+                                      ? "bg-blue-600 text-white shadow-md"
+                                      : "text-slate-600 hover:bg-slate-100"
                                   }`}
                                 >
                                   {page}
@@ -492,111 +526,158 @@ export default function Scoring() {
                           <button
                             onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
                             disabled={currentPage === totalPages}
-                            className="px-2 py-2 rounded border-2 hover:bg-gray-200 text-sm disabled:opacity-50"
+                            className="flex items-center px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
                           >
                             Next
+                            <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            </svg>
                           </button>
                         </div>
                       </div>
                     )}
 
-                    <div className="w-full p-2 border border-gray-300 rounded-md">
-                      {questions.length > 0 ? (
-                        <>
-                          <div className="flex flex-col gap-4 p-4 max-h-[550px] overflow-y-auto">
-                            <h2 className="text-xl font-bold">Lembar Penilaian</h2>
-                            {questions.map((q) => {
-                              const entry = scoreMatrix.find((sm) => sm.question_id === q.question_id);
-                              return (
-                                <div key={q.question_id}>
-                                  <p className="mb-2 font-medium">{q.question}</p>
-                                  <div className="flex justify-between items-center mb-3">
-                                    <label className="flex items-center cursor-pointer">
-                                      <input
-                                        type="radio"
-                                        name={`question-${q.question_id}`}
-                                        value="KURANG"
-                                        checked={entry?.score_category === 'KURANG'}
-                                        onChange={() => handleScoreChange(q.question_id, "score_category", "KURANG")}
-                                        className="mr-2"
-                                      />
-                                      <span>Kurang</span>
-                                    </label>
-                                    <label className="flex items-center cursor-pointer">
-                                      <input
-                                        type="radio"
-                                        name={`question-${q.question_id}`}
-                                        value="CUKUP"
-                                        checked={entry?.score_category === 'CUKUP'}
-                                        onChange={() => handleScoreChange(q.question_id, "score_category", "CUKUP")}
-                                        className="mr-2"
-                                      />
-                                      <span>Cukup</span>
-                                    </label>
-                                    <label className="flex items-center cursor-pointer">
-                                      <input
-                                        type="radio"
-                                        name={`question-${q.question_id}`}
-                                        value="BAIK"
-                                        checked={entry?.score_category === 'BAIK'}
-                                        onChange={() => handleScoreChange(q.question_id, "score_category", "BAIK")}
-                                        className="mr-2"
-                                      />
-                                      <span>Baik</span>
-                                    </label>
-                                  </div>
-                                  <div>
-                                    <label htmlFor={`comment-${q.question_id}`} className="block text-sm font-medium mb-1">
-                                      Keterangan
-                                    </label>
-                                    <textarea
-                                      id={`comment-${q.question_id}`}
-                                      rows={2}
-                                      defaultValue={entry?.comment || ''}
-                                      onChange={(e) => handleScoreChange(q.question_id, "comment", e.target.value)}
-                                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                                      placeholder="Masukkan keterangan..."
-                                    ></textarea>
-                                  </div>
-                                  <hr className="mt-4" />
-                                </div>
-                              );
-                            })}
-                          </div>
-                          <div className="mt-4 border-t pt-4">
-                            <h3 className="text-lg font-semibold mb-2">Jumlah Bantuan</h3>
-                            <div className="flex items-center">
-                              <span className="mr-2 font-medium">Rp</span>
-                              <input
-                                type="number"
-                                value={aidAmount}
-                                onChange={(e) => setAidAmount(e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                                placeholder="Masukkan jumlah bantuan (0 jika tidak ada)"
-                              />
+                    {/* Scoring Form */}
+                    <div className="lg:col-span-3">
+                      <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
+                        {questions.length > 0 ? (
+                          <>
+                            {/* Form Header */}
+                            <div className="px-6 py-5 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-slate-100">
+                              <h2 className="text-xl font-bold text-slate-800 flex items-center">
+                                <svg className="w-6 h-6 mr-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                Lembar Penilaian
+                              </h2>
                             </div>
-                            <p className="text-sm text-gray-500 mt-1">
-                              Masukkan 0 jika mahasiswa tidak menerima bantuan.
-                            </p>
+                            
+                            {/* Questions Form */}
+                            <div className="p-6 max-h-[600px] overflow-y-auto">
+                              <div className="space-y-8">
+                                {questions.map((q, questionIndex) => {
+                                  const entry = scoreMatrix.find((sm) => sm.question_id === q.question_id);
+                                  return (
+                                    <div key={q.question_id} className="group">
+                                      <div className="mb-4">
+                                        <span className="inline-flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-600 text-sm font-bold rounded-full mr-3">
+                                          {questionIndex + 1}
+                                        </span>
+                                        <span className="text-base font-semibold text-slate-800">{q.question}</span>
+                                      </div>
+                                      
+                                      {/* Rating Options */}
+                                      <div className="grid grid-cols-3 gap-4 mb-4">
+                                        {[
+                                          { value: "KURANG", label: "Kurang", color: "red" },
+                                          { value: "CUKUP", label: "Cukup", color: "yellow" },
+                                          { value: "BAIK", label: "Baik", color: "green" }
+                                        ].map((option) => (
+                                          <label 
+                                            key={option.value}
+                                            className={`flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
+                                              entry?.score_category === option.value
+                                                ? `border-${option.color}-500 bg-${option.color}-50 shadow-md`
+                                                : "border-slate-200 hover:border-slate-300 hover:shadow-sm"
+                                            }`}
+                                          >
+                                            <input
+                                              type="radio"
+                                              name={`question-${q.question_id}`}
+                                              value={option.value}
+                                              checked={entry?.score_category === option.value}
+                                              onChange={() => handleScoreChange(q.question_id, "score_category", option.value)}
+                                              className={`w-4 h-4 mr-3 text-${option.color}-600 focus:ring-${option.color}-500`}
+                                            />
+                                            <span className={`font-medium ${
+                                              entry?.score_category === option.value 
+                                                ? `text-${option.color}-700` 
+                                                : "text-slate-700"
+                                            }`}>
+                                              {option.label}
+                                            </span>
+                                          </label>
+                                        ))}
+                                      </div>
+                                      
+                                      {/* Comment Field */}
+                                      <div>
+                                        <label htmlFor={`comment-${q.question_id}`} className="block text-sm font-semibold text-slate-700 mb-2">
+                                          Keterangan
+                                        </label>
+                                        <textarea
+                                          id={`comment-${q.question_id}`}
+                                          rows={3}
+                                          defaultValue={entry?.comment || ''}
+                                          onChange={(e) => handleScoreChange(q.question_id, "comment", e.target.value)}
+                                          className="w-full px-4 py-3 border border-slate-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none"
+                                          placeholder="Berikan keterangan atau catatan tambahan..."
+                                        />
+                                      </div>
+                                      
+                                      {questionIndex < questions.length - 1 && (
+                                        <div className="mt-6 border-b border-slate-200"></div>
+                                      )}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                            
+                            {/* Aid Amount Section */}
+                            <div className="px-6 py-5 border-t border-slate-200 bg-slate-50">
+                              <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center">
+                                <svg className="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                                </svg>
+                                Jumlah Bantuan
+                              </h3>
+                              <div className="flex items-center space-x-3">
+                                <span className="text-lg font-semibold text-slate-700 bg-white px-3 py-2 rounded-lg">Rp</span>
+                                <input
+                                  type="number"
+                                  value={aidAmount}
+                                  onChange={(e) => setAidAmount(e.target.value)}
+                                  className="flex-1 px-4 py-3 border border-slate-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-lg font-medium"
+                                  placeholder="0"
+                                />
+                              </div>
+                              <p className="text-sm text-slate-500 mt-2 bg-blue-50 px-3 py-2 rounded-lg">
+                                💡 Masukkan 0 jika mahasiswa tidak menerima bantuan
+                              </p>
+                            </div>
+                            
+                            {/* Submit Button */}
+                            <div className="px-6 py-5 border-t border-slate-200">
+                              <button
+                                onClick={handleSubmit}
+                                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center space-x-2"
+                              >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                                <span>Simpan Penilaian</span>
+                              </button>
+                            </div>
+                          </>
+                        ) : (
+                          <div className="p-12 text-center">
+                            <div className="mx-auto w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mb-6">
+                              <svg className="w-12 h-12 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                              </svg>
+                            </div>
+                            <h3 className="text-xl font-semibold text-slate-800 mb-2">Belum Ada Pertanyaan</h3>
+                            <p className="text-slate-600 mb-6">Mohon tambahkan pertanyaan penilaian terlebih dahulu untuk memulai proses evaluasi.</p>
+                            <ScoringQuestionDialog />
                           </div>
-                          <div className="mt-6 flex justify-end">
-                            <button
-                              onClick={handleSubmit}
-                              className="px-4 py-2 bg-[#003793] text-white rounded-md hover:bg-blue-700 focus:outline-none"
-                            >
-                              Simpan Penilaian
-                            </button>
-                          </div>
-                        </>
-                      ) : (
-                        <>
-                          <p className="text-center mt-2">Mohon tambahkan pertanyaan penilaian terlebih dahulu.</p>
-                        </>
-                      )}
+                        )}
+                      </div>
                     </div>
                   </div>
                 </>
-            )}
+              )}
+            </div>
           </Card>
         </div>
       </div>

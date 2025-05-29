@@ -1,11 +1,13 @@
 "use client"
 
 import type React from "react"
-import { Calendar, ChartColumn, File, LogOut, BookText, Star } from "lucide-react"
+import { Calendar, File, LogOut, BookText, Menu, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useRouter } from "next/navigation"
 import { signOut, useSession } from "next-auth/react";
-import { useEffect, useState } from "react";
+import { memo, useEffect, useState } from "react";
+import Image from "next/image";
+import { useUser } from "@/app/contexts/UserContext"
 
 type NavItem = {
   id: string
@@ -18,24 +20,15 @@ type SidebarInterviewerProps = {
   activeTab: string
 }
 
-export default function SidebarInterviewer({ activeTab }: SidebarInterviewerProps) {
+function SidebarInterviewer({ activeTab }: SidebarInterviewerProps) {
   const router = useRouter()
   const { data: session } = useSession();
-  const [name, setName] = useState<string | null>(null);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isDataFetched, setIsDataFetched] = useState(false);
+  const { userName, isLoading } = useUser();
 
-  useEffect(() => {
-    const fetchUserName = async () => {
-      if (session?.user?.id) {
-        const response = await fetch(`/api/users`);
-        if (response.ok) {
-          const user = await response.json();
-          setName(user.name);
-        }
-      }
-    };
 
-    fetchUserName();
-  }, [session]);
+
 
   const navItems: NavItem[] = [
     {
@@ -59,56 +52,99 @@ export default function SidebarInterviewer({ activeTab }: SidebarInterviewerProp
   ]
 
   const handleNavigation = (link: string) => {
-    console.log("change to: " + link)
     router.push(link)
   }
 
   return (
-    <div className="w-full max-w-xs mx-auto">
-      <div className="bg-white rounded-xl overflow-hidden shadow-sm transition-all">
-        {/* Header with modern styling */}
-        <div className="p-6 text-center bg-gradient-to-r from-blue-50 to-blue-100">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-var text-white mb-3 shadow-sm">
-            <span className="text-xl font-bold">{name?.charAt(0) || "P"}</span>
-          </div>
-          <h2 className="text-xl font-semibold text-gray-800">{name}</h2>
-          <p className="text-sm text-gray-600 mt-1">Pewawancara</p>
-        </div>
+    <div className={cn(
+      "fixed left-0 top-0 h-screen bg-white shadow-lg transition-all duration-300 z-50 border-r",
+      isCollapsed ? "w-16" : "w-64"
+    )}>
+      {/* Toggle Button */}
+      <button
+        onClick={() => setIsCollapsed(!isCollapsed)}
+        className="absolute -right-3 top-6 bg-white border rounded-full p-1.5 shadow-md hover:shadow-lg transition-shadow"
+      >
+        {isCollapsed ? <Menu className="h-4 w-4" /> : <X className="h-4 w-4" />}
+      </button>
 
-        {/* Navigation with modern styling */}
-        <div className="py-2">
-          {navItems.map((item) => (
+      {/* Header */}
+      <div className="p-4 border-b">
+        <div className="flex items-center space-x-3">
+          <div className="relative group">
+            <Image 
+              src="/logoIOM.png" 
+              alt="IOM logo" 
+              width={32} 
+              height={32}
+              className="flex-shrink-0"
+            />
+            {isCollapsed && (
+              <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 bg-gray-800 text-white px-2 py-1 rounded text-sm opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                IOM ITB
+              </div>
+            )}
+          </div>
+          {!isCollapsed && (
+            <div className="min-w-0 flex-1">
+              <h2 className="text-lg font-semibold text-gray-800 truncate">{userName || "Pewawancara"}</h2>
+              <p className="text-sm text-gray-600">Pewawancara</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Navigation */}
+      <div className="flex-1 py-4">
+        {navItems.map((item) => (
+          <div key={item.id} className="relative group">
             <button
-              key={item.id}
               onClick={() => handleNavigation(item.link)}
               className={cn(
-                "flex items-center w-full px-6 py-3 text-left transition-colors",
-                activeTab === item.id 
-                  ? "bg-blue-50 text-blue-600 font-medium" 
-                  : "text-gray-700 hover:bg-gray-50 hover:text-gray-900",
+                "w-full flex items-center px-4 py-3 text-left transition-colors hover:bg-gray-50",
+                activeTab === item.id ? "bg-blue-50 text-blue-700 border-r-2 border-blue-700" : "text-gray-700"
               )}
             >
-              <span className={`mr-3 ${activeTab === item.id ? 'text-blue-600' : 'text-gray-500'}`}>
+              <span className={cn(
+                "flex-shrink-0",
+                activeTab === item.id ? "text-blue-700" : "text-gray-500"
+              )}>
                 {item.icon}
               </span>
-              <span>{item.label}</span>
-              {activeTab === item.id && (
-                <div className="ml-auto w-1 h-6 bg-blue-600 rounded-full"></div>
+              {!isCollapsed && (
+                <span className="ml-3 truncate">{item.label}</span>
               )}
             </button>
-          ))}
-          <div className="mx-4 my-2 border-t border-gray-100"></div>
+            {isCollapsed && (
+              <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 bg-gray-800 text-white px-2 py-1 rounded text-sm opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                {item.label}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Logout Button */}
+      <div className="border-t p-4">
+        <div className="relative group">
           <button
             onClick={() => signOut({ callbackUrl: "/login" })}
-            className="flex items-center w-full px-6 py-3 text-left transition-colors text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+            className="w-full flex items-center px-4 py-3 text-left transition-colors hover:bg-gray-50 text-gray-700"
           >
-            <span className="mr-3 text-gray-500">
-              <LogOut className="h-5 w-5" />
-            </span>
-            <span>Keluar</span>
+            <LogOut className="h-5 w-5 flex-shrink-0 text-gray-500" />
+            {!isCollapsed && (
+              <span className="ml-3">Keluar</span>
+            )}
           </button>
+          {isCollapsed && (
+            <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 bg-gray-800 text-white px-2 py-1 rounded text-sm opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+              Keluar
+            </div>
+          )}
         </div>
       </div>
     </div>
   )
 }
+
+export default memo(SidebarInterviewer);

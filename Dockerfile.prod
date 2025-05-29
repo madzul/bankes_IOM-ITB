@@ -1,53 +1,81 @@
 # ───────────────────────────────────────────────────────────────────────────────
-# 1) Builder: install everything and build
+# 1) Dependencies: Install all dependencies
+# ───────────────────────────────────────────────────────────────────────────────
+FROM node:23-slim AS deps
+
+WORKDIR /app
+
+# Install dependencies based on the preferred package manager
+COPY package.json package-lock.json* ./
+RUN \
+  if [ -f package-lock.json ]; then npm ci --omit=dev --legacy-peer-deps; \
+  else echo "Lockfile not found." && exit 1; \
+  fi
+
+# ───────────────────────────────────────────────────────────────────────────────
+# 2) Builder: Rebuild the source code only when needed
 # ───────────────────────────────────────────────────────────────────────────────
 FROM node:23-slim AS builder
 
 WORKDIR /app
 
-ENV NODE_ENV=development
-ENV NEXT_TELEMETRY_DISABLED=1
+# Copy all files
+COPY . .
 
-# 1.1) install all dependencies
-COPY package.json package-lock.json ./
-RUN npm ci
+# Copy node_modules from deps stage
+COPY --from=deps /app/node_modules ./node_modules
 
-# 1.2) generate Prisma client
-COPY prisma/ ./prisma/
+# Install all dependencies (including devDependencies for build)
+RUN npm ci --legacy-peer-deps
+
+# Generate Prisma client
 RUN npx prisma generate
 
-# 1.3) copy rest of the app and build
-COPY . .
+# Set environment variables for build
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+
+# Build the application
 RUN npm run build
 
 # ───────────────────────────────────────────────────────────────────────────────
-# 2) Runner: minimal runtime with only prod deps
+# 3) Runner: Production image with minimal footprint
 # ───────────────────────────────────────────────────────────────────────────────
 FROM node:23-slim AS runner
 
 WORKDIR /app
 
+# Set environment variables
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# 2.1) copy only production node_modules from builder
-COPY --from=builder /app/node_modules/ ./node_modules/
+# Create a non-root user
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
 
-# 2.2) copy Prisma client
-COPY --from=builder /app/node_modules/.prisma/ ./node_modules/.prisma/
-COPY --from=builder /app/node_modules/@prisma/ ./node_modules/@prisma/
+# Copy built application
+COPY --from=builder /app/public ./public
 
-# 2.3) copy app artifacts
-COPY --from=builder /app/package.json ./
-COPY --from=builder /app/next.config.js ./
-COPY --from=builder /app/public/ ./public/
-COPY --from=builder /app/.next/ ./.next/
+# Set the correct permission for prerender cache
+RUN mkdir .next
+RUN chown nextjs:nodejs .next
 
-# Optional: copy other needed runtime files
-# COPY --from=builder /app/next-i18next.config.js ./
+# Automatically leverage output traces to reduce image size
+# https://nextjs.org/docs/advanced-features/output-file-tracing
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# 2.4) prune dev dependencies just in case
-RUN npm prune --production
+# Copy Prisma files and generated client
+COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+
+USER nextjs
 
 EXPOSE 3000
-CMD ["npm", "start"]
+
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
+
+# Start the application
+CMD ["node", "server.js"]
