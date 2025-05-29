@@ -21,7 +21,17 @@ interface TotalStudentsAllPeriod {
   student_count: number;
 };
 
+interface PassStudentsAllPeriod {
+  period: string;
+  student_count: number;
+};
+
 interface TotalStudentsPerPeriod {
+  faculty: string;
+  student_count: number;
+}
+
+interface PassStudentsPerPeriod {
   faculty: string;
   student_count: number;
 }
@@ -34,6 +44,8 @@ export default function Upload() {
 
   const [totalStudentsAllPeriod, setTotalStudentsAllPeriod] = useState<TotalStudentsAllPeriod[]>([]);
   const [totalStudentsPerPeriod, settotalStudentsPerPeriod] = useState<TotalStudentsPerPeriod[] | null>(null);
+  const [passStudentsAllPeriod, setPassStudentsAllPeriod] = useState<PassStudentsAllPeriod[]>([]);
+  const [passStudentsPerPeriod, setPassStudentsPerPeriod] = useState<PassStudentsPerPeriod[] | null>(null);
 
   useEffect(() => {
     async function fetchPeriodsAndStudentFiles() {
@@ -86,8 +98,24 @@ export default function Upload() {
       }
     }
 
+    async function fetchPassStudentsAllPeriod() {
+      try {
+        const res = await fetch("/api/statistic/pass-students-all-period");
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data)) {
+          setPassStudentsAllPeriod(json.data);
+        } else {
+          setPassStudentsAllPeriod([]);
+        }
+      } catch (error) {
+        console.error("Error fetching student data:", error);
+        setPassStudentsAllPeriod([]);
+      }
+    }
+
     fetchPeriodsAndStudentFiles();
     fetchTotalStudentsAllPeriod();
+    fetchPassStudentsAllPeriod();
   }, []);
 
   useEffect(() => {
@@ -109,10 +137,30 @@ export default function Upload() {
       }
     }
 
+        async function fetchPassStudentsPerPeriod(periodId: number) {
+      setLoading(true);
+      try {
+        const res = await fetch(`/api/statistic/pass-students-per-period?selectedPeriod=${periodId}`);
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data)) {
+          setPassStudentsPerPeriod(json.data);
+        } else {
+          setPassStudentsPerPeriod([]);
+        }
+      } catch (error) {
+        console.error("Error fetching student data:", error);
+        setPassStudentsPerPeriod([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+
     if (selectedPeriod?.period_id) {
       fetchTotalStudentsPerPeriod(selectedPeriod.period_id);
+      fetchPassStudentsPerPeriod(selectedPeriod.period_id);
     } else {
       settotalStudentsPerPeriod([]);
+      setPassStudentsPerPeriod([]);
     }
   }, [selectedPeriod]);
 
@@ -178,7 +226,7 @@ export default function Upload() {
                 ))}
               </select>
 
-              <h2 className="font-bold">Persebaran Mahasiswa Seluruh Periode</h2>
+              <h2 className="font-bold">Persebaran Mahasiswa Pendaftar Seluruh Periode</h2>
               {totalStudentsAllPeriod? (
                 <div className="w-full h-[400px] mt-8">
                   <ResponsiveContainer width="100%" height="100%">
@@ -200,29 +248,69 @@ export default function Upload() {
               ) : (
                 <p>No data available.</p>
               )}
-            </>
-          )}
 
-          {selectedPeriod &&
-            <>
-              <h2 className="font-bold">Persebaran Mahasiswa Periode {selectedPeriod?.period}</h2>
-              {totalStudentsPerPeriod? (
+              <h2 className="font-bold">Persebaran Mahasiswa Lolos Seluruh Periode</h2>
+              {totalStudentsAllPeriod? (
                 <div className="w-full h-[400px] mt-8">
-                  <ResponsiveContainer width="100%" height={400}>
-                    <BarChart data={totalStudentsPerPeriod} margin={{ top: 20, right: 30, left: 20, bottom: 40 }}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="faculty" />
-                      <YAxis />
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={passStudentsAllPeriod}>
+                      <CartesianGrid stroke="#e0e0e0" strokeDasharray="5 5" />
+                      <XAxis dataKey="period" />
+                      <YAxis allowDecimals={false} />
                       <Tooltip />
-                      <Bar dataKey="student_count" fill="#3b82f6" />
-                    </BarChart>
+                      <Line
+                        type="monotone"
+                        dataKey="student_count"
+                        stroke="#3b82f6"
+                        strokeWidth={2}
+                        dot={{ r: 4 }}
+                      />
+                    </LineChart>
                   </ResponsiveContainer>
                 </div>
               ) : (
                 <p>No data available.</p>
               )}
-            </>
-          }
+
+              {selectedPeriod &&
+                <>
+                  <h2 className="font-bold">Persebaran Mahasiswa Total Periode {selectedPeriod?.period}</h2>
+                  {totalStudentsPerPeriod? (
+                    <div className="w-full h-[400px] mt-8">
+                        <ResponsiveContainer width="100%" height={400}>
+                          <BarChart data={totalStudentsPerPeriod} margin={{ top: 20, right: 30, left: 20, bottom: 40 }}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="faculty" />
+                            <YAxis />
+                            <Tooltip />
+                            <Bar dataKey="student_count" fill="#3b82f6" />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                  ) : (
+                    <p>No data available.</p>
+                  )}
+
+                  <h2 className="font-bold">Persebaran Mahasiswa Lolos Periode {selectedPeriod?.period}</h2>
+                  {passStudentsPerPeriod? (
+                    <div className="w-full h-[400px] mt-8">
+                        <ResponsiveContainer width="100%" height={400}>
+                          <BarChart data={passStudentsPerPeriod} margin={{ top: 20, right: 30, left: 20, bottom: 40 }}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="faculty" />
+                            <YAxis />
+                            <Tooltip />
+                            <Bar dataKey="student_count" fill="#3b82f6" />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                  ) : (
+                    <p>No data available.</p>
+                  )}
+                </>
+                }
+              </>
+          )}
         </Card>
       </div>
     </div>
