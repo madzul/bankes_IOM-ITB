@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation"
 import { signOut, useSession } from "next-auth/react";
 import { memo, useEffect, useState } from "react";
 import Image from "next/image";
+import { useUser } from "@/app/contexts/UserContext"
 
 type NavItem = {
   id: string
@@ -22,22 +23,11 @@ type SidebarIOMProps = {
 function SidebarIOM({ activeTab }: SidebarIOMProps) {
   const router = useRouter()
   const { data: session } = useSession();
-  const [name, setName] = useState<string | null>(null);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isDataFetched, setIsDataFetched] = useState(false);
+  const { userName, isLoading } = useUser();
 
-  useEffect(() => {
-    const fetchUserName = async () => {
-      if (session?.user?.id) {
-        const response = await fetch(`/api/users`);
-        if (response.ok) {
-          const user = await response.json();
-          setName(user.name);
-        }
-      }
-    };
 
-    fetchUserName();
-  }, [session]);
 
   const navItems: NavItem[] = [
     {
@@ -114,7 +104,7 @@ function SidebarIOM({ activeTab }: SidebarIOMProps) {
           </div>
           {!isCollapsed && (
             <div className="min-w-0 flex-1">
-              <h2 className="text-lg font-semibold text-gray-800 truncate">{name || "Pengurus IOM"}</h2>
+              <h2 className="text-lg font-semibold text-gray-800 truncate">{userName || "Pengurus IOM"}</h2>
               <p className="text-sm text-gray-600">Pengurus IOM</p>
             </div>
           )}

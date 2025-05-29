@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation"
 import { memo, useEffect, useState } from "react";
 import Image from "next/image";
 import NotificationBell from '@/components/ui/notificationBell';
+import { useUser } from "@/app/contexts/UserContext";
 
 
 type NavItem = {
@@ -23,23 +24,12 @@ type SidebarMahasiswaProps = {
 
 function SidebarMahasiswa({ activeTab }: SidebarMahasiswaProps) {
   const { data: session } = useSession();
-  const [name, setName] = useState<string | null>(null);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const router = useRouter()
+  const [isDataFetched, setIsDataFetched] = useState(false);
+  const { userName, isLoading } = useUser();
 
-  useEffect(() => {
-    const fetchUserName = async () => {
-      if (session?.user?.id) {
-        const response = await fetch(`/api/users`);
-        if (response.ok) {
-          const user = await response.json();
-          setName(user.name);
-        }
-      }
-    };
 
-    fetchUserName();
-  }, [session]);
 
   const navItems: NavItem[] = [
     {
@@ -112,7 +102,7 @@ function SidebarMahasiswa({ activeTab }: SidebarMahasiswaProps) {
           {!isCollapsed && (
             <div className="min-w-0 flex-1 flex items-start justify-between">
               <div className="min-w-0 flex-1 pr-2">
-                <h2 className="text-lg font-semibold text-gray-800 break-words leading-tight">{name || "Mahasiswa"}</h2>
+                <h2 className="text-lg font-semibold text-gray-800 break-words leading-tight">{userName || "Mahasiswa"}</h2>
                 <p className="text-sm text-gray-600">Mahasiswa</p>
               </div>
               <div className="flex-shrink-0">
