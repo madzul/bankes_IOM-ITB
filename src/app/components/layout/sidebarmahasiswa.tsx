@@ -7,6 +7,8 @@ import { cn } from "@/lib/utils"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import NotificationBell from '@/components/ui/notificationBell';
+
 
 type NavItem = {
   id: string
@@ -99,11 +101,21 @@ export default function SidebarMahasiswa({ activeTab }: SidebarMahasiswaProps) {
                 IOM ITB
               </div>
             )}
+            {isCollapsed && (
+              <div className="absolute -right-3 top-12 bg-white border rounded-full p-1 shadow-md">
+                <NotificationBell />
+              </div>
+            )}
           </div>
           {!isCollapsed && (
             <div className="min-w-0 flex-1">
-              <h2 className="text-lg font-semibold text-gray-800 truncate">{name || "Mahasiswa"}</h2>
-              <p className="text-sm text-gray-600">Mahasiswa</p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-800 truncate">{name || "Mahasiswa"}</h2>
+                  <p className="text-sm text-gray-600">Mahasiswa</p>
+                </div>
+                <NotificationBell />
+              </div>
             </div>
           )}
         </div>

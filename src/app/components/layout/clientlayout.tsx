@@ -7,7 +7,7 @@ import Footer from "./footer";
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   return (
     <SessionProvider>
-      <Navbar />
+      {/* <Navbar /> */}
         <main className="flex-grow">{children}</main>
       <Footer />
     </SessionProvider>
