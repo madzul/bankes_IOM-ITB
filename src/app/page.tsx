@@ -1,17 +1,19 @@
 "use client";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from 'next/link';
 
 export default function Home() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   useEffect(() => {
     if (status === "loading") return; // Still loading
 
     if (session?.user?.id) {
+      setIsRedirecting(true);
       const roleBasedUrls: { [key: string]: string } = {
         Mahasiswa: "/student/profile",
         Admin: "/admin/account",
@@ -27,8 +29,8 @@ export default function Home() {
     }
   }, [session, status, router]);
 
-  // Show loading state while checking session
-  if (status === "loading") {
+  // Show loading state while checking session OR while redirecting
+  if (status === "loading" || isRedirecting) {
     return (
       <div className="flex min-h-screen bg-gray-100 justify-center items-center">
         <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
@@ -36,7 +38,7 @@ export default function Home() {
     );
   }
 
-  // Only show the home page content if user is not logged in
+  // Show home page content only for non-logged-in users
   if (!session) {
     return (
       <div className="text-var bg-cover bg-center" style={{ backgroundImage: "url('/bg.png')" }}>
@@ -49,6 +51,6 @@ export default function Home() {
     );
   }
 
-  // Return null or loading while redirecting
+  // This should never be reached, but just in case
   return null;
 }
