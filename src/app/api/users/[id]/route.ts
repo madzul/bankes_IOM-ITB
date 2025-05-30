@@ -176,10 +176,16 @@ export async function PATCH(req: Request, context: { params: Promise<{ id: strin
     return NextResponse.json({ success: false, error: "Invalid user ID" }, { status: 400 });
   }
 
+  const body = await req.json();
+  const { role } = body;
+  if (!role || !["Pengurus_IOM", "Pewawancara"].includes(role)) {
+    return NextResponse.json({ success: false, error: "Invalid role" }, { status: 400 });
+  }
+
   try {
     await prisma.user.update({
       where: { user_id: userId },
-      data: { role: "Pengurus_IOM" },
+      data: { role: role },
     });
     return NextResponse.json({ message: "User role updated successfully" });
   } catch (error) {

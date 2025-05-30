@@ -8,7 +8,7 @@ export async function GET(
   context: { params: { studentId: string; periodId: string } }
 ) {
   try {
-    const { studentId, periodId } = context.params;
+    const { studentId, periodId } = await context.params;
     
     const studentIdNum = parseInt(studentId, 10);
     const periodIdNum = parseInt(periodId, 10);

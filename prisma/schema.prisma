@@ -4,11 +4,11 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  url      = "postgresql://postgres:postgres@postgres:5432/db"
 }
 
 model User {
-  user_id  Int     @id @unique @default(autoincrement())
+  user_id  Int     @id @default(autoincrement())
   name     String
   email    String  @unique
   password String?
@@ -18,11 +18,11 @@ model User {
   NotificationEndpoints  NotificationEndpoint[]
   Notifications          Notification[]
   ParticipatedInterviews InterviewParticipant[]
-  InterviewSlot          InterviewSlot[]
+  InterviewSlots         InterviewSlot[]
 }
 
 model Student {
-  student_id Int    @id @unique @default(autoincrement())
+  student_id Int    @id @default(autoincrement())
   nim        String
   faculty    String
   major      String
@@ -31,7 +31,7 @@ model Student {
   Statuses       Status[]
   InterviewSlots InterviewSlot[]
 
-  User        User          @relation(fields: [student_id], references: [user_id])
+  User        User          @relation(fields: [student_id], references: [user_id], onDelete: Cascade)
   notes       Notes[]
   ScoreMatrix ScoreMatrix[]
 }
@@ -43,7 +43,7 @@ model File {
   file_name  String
   type       FileType
 
-  Student Student @relation(fields: [student_id], references: [student_id])
+  Student Student @relation(fields: [student_id], references: [student_id], onDelete: Cascade)
 }
 
 model Status {
@@ -53,8 +53,9 @@ model Status {
   passIOM       Boolean
   passInterview Boolean
   amount        Int?
-  Student       Student @relation(fields: [student_id], references: [student_id])
-  Period        Period  @relation(fields: [period_id], references: [period_id])
+
+  Student Student @relation(fields: [student_id], references: [student_id], onDelete: Cascade)
+  Period  Period  @relation(fields: [period_id], references: [period_id], onDelete: Cascade)
 
   @@id([student_id, period_id])
 }
@@ -66,9 +67,8 @@ enum ScoreCategory {
 }
 
 model Questions {
-  question_id Int    @id @default(autoincrement())
-  question    String
-
+  question_id   Int            @id @default(autoincrement())
+  question      String
   ScoreMatrices ScoreMatrix[]
 }
 
@@ -79,45 +79,45 @@ model ScoreMatrix {
   score_category ScoreCategory
   comment        String
 
-  Student  Student   @relation(fields: [student_id], references: [student_id])
-  Period   Period    @relation(fields: [period_id], references: [period_id])
-  Question Questions @relation(fields: [question_id], references: [question_id])
+  Student  Student   @relation(fields: [student_id], references: [student_id], onDelete: Cascade)
+  Period   Period    @relation(fields: [period_id], references: [period_id], onDelete: Cascade)
+  Question Questions @relation(fields: [question_id], references: [question_id], onDelete: Cascade)
 
   @@id([student_id, period_id, question_id])
 }
 
 model Period {
-  period_id  Int      @id @default(autoincrement())
-  period     String
-  start_date DateTime
-  end_date   DateTime
-  is_current Boolean
-  is_open    Boolean
+  period_id    Int              @id @default(autoincrement())
+  period       String
+  start_date   DateTime
+  end_date     DateTime
+  is_current   Boolean
+  is_open      Boolean
 
   Statuses      Status[]
-  InterviewSlot InterviewSlot[]
+  InterviewSlots InterviewSlot[]
   ScoreMatrix   ScoreMatrix[]
 }
 
 model Notes {
-  slot_id    Int // Change from interview_id to slot_id
-  student_id Int
+  slot_id    Int
+  user_id    Int
   text       String
 
-  slot    InterviewSlot @relation(fields: [slot_id], references: [id]) // Change relation
-  student Student       @relation(fields: [student_id], references: [student_id])
+  slot    InterviewSlot @relation(fields: [slot_id], references: [id], onDelete: Cascade)
+  student Student       @relation(fields: [user_id], references: [student_id], onDelete: Cascade)
 
-  @@id([slot_id, student_id])
+  @@id([slot_id, user_id])
 }
 
 model InterviewParticipant {
   id        Int      @id @default(autoincrement())
-  slot_id   Int // Only need slot_id now, not interview_id
+  slot_id   Int
   user_id   Int
   joined_at DateTime @default(now())
 
   Slot InterviewSlot @relation(fields: [slot_id], references: [id], onDelete: Cascade)
-  User User          @relation(fields: [user_id], references: [user_id])
+  User User          @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
 
   @@unique([slot_id, user_id])
 }
@@ -126,17 +126,16 @@ model InterviewSlot {
   id          Int       @id @default(autoincrement())
   title       String?
   description String?
-  user_id     Int // The creator
+  user_id     Int
   period_id   Int
   start_time  DateTime
   end_time    DateTime
-  student_id  Int? // Student who booked the slot
+  student_id  Int?
   booked_at   DateTime?
 
-  // Relations
-  Student      Student?               @relation(fields: [student_id], references: [student_id])
-  User         User                   @relation(fields: [user_id], references: [user_id])
-  Period       Period                 @relation(fields: [period_id], references: [period_id])
+  Student      Student?            @relation(fields: [student_id], references: [student_id], onDelete: Cascade)
+  User         User                @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  Period       Period              @relation(fields: [period_id], references: [period_id], onDelete: Cascade)
   Participants InterviewParticipant[]
   notes        Notes[]
 }
@@ -147,7 +146,7 @@ model NotificationEndpoint {
   keys      Json
   createdAt DateTime @default(now())
 
-  User User @relation(fields: [user_id], references: [user_id])
+  User User @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
 
   @@id([user_id, endpoint])
 }
@@ -161,7 +160,7 @@ model Notification {
   has_read        Boolean  @default(false)
   created_at      DateTime @default(now())
 
-  User User @relation(fields: [user_id], references: [user_id])
+  User User @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
 
   @@index([user_id])
 }
@@ -180,4 +179,5 @@ enum Role {
   Mahasiswa
   Guest
   Pengurus_IOM
+  Pewawancara
 }

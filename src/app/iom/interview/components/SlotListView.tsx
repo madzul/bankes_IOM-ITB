@@ -499,7 +499,7 @@ export default function SlotListView() {
 
       {/* Create/Edit Slot Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[600px] max-h-5/6 overflow-auto">
           <DialogHeader>
             <DialogTitle>{editingSlotId ? "Edit Slot Wawancara" : "Buat Slot Wawancara Baru"}</DialogTitle>
           </DialogHeader>

@@ -112,7 +112,8 @@ export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session?.user?.id || session.user.role !== "Pengurus_IOM") {
+    const allowedRoles = ["Pengurus_IOM", "Pewawancara"]
+    if (!session?.user?.id || !allowedRoles.includes(session?.user?.role)) {
       return NextResponse.json(
         { success: false, error: "Unauthorized" },
         { status: 403 }
@@ -128,10 +129,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log("periods : ", period_id);
-    console.log("nim : ",nim);
-    console.log("formData : ",formData);
-
     const id = await prisma.student.findFirst({
       where: {
         nim: nim,
@@ -140,7 +137,6 @@ export async function POST(request: NextRequest) {
         User: true
       }
     })
-    console.log("id : ",id);
 
     if (!id?.User.user_id) {
       return NextResponse.json(
@@ -158,8 +154,7 @@ export async function POST(request: NextRequest) {
         id: true,
       }
     })
-    console.log("slotid : ",slotid);
-    
+
     if (!slotid) {
       return NextResponse.json(
         { success: false, error: "Slot ID Not found" },
@@ -167,17 +162,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log("Form data : ", formData)
-
     const notes = await prisma.notes.update({
       where: {
-        slot_id_student_id: {
+        slot_id_user_id: {
           slot_id: slotid.id,
-          student_id: id.User.user_id,
+          user_id: id.User.user_id,
         },
       },
       data: {
-        text: JSON.stringify(formData)
+        text: formData
       }
     })
 

@@ -144,7 +144,9 @@ export async function POST(request: NextRequest) {
       });
 
       // TODO: make it secure
-      const fileUrl = `http://${process.env.MINIO_ENDPOINT}:${9000}/${bucketName}/${newFileName}`;
+      const publicHost = process.env.MINIO_PUBLIC_HOST || "localhost";
+      const publicPort = process.env.MINIO_PUBLIC_PORT || "9000";
+      const fileUrl = `http://${publicHost}:${publicPort}/${bucketName}/${newFileName}`;
 
       const existingFile = await prisma.file.findFirst({
         where: {

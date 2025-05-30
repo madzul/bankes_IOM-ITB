@@ -9,7 +9,7 @@ export default function LoginPage() {
   const router = useRouter();
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen">
+    <div className="flex flex-col items-center justify-center h-screen bg-cover bg-center" style={{ backgroundImage: "url('/bg.png')" }}>
       <Card className="w-full max-w-md mx-auto rounded-xl shadow-sm">
       <CardContent className="space-y-6">
         <div className="space-y-2">

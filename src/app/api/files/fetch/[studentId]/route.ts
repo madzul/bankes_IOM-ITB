@@ -62,23 +62,38 @@ const prisma = new PrismaClient();
 export async function GET(_: NextRequest, context: { params: { studentId: string } }) {
   try {
     const session = await getServerSession(authOptions);
-    const { studentId } = context.params;
+    const { studentId } = await context.params;
     const id = parseInt(studentId, 10);
-  
-    if (
-      !session?.user || // If no user session
-      (
-        session.user.role !== "Pengurus_IOM" &&
-        (session.user.role === "Mahasiswa" && session.user.id != studentId)
-      )
-    ) {
-      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
-    }
-    
+
     if (isNaN(id)) {
       return NextResponse.json({ error: "Invalid student ID" }, { status: 400 });
     }
 
+    const userId = session?.user?.id;
+    const userRole = session?.user?.role;
+
+    if (!userId) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    }
+
+    if (userRole === "Mahasiswa" && userId != studentId) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    }
+
+    if (userRole === "Pewawancara") {
+      const interviewExists = await prisma.interviewSlot.findFirst({
+        where: {
+          user_id: parseInt(userId),
+          student_id: id,
+        },
+      });
+
+      if (!interviewExists) {
+        return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+      }
+    }
+
+    // Admins like "Pengurus_IOM" bypass the check
     const files = await prisma.file.findMany({
       where: { student_id: id },
       select: {
@@ -90,6 +105,7 @@ export async function GET(_: NextRequest, context: { params: { studentId: string
 
     return NextResponse.json(files, { status: 200 });
   } catch (error) {
-    return NextResponse.json({ error: error }, { status: 500 });
+    console.error("Error fetching student files:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

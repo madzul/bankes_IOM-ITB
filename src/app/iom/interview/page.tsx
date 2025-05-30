@@ -7,15 +7,8 @@ import { CalendarDays, List } from "lucide-react";
 import SidebarIOM from "@/app/components/layout/sidebariom";
 import { Toaster } from "sonner";
 import dynamic from "next/dynamic";
-
-// Dynamically import components to improve page load performance
-const WeeklyCalendarView = dynamic(() => import("./components/WeeklyCalendarView"), {
-  loading: () => <div className="w-full text-center py-10">Loading calendar view...</div>,
-});
-
-const SlotListView = dynamic(() => import("./components/SlotListView"), {
-  loading: () => <div className="w-full text-center py-10">Loading list view...</div>,
-});
+import WeeklyCalendarView from "./components/WeeklyCalendarView";
+import SlotListView from "./components/SlotListView";
 
 export default function InterviewPage() {
   const [viewMode, setViewMode] = useState<"calendar" | "list">("calendar");

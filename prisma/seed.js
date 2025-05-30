@@ -54,6 +54,26 @@ async function main() {
 
   console.log('✅ Seeding pengurus completed');
 
+  const pewawancaraPassword = 'pewawancara123';
+  const pewawancaraHashes = await Promise.all(
+    Array.from({ length: 20 }, () => hashPassword(pewawancaraPassword))
+  );
+
+  const pewawancaraPromises = pewawancaraHashes.map((password, i) =>
+    prisma.user.create({
+      data: {
+        name: `Pewawancara ${i + 1}`,
+        email: `pewawancara${i + 1}@gmail.com`,
+        password,
+        role: 'Pewawancara',
+      },
+    })
+  );
+
+  await Promise.all(pewawancaraPromises);
+
+  console.log('✅ Seeding pewawancara completed');
+
   // 80 Mahasiswa
   const studentPassword = 'mahasiswa123';
   let globalIndex = 1;
@@ -113,7 +133,7 @@ async function main() {
     });
   }
 
-  // 40 Mahasiswa dengan semua file telah diupload
+  // 40 Mahasiswa dengan beberapa file telah diupload
   for (let i = 20; i < 60; i++) {
     const student = allStudents[i];
     const files = [

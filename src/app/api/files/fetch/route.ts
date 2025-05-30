@@ -96,31 +96,115 @@ const prisma = new PrismaClient();
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
+
+
+
+// export async function POST(request: Request) {
+//   try {
+//     const session = await getServerSession(authOptions);
+
+//     if (!session?.user?.id || session.user.role !== "Pengurus_IOM") {
+//       return NextResponse.json(
+//         { success: false, error: "Unauthorized" },
+//         { status: 403 }
+//       );
+//     }
+
+//     const body = await request.json();
+//     const { period_id } = body;
+
+//     if (!period_id || isNaN(Number(period_id))) {
+//       return NextResponse.json(
+//         { success: false, error: "Invalid or missing period_id" },
+//         { status: 400 }
+//       );
+//     }
+
+//     const studentData = await prisma.status.findMany({
+//       where: {
+//         period_id: Number(period_id),
+//       },
+//       select: {
+//         student_id: true,
+//         period_id: true,
+//         passDitmawa: true,
+//         passIOM: true,
+//         Student: {
+//           select: {
+//             nim: true,
+//             User: {
+//               select: {
+//                 user_id: true,
+//                 name: true,
+//               },
+//             },
+//             Files: {
+//               select: {
+//                 file_id: true,
+//                 student_id: true,
+//                 file_url: true,
+//                 file_name: true,
+//                 type: true,
+//               },
+//             },
+//           },
+//         },
+//       },
+//     });
+
+//     return NextResponse.json({ success: true, data: studentData });
+//   } catch (error) {
+//     console.error("Error fetching students and files:", error);
+//     return NextResponse.json(
+//       { success: false, error: "Failed to fetch data" },
+//       { status: 500 }
+//     );
+//   }
+// }
+
 export async function POST(request: Request) {
+  const session = await getServerSession(authOptions);
+  const allowedRoles = ["Pengurus_IOM", "Pewawancara"];
+
+  if (!session?.user?.id || !allowedRoles.includes(session.user.role)) {
+    return NextResponse.json(
+      { success: false, error: "Unauthorized" },
+      { status: 403 }
+    );
+  }
+
+  const user_id = parseInt(session.user.id);
+
+  const { period_id } = await request.json();
+  const pid = Number(period_id);
+  if (!pid || isNaN(pid)) {
+    return NextResponse.json(
+      { success: false, error: "Invalid or missing period_id" },
+      { status: 400 }
+    );
+  }
+
   try {
-    const session = await getServerSession(authOptions);
+    const baseWhere = { period_id: pid };
 
-    if (!session?.user?.id || session.user.role !== "Pengurus_IOM") {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized" },
-        { status: 403 }
-      );
-    }
-
-    const body = await request.json();
-    const { period_id } = body;
-
-    if (!period_id || isNaN(Number(period_id))) {
-      return NextResponse.json(
-        { success: false, error: "Invalid or missing period_id" },
-        { status: 400 }
-      );
-    }
+    const whereClause =
+      session.user.role === "Pewawancara"
+        ? {
+            ...baseWhere,
+            Student: {
+              InterviewSlots: {
+                some: {
+                  period_id: pid,
+                  user_id: user_id,
+                  student_id: { not: null },
+                },
+              },
+            },
+          }
+        : baseWhere;
 
     const studentData = await prisma.status.findMany({
-      where: {
-        period_id: Number(period_id),
-      },
+      where: whereClause,
       select: {
         student_id: true,
         period_id: true,

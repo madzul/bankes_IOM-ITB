@@ -35,5 +35,5 @@ COPY . .
 # RUN npm run lint && npx tsc --noEmit
 
 # 8) Dev server
-EXPOSE 3000
+EXPOSE 3031
 CMD ["bash", "-c", "npx prisma migrate deploy && npm run dev"]

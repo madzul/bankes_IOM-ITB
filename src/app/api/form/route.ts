@@ -96,50 +96,52 @@ export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session?.user?.id || session.user.role !== "Pengurus_IOM") {
+    const allowedRoles = ["Pengurus_IOM", "Pewawancara"];
+    if (!session?.user?.id || !allowedRoles.includes(session.user.role)) {
       return NextResponse.json(
         { success: false, error: "Unauthorized" },
         { status: 403 }
       );
     }
 
-    const body = await request.json();
-    const { period_id } = body;
-
-    if (!period_id || isNaN(Number(period_id))) {
+    const { period_id } = await request.json();
+    const slotId = Number(period_id);
+    if (!slotId || isNaN(slotId)) {
       return NextResponse.json(
         { success: false, error: "Invalid or missing period_id" },
         { status: 400 }
       );
     }
 
+    // Build the base filter for this slot
+    const whereClause: any = {
+      slot: { id: slotId },
+    };
+
+    // If the user is a Pewawancara, restrict to notes on their own slots
+    if (session.user.role === "Pewawancara") {
+      whereClause.slot.user_id = parseInt(session.user.id, 10);
+    }
+
+    // Apply the whereClause here
     const notes = await prisma.notes.findMany({
-      where: {
-        slot: {
-            id: Number(period_id),
-        },
-      },
+      where: whereClause,
       select: {
         text: true,
         student: {
           select: {
             nim: true,
-            User: {
-              select: {
-                name: true,
-              }
-            }
+            User: { select: { name: true } },
           },
         },
       },
     });
 
-    const formatted = notes.map(note => ({
+    const formatted = notes.map((note) => ({
       text: note.text,
       nim: note.student.nim,
-      userName: note.student.User.name
+      userName: note.student.User.name,
     }));
-
     return NextResponse.json({ success: true, data: formatted });
   } catch (error) {
     console.error("Error fetching form interview:", error);

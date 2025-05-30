@@ -6,7 +6,7 @@ services:
       context: .
       dockerfile: Dockerfile.dev
     ports:
-      - "3000:3000"
+      - "3031:3031"
     volumes:
       # Mount your app code for live reload
       - ./:/app:delegated            # <— source & package.json, lockfile, prisma, etc.
@@ -29,7 +29,7 @@ services:
       - AZURE_AD_CLIENT_SECRET=mkE8Q~ACq6pSwVy3j4dHncFIijwEbzD_KyAHJaLC
       - AZURE_AD_TENANT_ID=db6e1183-4c65-405c-82ce-7cd53fa6e9dc
       - NEXTAUTH_SECRET=random
-      - NEXTAUTH_URL=http://localhost:3000
+      - NEXTAUTH_URL=http://localhost:3031
     depends_on:
       postgres:
         condition: service_healthy
@@ -77,9 +77,12 @@ services:
     depends_on:
       minio:
         condition: service_healthy
-    entrypoint: ["/bin/sh", "-c", "/app/scripts/minio-init.sh"]
+    entrypoint: [ "sh", "-c",
+      # strip CRLF, then run
+      "sed -i 's/\\r$//' /minio-init.sh && chmod +x /minio-init.sh && /minio-init.sh"
+    ]
     volumes:
-      - ./minio-init.sh:/app/scripts/minio-init.sh:ro
+      - ./minio-init.sh:/app/minio-init.sh:ro
     restart: "no"
 
 volumes:

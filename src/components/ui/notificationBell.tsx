@@ -41,7 +41,7 @@ export default function NotificationBell() {
         )}
       </button>
       {open && (
-        <div className="absolute -right-10 mt-2 w-80 max-h-100 overflow-y-auto bg-gray-50 shadow-lg rounded-lg p-4">
+        <div className="absolute left-0 mt-2 w-80 max-h-96 overflow-y-auto bg-gray-50 shadow-lg rounded-lg p-4 z-[60] border">
           <h2 className="text-lg font-bold text-main border-b pb-1">Notifikasi</h2>
           <div className="mt-2 space-y-2">
             {notifications.length > 0 ? (
