@@ -4,12 +4,83 @@ import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { useRouter } from "next/navigation";
+import { useState } from "react"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Checkbox } from "@/components/ui/checkbox"
 
 export default function LoginPage() {
   const router = useRouter();
+  const [showTerms, setShowTerms] = useState(false)
+  const [agreedToTerms, setAgreedToTerms] = useState(false)
+
+  const handleSignInClick = () => {
+    setShowTerms(true)
+  }
+
+  const handleAgreeAndSignIn = () => {
+    if (agreedToTerms) {
+      setShowTerms(false)
+      signIn("azure-ad", { callbackUrl: "/student/profile" })
+    }
+  }
+
+  const handleCancel = () => {
+    setShowTerms(false)
+    setAgreedToTerms(false)
+  }
 
   return (
     <div className="flex flex-col items-center justify-center h-screen bg-cover bg-center" style={{ backgroundImage: "url('/bg.png')" }}>
+      <Dialog open={showTerms} onOpenChange={setShowTerms}>
+        <DialogContent className="max-w-2xl max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle>Syarat dan Ketentuan</DialogTitle>
+            <DialogDescription>Harap baca dan terima syarat dan ketentuan kami sebelum melanjutkan.</DialogDescription>
+          </DialogHeader>
+
+          <ScrollArea className="h-96 w-full rounded-md border p-4">
+            <div className="space-y-4 text-sm">
+              <h3 className="font-semibold text-base">1. Kebenaran</h3>
+              <p>
+                Seluruh data yang saya berikan adalah benar
+              </p>
+
+            </div>
+          </ScrollArea>
+
+          <div className="flex items-center space-x-2 py-4">
+            <Checkbox
+              id="terms"
+              checked={agreedToTerms}
+              className="data-[state=checked]:border-var data-[state=checked]:bg-var data-[state=checked]:text-white dark:data-[state=checked]:border-var dark:data-[state=checked]:bg-var"
+              onCheckedChange={(checked) => setAgreedToTerms(checked === true)}
+            />
+            <label
+              htmlFor="terms"
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            >
+              Saya setuju dengan Syarat dan Ketentuan
+            </label>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={handleCancel}>
+              Batal
+            </Button>
+            <Button className="bg-var" onClick={handleAgreeAndSignIn} disabled={!agreedToTerms}>
+              Setuju dan Masuk
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <Card className="w-full max-w-md mx-auto rounded-xl shadow-sm">
       <CardContent className="space-y-6">
         <div className="space-y-2">
@@ -26,7 +97,7 @@ export default function LoginPage() {
           <Button
             variant="outline"
             className="w-full justify-start h-12 text-left cursor-pointer"
-            onClick={() => signIn("azure-ad", { callbackUrl: "/student/profile" })}
+            onClick={handleSignInClick}
           >
             <div className="flex items-center">
               <svg width="20" height="20" viewBox="0 0 23 23" xmlns="http://www.w3.org/2000/svg" className="mr-3">

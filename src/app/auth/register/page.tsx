@@ -242,6 +242,7 @@ export default function RegisterPage() {
             <Checkbox
               id="terms"
               checked={agreedToTerms}
+              className="data-[state=checked]:border-var data-[state=checked]:bg-var data-[state=checked]:text-white dark:data-[state=checked]:border-var dark:data-[state=checked]:bg-var"
               onCheckedChange={(checked) => setAgreedToTerms(checked as boolean)}
             />
             <div className="grid gap-1.5 leading-none">
