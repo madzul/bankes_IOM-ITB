@@ -91,7 +91,7 @@ export default function AccountPage() {
         <SidebarAdmin activeTab="request" />
       </div>
       <div className="my-8 mr-8 w-full">
-        <h1 className="text-2xl font-bold mb-6">Konfirmasi Akun Pengurus IOM</h1>
+        <h1 className="text-2xl font-bold mb-6">Manajemen Persetujuan Akun</h1>
         <Card className="p-8 w-full">
           <table className="w-full text-left border-collapse">
             <thead>

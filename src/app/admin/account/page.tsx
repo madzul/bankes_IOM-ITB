@@ -135,18 +135,16 @@ export default function AccountPage() {
   return (
     <div className="flex min-h-screen bg-gray-100">
       <Toaster position="bottom-right" richColors />
-      
-      {/* Confirmation Modal - Repositioned to top */}
       {showConfirmation && (
         <div className="fixed top-4 left-0 right-0 flex justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full border border-gray-200">
             <h3 className="text-lg font-semibold mb-4">
-              {confirmationAction?.type === "delete" ? "Confirm Deletion" : "Confirm Update"}
+              {confirmationAction?.type === "delete" ? "Konfirmasi Hapus Akun" : "Konfirmasi Update Akun"}
             </h3>
             <p className="mb-6">
               {confirmationAction?.type === "delete" 
-                ? `Are you sure you want to delete ${confirmationAction?.userName || "this user"}? This action cannot be undone.`
-                : `Are you sure you want to update ${confirmationAction?.userName || "this user"}'s role?`}
+                ? `Apakah anda yakin untuk menghapus ${confirmationAction?.userName || "pengguna ini"}? Tindakan ini tidak dapat dibatalkan.`
+                : `Apakah anda yakin untuk mengupdate role ${confirmationAction?.userName || "pengguna ini"}?`}
             </p>
             <div className="flex justify-end space-x-4">
               <button 
@@ -167,19 +165,16 @@ export default function AccountPage() {
           </div>
         </div>
       )}
-      
-      {/* Rest of your UI */}
       <div className="w-1/4 m-8">
         <SidebarAdmin activeTab="account" />
       </div>
       <div className="my-8 mr-8 w-full">
-        <h1 className="text-2xl font-bold mb-4">Manage User Accounts</h1>
-        <Card className="p-8 w-full">  
-          {/* Search and filter controls */}
+        <h1 className="text-2xl font-bold mb-4">Manajemen Akun</h1>
+        <Card className="p-8 w-full">
           <div className="flex gap-4 mb-4 justify-center">
             <input
               type="text"
-              placeholder="Search name or email"
+              placeholder="Cari nama atau email"
               value={searchTerm}
               onChange={e => { setSearchTerm(e.target.value); setCurrentPage(1); }}
               className="border rounded px-3 py-2 flex-1 max-w-md"
@@ -189,7 +184,7 @@ export default function AccountPage() {
               onChange={e => { setRoleFilter(e.target.value); setCurrentPage(1); }}
               className="border rounded px-3 py-2 cursor-pointer"
             >
-              <option value="all">All Roles</option>
+              <option value="all">Semua Role</option>
               <option value="Mahasiswa">Mahasiswa</option>
               <option value="Pengurus_IOM">Pengurus IOM</option>
               <option value="Pewawancara">Pewawancara</option>
@@ -199,7 +194,7 @@ export default function AccountPage() {
             <table className="w-full text-center border-collapse">
               <thead>
                 <tr className="border-b">
-                  {['Name','Email','Role','Actions'].map((col) => (
+                  {['Nama','Email','Role','Aksi'].map((col) => (
                     <th key={col} className="w-1/4 px-4 py-2 text-center align-center self-center items-center ">{col}</th>
                   ))}
                 </tr>
@@ -226,7 +221,7 @@ export default function AccountPage() {
                       <button
                         className="bg-red-500 text-white px-3 py-1 rounded cursor-pointer hover:opacity-90"
                         onClick={() => confirmAction("delete", user.user_id.toString(), user.name)}
-                      >Delete</button>
+                      >Hapus</button>
                       {/* Only show Update button when role is changed */}
                       {user.role !== "Mahasiswa" && roleMap[user.user_id.toString()] !== user.role && (
                         <button
@@ -245,13 +240,13 @@ export default function AccountPage() {
               disabled={currentPage === 1}
               onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
               className="px-3 py-1 border rounded disabled:opacity-50 cursor-pointer"
-            >Previous</button>
-            <span>Page {currentPage} of {totalPages}</span>
+            >Sebelumnya</button>
+            <span>Halaman {currentPage} dari {totalPages}</span>
             <button
               disabled={currentPage === totalPages}
               onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
               className="px-3 py-1 border rounded disabled:opacity-50 cursor-pointer"
-            >Next</button>
+            >Berikutnya</button>
           </div>
         </Card>
       </div>

@@ -304,7 +304,7 @@ export default function Upload() {
                     <option value="">Pilih Periode</option>
                     {periods.map((period) => (
                       <option key={period.period_id} value={period.period_id}>
-                        {period.period} {period.is_current ? "(Current)" : ""}
+                        {period.period} {period.is_current ? "(Sekarang)" : ""}
                       </option>
                     ))}
                   </select>
