@@ -19,19 +19,20 @@ RUN apt-get update -y && \
     && npm install -g wait-on
 
 # 1.1) install all dependencies
-COPY package.json package-lock.json ./
+COPY package.json package-lock.json tsconfig.json postcss.config.js ./
 
 # Clear npm cache and rebuild native modules in container
 RUN npm cache clean --force
-RUN npm ci --legacy-peer-deps
+RUN npm install -D @tailwindcss/postcss autoprefixer --legacy-peer-deps
+RUN npm ci --include=dev --legacy-peer-deps
 
 # Force rebuild bcrypt for the container architecture
 RUN npm rebuild bcrypt --build-from-source
 
 # 1.2) generate Prisma client (make sure)
-COPY prisma/ ./prisma/ 
+COPY prisma/ ./prisma/
 
-RUN npx prisma generate 
+RUN npx prisma generate
 
 # 1.3) copy rest of the app and build
 COPY . .
