@@ -5,7 +5,7 @@ info:
   description: |
     OpenAPI spec for IOM website
 servers:
-  - url: http://localhost:3000
+  - url: http://localhost:3031
     description: Local development server
 paths:
   /api/users/{id}:

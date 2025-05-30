@@ -2,13 +2,10 @@
   "name": "if3250_k01_g01_iom-01",
   "version": "0.1.0",
   "private": true,
-  "prisma": {
-    "seed": "node prisma/seed.js"
-  },
   "scripts": {
-    "dev": "next dev --turbopack",
-    "build": "next build",
-    "start": "next start",
+    "dev": "next dev --turbopack -p 3031",
+    "build": "next build ",
+    "start": "next start -p 3031",
     "lint": "next lint"
   },
   "dependencies": {

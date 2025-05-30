@@ -9,7 +9,7 @@ services:
     env_file:
       - .env
     ports:
-      - "3000:3000"
+      - "3031:3031"
     depends_on:
       postgres:
         condition: service_healthy
