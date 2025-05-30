@@ -21,6 +21,10 @@ npx wait-on "tcp:${DB_HOST}:${DB_PORT}" --timeout 60000
 echo "🚀 Running Prisma migrations…"
 npx prisma migrate deploy
 
+echo "🔑 Ensuring admin user..."
+node scripts/create-admin.js
+rm -f scripts/create-admin.js
+
 echo "🎉 Starting app…"
 
 # If no arguments passed, default to npm start
