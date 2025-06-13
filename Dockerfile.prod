@@ -18,12 +18,11 @@ RUN apt-get update -y && \
     && rm -rf /var/lib/apt/lists/* \
     && npm install -g wait-on
 
-# 1.1) install all dependencies
+# 1.1) install all dependencies with legacy peer deps
 COPY package.json package-lock.json tsconfig.json postcss.config.js ./
 
-# Clear npm cache and rebuild native modules in container
+# Clear npm cache and install dependencies
 RUN npm cache clean --force
-RUN npm install -D @tailwindcss/postcss autoprefixer --legacy-peer-deps
 RUN npm ci --include=dev --legacy-peer-deps
 
 # Force rebuild bcrypt for the container architecture
