@@ -76,7 +76,7 @@ COPY --from=builder /app/prisma/         ./prisma/
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
-EXPOSE 3031
+EXPOSE 13031
 
 ENTRYPOINT ["entrypoint.sh"]
 CMD ["npm", "start"]

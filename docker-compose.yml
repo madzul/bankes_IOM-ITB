@@ -6,7 +6,8 @@ services:
       context: .
       dockerfile: Dockerfile.dev
     ports:
-      - "3031:3031"
+      #      - "3031:3031"
+      - "13031:3031"
     volumes:
       # Mount your app code for live reload
       - ./:/app:delegated            # <— source & package.json, lockfile, prisma, etc.
@@ -29,7 +30,8 @@ services:
       - AZURE_AD_CLIENT_SECRET=mkE8Q~ACq6pSwVy3j4dHncFIijwEbzD_KyAHJaLC
       - AZURE_AD_TENANT_ID=db6e1183-4c65-405c-82ce-7cd53fa6e9dc
       - NEXTAUTH_SECRET=random
-      - NEXTAUTH_URL=http://localhost:3031
+        #      - NEXTAUTH_URL=http://localhost:3031
+      - NEXTAUTH_URL=http://localhost:13031
     depends_on:
       postgres:
         condition: service_healthy
@@ -40,7 +42,8 @@ services:
   postgres:
     image: postgres:15-alpine
     ports:
-      - "5432:5432"
+      #- "5432:5432"
+      - "15432:5432"
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
@@ -57,14 +60,16 @@ services:
   minio:
     image: minio/minio
     ports:
-      - "9000:9000"  # API
-      - "9001:9001"  # Console
+      #- "9000:9000"  # API
+      #- "9001:9001"  # Console
+      - "19000:9000"  # API
+      - "19001:9001"  # Console
     environment:
       - MINIO_ROOT_USER=minioadmin
       - MINIO_ROOT_PASSWORD=minioadmin
     volumes:
       - minio-data:/data
-    command: server /data --console-address ":9001"
+    command: server /data --console-address ":19001"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
       interval: 30s
