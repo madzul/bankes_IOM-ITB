@@ -7,7 +7,8 @@ services:
       dockerfile: Dockerfile.dev
     container_name: iom-app
     ports:
-      - "3031:3031"
+      #      - "3031:3031"
+      - "13031:3031"
     volumes:
       # Mount your source code for hot reload
       - ./:/app:delegated
@@ -48,7 +49,8 @@ services:
     image: postgres:15-alpine
     container_name: iom-postgres
     ports:
-      - "5432:5432"
+      #- "5432:5432"
+      - "15432:5432"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -73,7 +75,7 @@ services:
       MINIO_ROOT_PASSWORD: minioadmin
     volumes:
       - minio-data:/data
-    command: server /data --console-address ":9001"
+    command: server /data --console-address ":19001"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
       interval: 30s
