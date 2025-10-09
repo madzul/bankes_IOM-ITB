@@ -218,6 +218,7 @@ export default function Form() {
     rekomendasiKesehatan:"",
     rekomendasiOrangtua:"",
     rekomendasiOther:"",
+    pertanyaanLainnya:"",
   });
 
   const handleCheckboxChange = (field: keyof typeof form) => {
@@ -2047,6 +2048,17 @@ export default function Form() {
                               placeholder="Lainnya"
                             />
                           </div>
+                        </div>
+
+                        <div>
+                          <label className="block font-medium">Pertanyaan/catatan lainnya</label>
+                          <textarea
+                            className="mt-1 w-full border p-2 rounded"
+                            rows={4}
+                            value={form.pertanyaanLainnya || ''}
+                            onChange={e => setForm({ ...form, pertanyaanLainnya: e.target.value })}
+                            placeholder="Tuliskan pertanyaan atau catatan tambahan lainnya..."
+                          />
                         </div>
 
                         <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
