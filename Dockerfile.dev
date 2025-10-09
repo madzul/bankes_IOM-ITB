@@ -16,9 +16,9 @@ ARG NODE_ENV=development
 ENV NODE_ENV=${NODE_ENV}
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# 3) Install everything
+# 3) Install everything with legacy peer deps to resolve React 19 conflicts
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN npm ci --legacy-peer-deps
 
 # 4) Prisma client
 COPY prisma ./prisma
@@ -34,6 +34,10 @@ COPY . .
 # 7) Lint + type-check (now after source is copied)
 # RUN npm run lint && npx tsc --noEmit
 
+# COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+# RUN chmod +x /usr/local/bin/entrypoint.sh
+
 # 8) Dev server
 EXPOSE 3031
+
 CMD ["bash", "-c", "npx prisma migrate deploy && npm run dev"]
