@@ -1,50 +1,58 @@
-version: '3.8'
+version: "3.8"
 
 services:
   app:
     build:
       context: .
       dockerfile: Dockerfile.dev
+    container_name: iom-app
     ports:
       - "3031:3031"
     volumes:
-      # Mount your app code for live reload
-      - ./:/app:delegated            # <— source & package.json, lockfile, prisma, etc.
-      - /app/node_modules            # <— keep the container's own node_modules intact
-    environment:
-      # Next.js dev settings
-      - NEXT_TELEMETRY_DISABLED=1
-      - NODE_ENV=development
+      # Mount your source code for hot reload
+      - ./:/app:delegated
 
-      #  backend env vars (if needed in dev)
-      - DATABASE_URL=postgresql://postgres:postgres@postgres/db
-      - JWT_SECRET=HIDUPMAHASISWA
-      - MINIO_ENDPOINT=minio
-      - MINIO_PORT=9000
-      - MINIO_USE_SSL=false
-      - MINIO_ACCESS_KEY=minioadmin
-      - MINIO_SECRET_KEY=minioadmin
-      - MINIO_BUCKET_NAME=iom-itb
-      - AZURE_AD_CLIENT_ID=399d7b9a-36a0-42ac-883b-b72485a32d79
-      - AZURE_AD_CLIENT_SECRET=mkE8Q~ACq6pSwVy3j4dHncFIijwEbzD_KyAHJaLC
-      - AZURE_AD_TENANT_ID=db6e1183-4c65-405c-82ce-7cd53fa6e9dc
-      - NEXTAUTH_SECRET=random
-      - NEXTAUTH_URL=http://localhost:3031
+      # Keep container’s node_modules persistent (avoid overwriting by bind mount)
+      - ./node_modules:/app/node_modules
+
+    environment:
+      NEXT_TELEMETRY_DISABLED: 1
+      NODE_ENV: development
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/db
+      JWT_SECRET: HIDUPMAHASISWA
+      MINIO_ENDPOINT: minio
+      MINIO_PORT: 9000
+      MINIO_USE_SSL: "false"
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+      MINIO_BUCKET_NAME: iom-itb
+      AZURE_AD_CLIENT_ID: 399d7b9a-36a0-42ac-883b-b72485a32d79
+      AZURE_AD_CLIENT_SECRET: mkE8Q~ACq6pSwVy3j4dHncFIijwEbzD_KyAHJaLC
+      AZURE_AD_TENANT_ID: db6e1183-4c65-405c-82ce-7cd53fa6e9dc
+      NEXTAUTH_SECRET: random
+      NEXTAUTH_URL: http://localhost:3031
+
     depends_on:
       postgres:
         condition: service_healthy
       minio:
         condition: service_healthy
+
+    command: >
+      bash -c "npx prisma migrate deploy &&
+               npm run dev -- -p 3031"
+
     restart: unless-stopped
 
   postgres:
     image: postgres:15-alpine
+    container_name: iom-postgres
     ports:
       - "5432:5432"
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: db
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
@@ -56,12 +64,13 @@ services:
 
   minio:
     image: minio/minio
+    container_name: iom-minio
     ports:
-      - "9000:9000"  # API
-      - "9001:9001"  # Console
+      - "9000:9000"
+      - "9001:9001"
     environment:
-      - MINIO_ROOT_USER=minioadmin
-      - MINIO_ROOT_PASSWORD=minioadmin
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
     volumes:
       - minio-data:/data
     command: server /data --console-address ":9001"
@@ -74,13 +83,11 @@ services:
 
   minio-init:
     image: minio/mc
+    container_name: iom-minio-init
     depends_on:
       minio:
         condition: service_healthy
-    entrypoint: [ "sh", "-c",
-      # strip CRLF, then run
-      "sed -i 's/\\r$//' /minio-init.sh && chmod +x /minio-init.sh && /minio-init.sh"
-    ]
+    entrypoint: ["/bin/sh", "-c", "chmod +x /app/minio-init.sh && /app/minio-init.sh"]
     volumes:
       - ./minio-init.sh:/app/minio-init.sh:ro
     restart: "no"

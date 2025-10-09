@@ -34,6 +34,10 @@ COPY . .
 # 7) Lint + type-check (now after source is copied)
 # RUN npm run lint && npx tsc --noEmit
 
+# COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+# RUN chmod +x /usr/local/bin/entrypoint.sh
+
 # 8) Dev server
 EXPOSE 3031
+
 CMD ["bash", "-c", "npx prisma migrate deploy && npm run dev"]
