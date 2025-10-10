@@ -92,12 +92,12 @@ export default function RegisterPage() {
         })
 
         /**
-         * need to work on this part
-         * i don't know why it's not working in client-side
-         * but it's working on the server-side or event network tab in developer mode
+         * Handle successful registration
          */
         if (response.ok) {
+          const data = await response.json()
           router.push("/auth/login")
+          return
         }
 
         const data = await response.json()

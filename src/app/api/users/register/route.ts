@@ -167,8 +167,6 @@ export async function POST(req: Request) {
     /**
      * this is the response that will be sent to the client 
      * after the user is successfully created
-     * 
-     * it will redirect the user to the login page 
      */
 
     if (!newUser) {
@@ -176,9 +174,7 @@ export async function POST(req: Request) {
       return NextResponse.json(errors, { status: 400 });
     }
     else{
-      return NextResponse.redirect(new URL('/auth/login', req.url), {
-        status: 302
-      });
+      return NextResponse.json({ success: true, message: "User created successfully" }, { status: 201 });
     }
   } catch (error) {
     console.error(error);
