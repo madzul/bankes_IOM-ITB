@@ -46,7 +46,7 @@ services:
     restart: unless-stopped
 
   postgres:
-    image: postgres:15-alpine
+    image: postgres:17-alpine
     container_name: iom-postgres
     ports:
       #- "5432:5432"
