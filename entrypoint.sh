@@ -1,6 +1,18 @@
 #!/bin/sh
 set -e
 
+echo "Waiting for PostgreSQL..."
+wait-on tcp:postgres:5432
+
+# echo "Running Prisma reset..."
+# npx prisma migrate reset
+
+echo "Running Prisma migrate" 
+npx prisma migrate dev --name=db 
+
+echo "Running Prisma deploy" 
+npx prisma migrate deploy
+
 # ensure DATABASE_URL is provided
 : "${DATABASE_URL:?Need to set DATABASE_URL}"
 
