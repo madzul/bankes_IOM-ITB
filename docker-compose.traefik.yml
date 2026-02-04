@@ -46,6 +46,12 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.minio-v1.rule=Host(`s3-v1.iom-itb.id`)"
       - "traefik.http.services.minio-v1.loadbalancer.server.port=9000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   minio-init:
     image: minio/mc:latest
