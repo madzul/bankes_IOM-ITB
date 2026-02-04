@@ -1,0 +1,90 @@
+# docker-compose.coolify.yml
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    image: bankes-app:coolify
+    env_file:
+      - .env
+    # HAPUS ports binding host (3031:3031) agar tidak konflik dengan yang lama
+    expose:
+      - "3031"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+    restart: unless-stopped
+    # Label Traefik agar dikenali Coolify/Traefik Proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.bankes-new.rule=Host(`bankes-v2.iom-itb.id`)" 
+      - "traefik.http.routers.bankes-new.entrypoints=websecure"
+      - "traefik.http.routers.bankes-new.tls.certresolver=letsencrypt"
+      - "traefik.http.services.bankes-new.loadbalancer.server.port=3031"
+
+  postgres:
+    image: postgres:17-alpine
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      - postgres-data-new:/var/lib/postgresql/data # Gunakan volume BEDA agar DB lama aman
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 2s
+      retries: 10
+      start_period: 5s
+    restart: unless-stopped
+
+  minio:
+    image: minio/minio:latest
+    env_file:
+      - .env
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+      - MINIO_SERVER_URL=https://s3-v2.iom-itb.id
+      - MINIO_BROWSER_REDIRECT_URL=https://console-v2.iom-itb.id
+    command: server /data --console-address ":9001"
+    expose:
+      - "9000"
+      - "9001"
+    volumes:
+      - minio-data-new:/data # Gunakan volume BEDA
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    # Label Traefik untuk MinIO (Opsional jika ingin diakses publik via domain baru)
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.minio-new.rule=Host(`s3-v2.iom-itb.id`)"
+      - "traefik.http.services.minio-new.loadbalancer.server.port=9000"
+
+  minio-init:
+    image: minio/mc:latest
+    env_file:
+      - .env
+    depends_on:
+      minio:
+        condition: service_healthy
+    volumes:
+      - ./minio-init.sh:/minio-init.sh
+    entrypoint: ["/bin/bash", "/minio-init.sh"]
+    restart: "no"
+
+volumes:
+  postgres-data-new:
+  minio-data-new:
+  # Network default akan dibuat otomatis, biasanya terisolasi per-project name
