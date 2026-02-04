@@ -1,0 +1,66 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    image: bankes-app:traefik
+    env_file: .env.traefik  # Menggunakan env khusus
+    networks:
+      - coolify
+      - default
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      # Gunakan domain sementara untuk testing
+      - "traefik.http.routers.bankes-v1.rule=Host(`v1-bankes.iom-itb.id`)" 
+      - "traefik.http.routers.bankes-v1.entrypoints=websecure"
+      - "traefik.http.routers.bankes-v1.tls.certresolver=letsencrypt"
+      - "traefik.http.services.bankes-v1.loadbalancer.server.port=3031"
+
+  postgres:
+    image: postgres:17-alpine
+    env_file: .env.traefik
+    volumes:
+      - postgres-data-v1:/var/lib/postgresql/data # Volume BEDA nama
+    networks:
+      - default
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio:latest
+    env_file: .env.traefik
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio-data-v1:/data # Volume BEDA nama
+    networks:
+      - coolify # Agar console bisa diakses via traefik jika perlu
+      - default
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.minio-v1.rule=Host(`s3-v1.iom-itb.id`)"
+      - "traefik.http.services.minio-v1.loadbalancer.server.port=9000"
+
+  minio-init:
+    image: minio/mc:latest
+    env_file: .env.traefik
+    depends_on:
+      minio:
+        condition: service_healthy
+    volumes:
+      - ./minio-init.sh:/minio-init.sh
+    entrypoint: ["/bin/bash", "/minio-init.sh"]
+
+networks:
+  coolify:
+    external: true
+
+volumes:
+  postgres-data-v1:
+  minio-data-v1:
